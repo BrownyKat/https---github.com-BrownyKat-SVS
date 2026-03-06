@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - SVS</title>
+  <style>
+    body{margin:0;font-family:Arial,sans-serif;color:#0f172a;display:flex;min-height:100vh;align-items:center;justify-content:center;background:radial-gradient(520px 280px at 100% 0,rgba(29,78,216,.22),transparent 64%),radial-gradient(420px 260px at 0 100%,rgba(250,204,21,.28),transparent 66%),#e7f0ff}
+    .card{width:min(420px,92vw);background:linear-gradient(180deg,#f6f9ff,#ffffff);border:1px solid #9dc4ef;border-radius:14px;padding:24px;box-shadow:0 12px 28px rgba(15,23,42,.12);animation:fadeUp .4s ease both}
+    .logo-wrap{text-align:center;margin-bottom:10px}
+    .logo{width:170px;max-width:56vw;height:auto;object-fit:contain;display:inline-block}
+    h1{margin:0 0 8px;font-size:24px}
+    p{margin:0 0 18px;color:#1e3a8a;font-size:14px}
+    label{display:block;font-size:12px;font-weight:700;margin:10px 0 6px;text-transform:uppercase;color:#1e3a8a}
+    input,select{width:100%;padding:11px;border:1px solid #93c5fd;border-radius:10px;font-size:14px;box-sizing:border-box}
+    .btn{margin-top:14px;width:100%;padding:12px;border:0;border-radius:10px;background:#1d4ed8;color:#fff;font-weight:700;cursor:pointer}
+    .err{background:#fef2f2;border:1px solid #fca5a5;color:#b91c1c;padding:10px;border-radius:10px;margin-bottom:12px;font-size:13px}
+    .hint{margin-top:12px;font-size:12px;color:#334155}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:460px){.card{padding:18px;border-radius:12px}}
+  </style>
+</head>
+<body>
+  <form class="card" method="post" action="/login" id="adminLoginForm">
+    <div class="logo-wrap"><img class="logo" src="/images/logo.png" alt="MDRRMO SVS Logo"></div>
+    <h1>Admin Login</h1>
+    <p>Sign in to access the admin console.</p>
+    <% if (error) { %><div class="err"><%= error %></div><% } %>
+    <label for="username">Username</label>
+    <input id="username" name="username" required autocomplete="username">
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" required autocomplete="current-password">
+    <button class="btn" type="submit">Login</button>
+  </form>
+  <script>
+    try {
+      const q = new URLSearchParams(window.location.search);
+      if (q.get('force') === '1') {
+        sessionStorage.removeItem('svs_admin_window_ok');
+      }
+      const f = document.getElementById('adminLoginForm');
+      if (f) {
+        f.addEventListener('submit', function () {
+          sessionStorage.setItem('svs_admin_window_ok', String(Date.now()));
+          sessionStorage.removeItem('svs_dispatcher_window_ok');
+        });
+      }
+    } catch (_e) {}
+  </script>
+</body>
+</html>
+

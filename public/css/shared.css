@@ -1,0 +1,204 @@
+/* ─────────────────────────────────────────────
+   SVS  –  Shared design tokens & base styles
+   Heroicons outlined via inline SVG
+───────────────────────────────────────────── */
+
+:root {
+  /* Brand */
+  --amber:        #FACC15;
+  --amber-dark:   #EAB308;
+  --amber-deep:   #CA8A04;
+  --amber-light:  #FEFCE8;
+  --amber-border: #FDE047;
+  --orange:       #DC2626;
+  --orange-light: #FEF2F2;
+  --orange-border:#FCA5A5;
+  --red:          #DC2626;
+  --red-light:    #FEF2F2;
+  --red-border:   #FCA5A5;
+  --green:        #2563EB;
+  --green-light:  #DBEAFE;
+  --green-border: #93C5FD;
+  --blue:         #1D4ED8;
+  --blue-light:   #EFF6FF;
+  --blue-border:  #BFDBFE;
+
+  /* Surface */
+  --bg:           #F8FAFC;
+  --surface:      #FFFFFF;
+  --border:       #DBE7F4;
+  --border-mid:   #BFD5EE;
+  --border-dark:  #93B7E1;
+
+  /* Text */
+  --text:         #0F172A;
+  --text2:        #1E3A8A;
+  --muted:        #334155;
+  --muted2:       #64748B;
+
+  /* Elevation */
+  --shadow-xs: 0 1px 2px rgba(15,23,42,0.06);
+  --shadow-sm: 0 1px 3px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.05);
+  --shadow-md: 0 4px 12px rgba(15,23,42,0.10), 0 2px 6px rgba(15,23,42,0.06);
+  --shadow-lg: 0 12px 32px rgba(15,23,42,0.12), 0 4px 12px rgba(15,23,42,0.07);
+  --shadow-xl: 0 24px 56px rgba(15,23,42,0.14), 0 8px 20px rgba(15,23,42,0.08);
+
+  /* Radii */
+  --r-sm:  8px;
+  --r-md:  12px;
+  --r-lg:  16px;
+  --r-xl:  22px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  animation: pageFade .35s ease both;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 99px; }
+
+/* ── Shared icon sizing helper ── */
+.icon-xs  { width: 14px; height: 14px; }
+.icon-sm  { width: 16px; height: 16px; }
+.icon-md  { width: 20px; height: 20px; }
+.icon-lg  { width: 24px; height: 24px; }
+.icon-xl  { width: 32px; height: 32px; }
+.icon-2xl { width: 40px; height: 40px; }
+
+svg.hi {
+  display: inline-block;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── Shared header ── */
+.app-header {
+  position: sticky; top: 0; z-index: 200;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.75rem;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px) saturate(160%);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-xs);
+}
+
+.brand {
+  display: flex; align-items: center; gap: 11px;
+  text-decoration: none; color: inherit;
+}
+
+/* Shield logo mark */
+.brand-shield {
+  width: 38px; height: 38px;
+  background: linear-gradient(145deg, var(--blue), var(--red));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(245,158,11,0.38), 0 1px 3px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+.brand-shield svg { width: 22px; height: 22px; stroke: #fff; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+.brand-copy {}
+.brand-name  { font-weight: 800; font-size: 0.97rem; letter-spacing: -0.2px; line-height: 1.1; color: var(--text); }
+.brand-name em { font-style: normal; color: var(--red); }
+.brand-badge {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--muted); line-height: 1;
+  margin-top: 1px;
+}
+
+/* Online pill */
+.online-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0.28rem 0.75rem;
+  background: var(--green-light);
+  border: 1px solid var(--green-border);
+  border-radius: 99px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--green);
+}
+.online-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(.7)} }
+
+/* Ghost nav button */
+.nav-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 0.38rem 0.85rem;
+  border: 1px solid var(--border-mid);
+  border-radius: 99px;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.78rem; font-weight: 600;
+  cursor: pointer; text-decoration: none;
+  transition: all .18s;
+}
+.nav-btn:hover { border-color: var(--border-dark); color: var(--text2); background: var(--surface); }
+.nav-btn.danger { color: var(--red); border-color: var(--red-border); background: var(--red-light); }
+.nav-btn.danger:hover { border-color: var(--red); background: #FEE2E2; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 999;
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 1rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--border-mid);
+  border-left: 3px solid var(--green);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-xl);
+  max-width: 310px;
+  transform: translateX(calc(100% + 2rem));
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+}
+.toast.show { transform: translateX(0); }
+.toast-icon { flex-shrink: 0; margin-top: 1px; }
+.toast-icon svg { width: 16px; height: 16px; }
+.toast-body strong { display: block; font-weight: 700; font-size: 0.85rem; color: var(--text); margin-bottom: 1px; }
+.toast-body span { font-size: 0.78rem; color: var(--text2); }
+
+/* ── Keyframes ── */
+@keyframes fadeUp   { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+@keyframes scaleIn  { from{transform:scale(.6);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes slideDown{ from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pageFade { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+@media (max-width: 640px) {
+  .app-header { padding: 0 .85rem; height: auto; min-height: 58px; }
+  .brand-name { font-size: .9rem; }
+  .brand-badge { font-size: .5rem; letter-spacing: 1.2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

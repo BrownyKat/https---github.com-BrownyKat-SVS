@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVS — Smart Verification System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/shared.css">
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 2rem;
+    }
+
+    /* subtle dot grid */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: radial-gradient(circle, rgba(29,78,216,.10) 1px, transparent 1px);
+      background-size: 26px 26px;
+      pointer-events: none;
+    }
+
+    .landing { position: relative; z-index: 1; max-width: 900px; width: 100%; text-align: center; }
+
+    /* hero brand */
+    .hero-brand {
+      display: flex; align-items: center; justify-content: center;
+      gap: 14px; margin-bottom: 2.75rem;
+    }
+    .hero-logo {
+      width: 100px; height: 100px; object-fit: contain;
+      display: block;
+    }
+    .hero-copy { text-align: left; }
+    .hero-name { font-weight: 900; font-size: 1.45rem; letter-spacing: -0.5px; line-height: 1.1; }
+    .hero-name em { font-style: normal; color: var(--amber-dark); }
+    .hero-sub  { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+
+    h1 { font-weight: 900; font-size: 2.1rem; letter-spacing: -1.2px; line-height: 1.1; margin-bottom: .65rem; }
+    h1 span { color: var(--amber-dark); }
+    .subtitle { color: var(--text2); font-size: .97rem; line-height: 1.7; margin-bottom: 2.75rem; }
+
+    /* role cards */
+    .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+
+    .role-card {
+      display: flex; flex-direction: column; align-items: flex-start; text-align: left;
+      padding: 1.75rem 1.5rem 1.5rem;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-xl);
+      text-decoration: none; color: inherit;
+      box-shadow: var(--shadow-sm);
+      transition: transform .22s, box-shadow .22s, border-color .22s;
+      position: relative; overflow: hidden;
+    }
+    .role-card::after {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      border-radius: var(--r-xl) var(--r-xl) 0 0;
+      opacity: 0; transition: opacity .22s;
+    }
+    .role-card.reporter::after { background: linear-gradient(90deg, var(--amber), var(--orange)); }
+    .role-card.dispatcher::after { background: linear-gradient(90deg, var(--blue), #6366F1); }
+    .role-card.admin::after { background: linear-gradient(90deg, #059669, #0f766e); }
+    .role-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .role-card.reporter:hover  { border-color: var(--amber-border); }
+    .role-card.dispatcher:hover{ border-color: var(--blue-border);  }
+    .role-card.admin:hover{ border-color: var(--green-border);  }
+    .role-card:hover::after { opacity: 1; }
+
+    .role-icon-box {
+      width: 46px; height: 46px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.1rem;
+    }
+    .role-icon-box svg { width: 22px; height: 22px; stroke-width: 1.75; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .reporter  .role-icon-box { background: var(--amber-light); border: 1.5px solid var(--amber-border); }
+    .reporter  .role-icon-box svg { stroke: var(--amber-dark); }
+    .dispatcher .role-icon-box { background: var(--blue-light); border: 1.5px solid var(--blue-border); }
+    .dispatcher .role-icon-box svg { stroke: var(--blue); }
+    .admin .role-icon-box { background: var(--green-light); border: 1.5px solid var(--green-border); }
+    .admin .role-icon-box svg { stroke: var(--green); }
+
+    .role-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .6rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .reporter  .role-tag { color: var(--amber-dark); }
+    .dispatcher .role-tag { color: var(--blue); }
+    .admin .role-tag { color: var(--green); }
+
+    .role-title { font-weight: 800; font-size: 1.05rem; margin-bottom: .4rem; letter-spacing: -.2px; }
+    .role-desc  { font-size: .82rem; color: var(--muted); line-height: 1.55; font-weight: 400; flex: 1; }
+
+    .role-cta {
+      display: flex; align-items: center; gap: 5px;
+      margin-top: 1.25rem;
+      font-size: .78rem; font-weight: 700;
+    }
+    .role-cta svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
+    .role-card:hover .role-cta svg { transform: translateX(4px); }
+    .reporter  .role-cta { color: var(--amber-dark); }
+    .dispatcher .role-cta { color: var(--blue); }
+    .admin .role-cta { color: var(--green); }
+
+    .footer {
+      margin-top: 2.25rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .62rem; font-weight: 500;
+      letter-spacing: .5px; color: var(--muted2);
+    }
+
+    @media (max-width: 920px) {
+      .role-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .role-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="landing">
+
+  <div class="hero-brand">
+    <img class="hero-logo" src="/images/logo.png" alt="MDRRMO SVS Logo">
+    <div class="hero-copy">
+      <div class="hero-name">SVS</div>
+      <div class="hero-sub">Smart Verification System</div>
+    </div>
+  </div>
+
+  <h1>Select your <span>role</span></h1>
+  <p class="subtitle">Choose the interface that matches your role. Reports submitted by citizens appear on the dispatcher console in real time.</p>
+
+  <div class="role-grid">
+
+    <a href="/report" class="role-card reporter">
+      <div class="role-icon-box">
+        <!-- Heroicon: document-text -->
+        <svg viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+      </div>
+      <div class="role-tag">Citizen</div>
+      <div class="role-title">Report an Emergency</div>
+      <div class="role-desc">Submit an incident report or send an instant Panic SOS to SVS dispatchers.</div>
+      <div class="role-cta">
+        Open Report Form
+        <!-- Heroicon: arrow-right -->
+        <svg viewBox="0 0 24 24"><path d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+      </div>
+    </a>
+
+    <a href="/dispatcher/login?force=1" class="role-card dispatcher">
+      <div class="role-icon-box">
+        <!-- Heroicon: squares-2x2 -->
+        <svg viewBox="0 0 24 24"><path d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
+      </div>
+      <div class="role-tag">Dispatcher</div>
+      <div class="role-title">Operations Dashboard</div>
+      <div class="role-desc">Monitor live reports, verify incidents, dispatch response teams, and track resolutions.</div>
+      <div class="role-cta">
+        Dispatcher Login
+        <svg viewBox="0 0 24 24"><path d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+      </div>
+    </a>
+
+    <a href="/login?force=1" class="role-card admin">
+      <div class="role-icon-box">
+        <svg viewBox="0 0 24 24"><path d="M9 12.75 11.25 15 15 9.75m6-3.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+      </div>
+      <div class="role-tag">Admin</div>
+      <div class="role-title">Admin Console</div>
+      <div class="role-desc">View all reports, manage dispatchers, and export report data by date range.</div>
+      <div class="role-cta">
+        Admin Login
+        <svg viewBox="0 0 24 24"><path d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="footer">v1.0 &nbsp;·&nbsp; Real-time via Pusher &nbsp;·&nbsp; SVS (Smart Verification System)</div>
+
+</div>
+</body>
+</html>
+

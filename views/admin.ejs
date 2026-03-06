@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#fff1f2;
+      --card:#ffffff;
+      --card-soft:#fff7ed;
+      --border:#f5c08a;
+      --border-strong:#f59e0b;
+      --text:#3f1d1d;
+      --muted:#7f1d1d;
+      --muted2:#b45309;
+      --amber:#facc15;
+      --amber-soft:#fefce8;
+      --amber-strong:#ca8a04;
+      --blue:#dc2626;
+      --green:#ef4444;
+      --red:#dc2626;
+      --shadow-sm:0 2px 8px rgba(127,29,29,.10);
+      --shadow-md:0 10px 24px rgba(127,29,29,.15);
+      --r-md:12px;
+      --r-lg:16px;
+      --r-xl:20px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Outfit',sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(900px 520px at 90% -10%, rgba(220,38,38,.22) 0%, transparent 58%),
+        radial-gradient(640px 380px at -10% 110%, rgba(250,204,21,.36) 0%, transparent 60%),
+        var(--bg);
+    }
+    .layout{display:flex;min-height:100vh;animation:fadeUp .45s ease both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @media (prefers-reduced-motion: reduce){
+      .layout,*{animation:none!important;transition:none!important}
+    }
+    .side{
+      width:312px;flex-shrink:0;
+      background:linear-gradient(180deg,#7f1d1d 0%, #991b1b 45%, #7f1d1d 100%);
+      border-right:1px solid rgba(255,255,255,.18);
+      padding:18px 14px 16px;
+      position:sticky;top:0;height:100vh;overflow:auto;
+    }
+    .brand-wrap{
+      padding:4px 10px 14px;
+      margin-bottom:14px;
+      border-bottom:1px solid rgba(255,255,255,.22);
+      text-align:center;
+    }
+    .brand{
+      display:flex;flex-direction:column;align-items:center;gap:8px;
+      font-weight:800;font-size:18px;line-height:1.1;color:#fff7ed;
+    }
+    .brand-logo{
+      width:260px;height:138px;object-fit:contain;display:block;
+    }
+    .sub{font-size:12px;color:#fecaca;margin-top:6px;font-weight:600;letter-spacing:.4px;}
+    .nav-title{
+      font-family:'JetBrains Mono',monospace;
+      font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#fde68a;
+      margin:11px 4px 9px;text-align:center;
+    }
+    .nav{display:flex;flex-direction:column;gap:14px}
+    .nav-item,.nav button{
+      display:flex;align-items:center;gap:10px;width:100%;
+      text-align:left;text-decoration:none;
+      background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.24);
+      border-radius:11px;padding:14px 13px;
+      color:#fff7ed;font-weight:700;font-size:15px;line-height:1.2;cursor:pointer;
+      transition:transform .18s ease, border-color .18s ease, background .18s ease;
+      font-family:'Outfit',sans-serif;
+      position:relative;backdrop-filter:blur(2px);
+    }
+    .nav-item svg,.nav button svg{
+      width:20px;height:10px;min-width:20px;min-height:20px;stroke:currentColor;fill:none;stroke-width:1.9;
+      stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;
+      overflow:visible;
+    }
+    .nav-item:hover,.nav button:hover{
+      border-color:#fde68a;background:rgba(250,204,21,.18);transform:translateY(-1px);
+    }
+    .nav-item.active{
+      background:linear-gradient(180deg,rgba(250,204,21,.28),rgba(254,240,138,.24));
+      border-color:#fde047;color:#fefce8;
+      box-shadow:0 0 0 2px rgba(250,204,21,.24) inset;
+    }
+    .nav-item.active::before{
+      content:'';
+      position:absolute;left:0;top:0;bottom:0;width:4px;
+      background:linear-gradient(180deg,#dc2626,#facc15);
+      border-radius:14px 0 0 14px;
+    }
+    .main{flex:1;min-width:0;padding:22px}
+    .top{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      padding:10px 14px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.75);box-shadow:var(--shadow-sm);
+    }
+    .top h1{margin:0;font-size:1.5rem;letter-spacing:-.5px}
+    .admin-dt{
+      display:flex;align-items:center;gap:10px;
+      padding:.62rem 1.05rem;min-height:66px;
+      background:linear-gradient(165deg,#0B1220,#05080F);
+      border:1.5px solid #FACC15;border-radius:14px;
+      color:#A7F3D0;white-space:nowrap;
+      box-shadow:inset 0 0 0 1px rgba(250,204,21,.18),0 10px 24px rgba(2,6,23,.28);
+    }
+    .admin-dt svg{width:24px;height:18px;stroke:#60A5FA;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+    .admin-time-block{display:flex;flex-direction:column;line-height:1.05}
+    .admin-clock{
+      font-family:'JetBrains Mono',monospace;
+      font-size:1.12rem;font-weight:800;letter-spacing:1px;color:#86EFAC;
+      text-shadow:0 0 12px rgba(134,239,172,.22);
+    }
+    .admin-date{
+      font-family:'JetBrains Mono',monospace;
+      font-size:.66rem;font-weight:700;letter-spacing:.7px;color:#93C5FD;
+      margin-top:4px;
+    }
+    .chip{
+      display:inline-flex;align-items:center;gap:7px;
+      font-size:12px;color:var(--muted);
+      background:#fff;border:1px solid var(--border);
+      padding:8px 11px;border-radius:999px;text-decoration:none;font-weight:700;
+    }
+    .chip svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.9}
+    .msg{padding:11px 12px;border-radius:10px;margin-top:12px;font-size:13px;font-weight:600}
+    .ok{background:#fefce8;border:1px solid #fde047;color:#854d0e}
+    .err{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
+    .section{
+      margin-top:16px;background:var(--card-soft);
+      border:1px solid var(--border);border-radius:var(--r-xl);
+      padding:16px;box-shadow:var(--shadow-md);
+    }
+    .section-head{
+      display:flex;align-items:center;gap:9px;
+      margin:0 0 10px;font-size:1.35rem;letter-spacing:-.4px;
+    }
+    .section-head svg{
+      width:22px;height:22px;stroke:var(--amber);fill:none;stroke-width:1.9;
+      stroke-linecap:round;stroke-linejoin:round;
+      overflow:visible;flex-shrink:0;
+    }
+    .tab-panel{display:none}
+    .tab-panel.active{display:block}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+    .kpi{
+      border:1px solid var(--border);
+      border-radius:14px;padding:14px 12px;background:rgba(255,255,255,.86);
+      box-shadow:var(--shadow-sm);
+      position:relative;overflow:hidden;
+    }
+    .kpi::before{
+      content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:14px 0 0 14px;background:#eab308;
+    }
+    .kpi:nth-child(2)::before{background:#f97316}
+    .kpi:nth-child(3)::before{background:#dc2626}
+    .kpi:nth-child(4)::before{background:#ef4444}
+    .kpi .k{
+      font-family:'JetBrains Mono',monospace;
+      font-size:11px;color:var(--muted2);text-transform:uppercase;font-weight:700;letter-spacing:.8px
+    }
+    .kpi .v{font-size:30px;font-weight:900;margin-top:4px;line-height:1}
+    .chart-grid{
+      margin-top:12px;
+      display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:11px;
+    }
+    .chart-card{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+      box-shadow:var(--shadow-sm);
+    }
+    .chart-title{
+      font-family:'JetBrains Mono',monospace;
+      font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted2);font-weight:700;
+      margin-bottom:10px;
+    }
+    .chart-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+    .chart-head .chart-title{margin-bottom:0}
+    .chart-controls{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .chart-select{
+      min-width:132px;
+      padding:8px 10px;
+      border:1px solid #d8cdbd;
+      border-radius:9px;
+      background:#fff;
+      color:var(--text);
+      font:700 12px 'Outfit',sans-serif;
+    }
+    .chart-canvas{
+      width:100%;
+      height:250px !important;
+      max-height:250px;
+      display:block;
+    }
+    .chart-canvas.compact{height:220px !important;max-height:220px}
+    .filters{
+      display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;
+      padding:12px;border:1px solid var(--border);border-radius:12px;background:#fff;
+    }
+    .filters .f{display:flex;flex-direction:column;gap:4px}
+    .filters label{
+      font-family:'JetBrains Mono',monospace;
+      font-size:11px;color:var(--muted2);font-weight:700;text-transform:uppercase;letter-spacing:.8px
+    }
+    .filters input{
+      padding:9px;border:1px solid #d8cdbd;border-radius:8px;font-family:'Outfit',sans-serif
+    }
+    .btn{
+      padding:9px 12px;border:1px solid #d8cdbd;border-radius:9px;background:#fff;
+      cursor:pointer;font-weight:700;text-decoration:none;color:#1f1a12;font-family:'Outfit',sans-serif
+    }
+    .btn:hover{border-color:var(--border-strong);background:#fff7eb}
+    .btn.primary{background:var(--amber);border-color:var(--amber);color:#fff}
+    .btn.primary:hover{background:#b45309}
+    .pager{
+      margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;
+    }
+    .pager-meta{
+      font-size:13px;color:var(--muted);
+      font-family:'JetBrains Mono',monospace;
+    }
+    .pager-links{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .page-link{
+      display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:32px;
+      padding:0 10px;border:1px solid #d8cdbd;border-radius:8px;background:#fff;
+      text-decoration:none;color:#3f1d1d;font-weight:700;font-size:13px;
+    }
+    .page-link.active{background:#fef3c7;border-color:#f59e0b;color:#92400e}
+    .page-link:hover{border-color:var(--border-strong);background:#fff7eb}
+    .table-wrap{
+      margin-top:10px;border:1px solid var(--border);border-radius:12px;overflow:auto;background:#fff;
+    }
+    .pager{
+      margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      color:var(--muted);font-size:13px;
+    }
+    .pager-actions{display:flex;align-items:center;gap:8px}
+    .pager .btn[aria-disabled="true"]{opacity:.45;pointer-events:none}
+    table{width:100%;border-collapse:collapse;min-width:760px}
+    th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:14px;vertical-align:top}
+    th{
+      font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;
+      color:var(--muted);letter-spacing:.8px;background:#fffaf2;position:sticky;top:0;z-index:1;
+    }
+    .row-form{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+      gap:8px;
+      align-items:center;
+    }
+    .row-form > *{min-width:0}
+    .row-form input{
+      width:100%;
+      padding:8px;border:1px solid #d8cdbd;border-radius:8px;font-family:'Outfit',sans-serif
+    }
+    .row-form label{white-space:nowrap}
+    .row-form .btn{justify-self:start;white-space:nowrap}
+    .dispatchers-top{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .dispatchers-top p{margin:0;color:var(--muted);font-size:14px}
+    .dispatcher-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(270px, 1fr));
+      gap:10px;
+    }
+    .dispatcher-card{
+      background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;
+      box-shadow:var(--shadow-sm);
+    }
+    .dispatcher-user{
+      display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;
+    }
+    .dispatcher-name{font-size:19px;font-weight:900;line-height:1.05;margin:0 0 4px}
+    .dispatcher-sub{font-size:13px;color:var(--muted);line-height:1.4}
+    .dispatcher-pill{
+      font-family:'JetBrains Mono',monospace;
+      font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;
+      border-radius:999px;padding:4px 8px;border:1px solid #d8cdbd;
+      background:#fffaf2;color:#7a6a50;
+      white-space:nowrap;
+    }
+    .dispatcher-pill.off{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+    .dispatcher-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .dispatcher-actions .btn{display:inline-flex;align-items:center;gap:6px}
+    .dispatcher-actions .btn svg{
+      width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;
+      stroke-linecap:round;stroke-linejoin:round;overflow:visible;
+    }
+    .btn.warn{background:#fff7ed;border-color:#fdba74;color:#c2410c}
+    .btn.warn:hover{background:#ffedd5}
+    .modal-backdrop{
+      position:fixed;inset:0;background:rgba(18,12,8,.35);
+      display:none;align-items:center;justify-content:center;
+      z-index:1200;padding:14px;
+    }
+    .modal-backdrop.show{display:flex}
+    .modal{
+      width:min(560px, 100%);
+      background:#fff;border:1px solid var(--border);
+      border-radius:16px;box-shadow:0 18px 42px rgba(0,0,0,.22);
+      overflow:hidden;
+    }
+    .modal-head{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:12px 14px;border-bottom:1px solid var(--border);background:#fffaf2;
+    }
+    .modal-title{margin:0;font-size:1.08rem}
+    .modal-close{
+      border:1px solid #d8cdbd;background:#fff;border-radius:9px;
+      padding:6px 10px;cursor:pointer;font-weight:700;
+    }
+    .modal-close:hover{background:#fff7eb}
+    .modal-form{padding:13px 14px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .modal-field{display:flex;flex-direction:column;gap:5px}
+    .modal-field label{
+      font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+      color:var(--muted2);font-family:'JetBrains Mono',monospace;
+    }
+    .modal-field input{width:100%;padding:10px;border:1px solid #d8cdbd;border-radius:9px;font-family:'Outfit',sans-serif}
+    .modal-check{grid-column:1 / -1;display:flex;align-items:center;gap:8px;color:var(--text2);font-weight:600}
+    .modal-actions{grid-column:1 / -1;display:flex;justify-content:flex-end;gap:8px;padding-top:2px}
+    .delete-body{padding:14px}
+    .delete-body p{margin:0 0 10px;color:var(--text2)}
+    .delete-username{font-weight:900}
+    @media(max-width:1120px){
+      .stats{grid-template-columns:1fr 1fr}
+      .chart-grid{grid-template-columns:1fr}
+      .row-form{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:860px){
+      .layout{flex-direction:column}
+      .side{width:100%;height:auto;position:static}
+      .main{padding:14px}
+      .stats{grid-template-columns:1fr}
+      .nav{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      .nav-item,.nav button{padding:13px 12px;font-size:14px}
+      .brand-wrap{margin-bottom:10px}
+    }
+    @media(max-width:560px){
+      .main{padding:10px}
+      .section{padding:12px;border-radius:16px}
+      .top{padding:10px 11px}
+      .top h1{font-size:1.22rem}
+      .kpi .v{font-size:24px}
+      .chart-canvas{height:220px !important;max-height:220px}
+      .chart-canvas.compact{height:200px !important;max-height:200px}
+      .nav{grid-template-columns:1fr}
+      .nav-item,.nav button{padding:12px 11px}
+      .row-form{grid-template-columns:1fr}
+      .modal-form{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="side">
+      <div class="brand-wrap">
+        <div class="brand">
+          <img class="brand-logo" src="/images/logo.png" alt="MDRRMO SVS Logo">
+          <span>SVS Admin Dashboard</span>
+        </div>
+        <div class="sub">System Administrator</div>
+      </div>
+      <div class="nav-title">Navigation</div>
+      <nav class="nav">
+        <button class="nav-item active" type="button" data-tab="dashboard">
+          <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg> Dashboard
+        </button>
+        <button class="nav-item" type="button" data-tab="reports">
+          <svg viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25"/></svg> Reports
+        </button>
+        <button class="nav-item" type="button" data-tab="dispatchers">
+          <svg viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0M4.5 20.25a7.5 7.5 0 0 1 15 0"/></svg> Dispatchers
+        </button>
+        <button class="nav-item" type="button" data-tab="audit">
+          <svg viewBox="0 0 24 24"><path d="M12 6v6l4 2m5-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Audit Trail
+        </button>
+        <form method="get" action="/admin/logout" style="margin:0" id="adminLogoutForm">
+          <button type="submit">
+            <svg viewBox="0 0 24 24"><path d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3-3-3-3m3 3-3 3m3-3H9"/></svg>
+            Logout
+          </button>
+        </form>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="top">
+        <h1>SVS Admin Console</h1>
+        <div class="admin-dt" id="adminDateTime">
+          <svg viewBox="0 0 24 24"><path d="M6.75 3v2.25m10.5-2.25v2.25M3.75 9.75h16.5M4.5 5.25h15A1.5 1.5 0 0 1 21 6.75v12A1.5 1.5 0 0 1 19.5 20.25h-15A1.5 1.5 0 0 1 3 18.75v-12A1.5 1.5 0 0 1 4.5 5.25Z"/></svg>
+          <div class="admin-time-block">
+            <div class="admin-clock" id="adminClock">--:--:--</div>
+            <div class="admin-date" id="adminDate">--- --- --/--/----</div>
+          </div>
+        </div>
+      </div>
+
+      <% if (success) { %><div class="msg ok"><%= success %></div><% } %>
+      <% if (error) { %><div class="msg err"><%= error %></div><% } %>
+
+      <section class="section tab-panel active" id="dashboard" data-panel="dashboard">
+        <h2 class="section-head">
+          <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          Dashboard
+        </h2>
+        <div class="stats">
+          <div class="kpi"><div class="k">Reports (Filtered)</div><div class="v"><%= stats.totalReports %></div></div>
+          <div class="kpi"><div class="k">Dispatchers</div><div class="v"><%= stats.totalDispatchers %></div></div>
+          <div class="kpi"><div class="k">Active Dispatchers</div><div class="v"><%= stats.activeDispatchers %></div></div>
+          <div class="kpi"><div class="k">Audit Entries</div><div class="v"><%= stats.auditCount %></div></div>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-head">
+              <div class="chart-title" id="trendChartTitle">Reports Trend (Daily)</div>
+              <div class="chart-controls">
+                <select id="trendRangeSelect" class="chart-select" aria-label="Reports trend range">
+                  <option value="daily" selected>Daily</option>
+                  <option value="last-day">Last Day</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="last-week">Last Week</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="last-month">Last Month</option>
+                  <option value="yearly">Yearly</option>
+                  <option value="last-year">Last Year</option>
+                </select>
+              </div>
+            </div>
+            <canvas id="trendChart" class="chart-canvas"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-head">
+              <div class="chart-title" id="severityChartTitle">Emergency Level</div>
+              <div class="chart-controls">
+                <select id="severityTypeSelect" class="chart-select" aria-label="Emergency level type filter">
+                  <option value="all" selected>All Types</option>
+                </select>
+              </div>
+            </div>
+            <canvas id="severityChart" class="chart-canvas compact"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">False Reports</div>
+            <canvas id="falseChart" class="chart-canvas compact"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="section tab-panel" id="reports" data-panel="reports">
+        <h2 class="section-head">
+          <svg viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25"/></svg>
+          Reports
+        </h2>
+        <form class="filters" method="get" action="/admin">
+          <input type="hidden" name="tab" value="reports">
+          <input type="hidden" name="reportPage" value="1">
+          <input type="hidden" name="auditPage" value="<%= (auditPagination && auditPagination.page) || 1 %>">
+          <div class="f">
+            <label for="from">From</label>
+            <input id="from" type="date" name="from" value="<%= from || '' %>">
+          </div>
+          <div class="f">
+            <label for="to">To</label>
+            <input id="to" type="date" name="to" value="<%= to || '' %>">
+          </div>
+          <div class="f">
+            <label for="reportIdTypeFilter">ID Type</label>
+            <select id="reportIdTypeFilter" class="btn" aria-label="Filter reports by ID type">
+              <option value="all" selected>All</option>
+              <option value="RPT">RPT</option>
+              <option value="SOS">SOS</option>
+            </select>
+          </div>
+          <button class="btn" type="submit">Apply</button>
+          <a class="btn" href="/admin?tab=reports&auditPage=<%= (auditPagination && auditPagination.page) || 1 %>&reportPage=1">Reset</a>
+          <a class="btn" href="/admin/reports/export.xls?tab=reports&from=<%= encodeURIComponent(from || '') %>&to=<%= encodeURIComponent(to || '') %>">Export Excel</a>
+          <a class="btn" href="/admin/reports/export.pdf?tab=reports&from=<%= encodeURIComponent(from || '') %>&to=<%= encodeURIComponent(to || '') %>">Export PDF</a>
+        </form>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Type</th><th>Status</th><th>Claimed By</th><th>Current Dispatcher</th><th>Pass Count</th><th>Severity</th><th>Reporter</th><th>Location</th><th>Timestamp</th></tr></thead>
+            <tbody>
+              <% reports.forEach(function(r){ %>
+              <% const claimedBy = r.claimedByUsername || r.claimedByName || r.dispatcherName || '-'; %>
+              <% const currentDispatcher = r.assignedToUsername || r.assignedToName || '-'; %>
+              <% const passCount = Math.max(0, Number(r.passCount) || 0); %>
+              <% const reportId = r.reportId || r._id || ''; %>
+              <% const reportKind = String(reportId).split('-')[0] || 'OTHER'; %>
+              <tr class="report-row" data-report-kind="<%= reportKind %>">
+                <td><%= r.reportId || r._id %></td>
+                <td><%= r.emergencyType || '-' %></td>
+                <td><%= r.status || '-' %></td>
+                <td><%= claimedBy %></td>
+                <td><%= currentDispatcher %></td>
+                <td><%= passCount %></td>
+                <td><%= r.severity || '-' %></td>
+                <td><%= r.name || '-' %><br><span style="font-size:12px;color:#6f644f"><%= r.contact || '-' %></span></td>
+                <td><%= [r.street, r.landmark, r.barangay].filter(Boolean).join(', ') || '-' %></td>
+                <td><%= new Date(r.timestamp).toLocaleString() %></td>
+              </tr>
+              <% }) %>
+              <tr id="reportFilterEmptyState" style="display:none">
+                <td colspan="10" style="text-align:center;color:#6f644f">No reports match the selected ID type.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <% const rp = reportPagination || { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false }; %>
+        <% const reportsBase = '/admin?tab=reports&from=' + encodeURIComponent(from || '') + '&to=' + encodeURIComponent(to || '') + '&auditPage=' + encodeURIComponent((auditPagination && auditPagination.page) || 1); %>
+        <div class="pager">
+          <div>Showing page <strong><%= rp.page %></strong> of <strong><%= rp.totalPages %></strong> (<%= rp.totalCount %> reports)</div>
+          <div class="pager-actions">
+            <a class="btn" href="<%= reportsBase %>&reportPage=<%= rp.page - 1 %>" aria-disabled="<%= rp.hasPrev ? 'false' : 'true' %>">Previous</a>
+            <a class="btn" href="<%= reportsBase %>&reportPage=<%= rp.page + 1 %>" aria-disabled="<%= rp.hasNext ? 'false' : 'true' %>">Next</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section tab-panel" id="dispatchers" data-panel="dispatchers">
+        <h2 class="section-head">
+          <svg viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0M4.5 20.25a7.5 7.5 0 0 1 15 0"/></svg>
+          Dispatchers
+        </h2>
+        <div class="dispatchers-top">
+          <p>Manage dispatcher accounts with quick actions.</p>
+          <button class="btn primary" type="button" id="openAddDispatcher">Add Dispatcher</button>
+        </div>
+        <div class="dispatcher-grid">
+          <% dispatchers.forEach(function(d){ %>
+          <article class="dispatcher-card">
+            <div class="dispatcher-user">
+              <div>
+                <h3 class="dispatcher-name"><%= d.username %></h3>
+                <div class="dispatcher-sub"><%= d.fullName || '-' %> - <%= d.phone || '-' %></div>
+              </div>
+              <span class="dispatcher-pill <%= d.isActive ? '' : 'off' %>"><%= d.isActive ? 'Active' : 'Inactive' %></span>
+            </div>
+            <div class="dispatcher-actions">
+              <button
+                class="btn"
+                type="button"
+                data-action="edit-dispatcher"
+                data-id="<%= d._id %>"
+                data-username="<%= d.username %>"
+                data-fullname="<%= d.fullName || '' %>"
+                data-phone="<%= d.phone || '' %>"
+                data-active="<%= d.isActive ? '1' : '0' %>">
+                <svg viewBox="0 0 24 24"><path d="m16.862 4.487 2.651 2.651M9 20.25H4.5v-4.5L14.69 5.56a1.875 1.875 0 0 1 2.652 0l1.098 1.098a1.875 1.875 0 0 1 0 2.652Z"/></svg>
+                Edit
+              </button>
+              <button
+                class="btn warn"
+                type="button"
+                data-action="delete-dispatcher"
+                data-id="<%= d._id %>"
+                data-username="<%= d.username %>">
+                <svg viewBox="0 0 24 24"><path d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                Delete
+              </button>
+            </div>
+          </article>
+          <% }) %>
+        </div>
+      </section>
+
+      <section class="section tab-panel" id="audit" data-panel="audit">
+        <h2 class="section-head">
+          <svg viewBox="0 0 24 24"><path d="M12 6v6l4 2m5-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+          Audit Trail (Dispatcher Actions)
+        </h2>
+        <div class="filters">
+          <form method="get" action="/admin" class="row-form" style="width:100%">
+            <input type="hidden" name="tab" value="audit">
+            <input type="hidden" name="reportPage" value="<%= (reportPager && reportPager.currentPage) || 1 %>">
+            <input type="hidden" name="reportLimit" value="<%= reportLimit || 20 %>">
+            <input type="hidden" name="from" value="<%= from || '' %>">
+            <input type="hidden" name="to" value="<%= to || '' %>">
+            <input type="hidden" name="auditPage" value="1">
+            <div class="f">
+              <label for="auditLimitSel">Rows</label>
+              <select id="auditLimitSel" name="auditLimit" class="btn">
+                <% [10,20,40,80,100,200].forEach(function(n){ %>
+                  <option value="<%= n %>" <%= Number(auditLimit) === n ? 'selected' : '' %>><%= n %></option>
+                <% }) %>
+              </select>
+            </div>
+            <button class="btn primary" type="submit">Apply</button>
+          </form>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Timestamp</th><th>Dispatcher</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
+            <tbody>
+              <% auditLogs.forEach(function(a){ %>
+                <tr>
+                  <td><%= new Date(a.timestamp).toLocaleString() %></td>
+                  <td><%= a.actorName || a.actorId || '-' %></td>
+                  <td><%= a.action || '-' %></td>
+                  <td><%= a.targetType || '-' %> <%= a.targetId || '' %></td>
+                  <td><%= a.details || '-' %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% const ap = auditPagination || { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false }; %>
+        <% const auditBase = '/admin?tab=audit&reportPage=' + encodeURIComponent((reportPagination && reportPagination.page) || 1); %>
+        <div class="pager">
+          <div>Showing page <strong><%= ap.page %></strong> of <strong><%= ap.totalPages %></strong> (<%= ap.totalCount %> audit entries)</div>
+          <div class="pager-actions">
+            <a class="btn" href="<%= auditBase %>&auditPage=<%= ap.page - 1 %>" aria-disabled="<%= ap.hasPrev ? 'false' : 'true' %>">Previous</a>
+            <a class="btn" href="<%= auditBase %>&auditPage=<%= ap.page + 1 %>" aria-disabled="<%= ap.hasNext ? 'false' : 'true' %>">Next</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="addDispatcherModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addDispatcherTitle">
+      <div class="modal-head">
+        <h3 class="modal-title" id="addDispatcherTitle">Add Dispatcher</h3>
+        <button class="modal-close" type="button" data-close-modal="#addDispatcherModal">Close</button>
+      </div>
+      <form class="modal-form" method="post" action="/admin/dispatchers">
+        <input type="hidden" name="tab" value="dispatchers">
+        <input type="hidden" name="reportPage" value="<%= (reportPagination && reportPagination.page) || 1 %>">
+        <input type="hidden" name="auditPage" value="<%= (auditPagination && auditPagination.page) || 1 %>">
+        <div class="modal-field">
+          <label for="addUsername">Username</label>
+          <input id="addUsername" name="username" required>
+        </div>
+        <div class="modal-field">
+          <label for="addFullName">Full name</label>
+          <input id="addFullName" name="fullName">
+        </div>
+        <div class="modal-field">
+          <label for="addPhone">Phone</label>
+          <input id="addPhone" name="phone">
+        </div>
+        <div class="modal-field">
+          <label for="addPassword">Password</label>
+          <input id="addPassword" name="password" type="password" minlength="6" required>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" type="button" data-close-modal="#addDispatcherModal">Cancel</button>
+          <button class="btn primary" type="submit">Add Dispatcher</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="editDispatcherModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editDispatcherTitle">
+      <div class="modal-head">
+        <h3 class="modal-title" id="editDispatcherTitle">Edit Dispatcher</h3>
+        <button class="modal-close" type="button" data-close-modal="#editDispatcherModal">Close</button>
+      </div>
+      <form id="editDispatcherForm" class="modal-form" method="post" action="/admin/dispatchers/__id__/update">
+        <input type="hidden" name="tab" value="dispatchers">
+        <input type="hidden" name="reportPage" value="<%= (reportPagination && reportPagination.page) || 1 %>">
+        <input type="hidden" name="auditPage" value="<%= (auditPagination && auditPagination.page) || 1 %>">
+        <div class="modal-field">
+          <label for="editUsername">Username</label>
+          <input id="editUsername" name="username" required>
+        </div>
+        <div class="modal-field">
+          <label for="editFullName">Full name</label>
+          <input id="editFullName" name="fullName">
+        </div>
+        <div class="modal-field">
+          <label for="editPhone">Phone</label>
+          <input id="editPhone" name="phone">
+        </div>
+        <div class="modal-field">
+          <label for="editNewPassword">New password (optional)</label>
+          <input id="editNewPassword" name="newPassword" type="password" minlength="6">
+        </div>
+        <label class="modal-check"><input id="editIsActive" type="checkbox" name="isActive"> Active dispatcher</label>
+        <div class="modal-actions">
+          <button class="btn" type="button" data-close-modal="#editDispatcherModal">Cancel</button>
+          <button class="btn primary" type="submit">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="deleteDispatcherModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteDispatcherTitle">
+      <div class="modal-head">
+        <h3 class="modal-title" id="deleteDispatcherTitle">Delete Dispatcher</h3>
+        <button class="modal-close" type="button" data-close-modal="#deleteDispatcherModal">Close</button>
+      </div>
+      <div class="delete-body">
+        <p>You are about to delete <span id="deleteDispatcherName" class="delete-username">this dispatcher</span>. This action cannot be undone.</p>
+        <form id="deleteDispatcherForm" method="post" action="/admin/dispatchers/__id__/delete">
+          <input type="hidden" name="tab" value="dispatchers">
+          <input type="hidden" name="reportPage" value="<%= (reportPagination && reportPagination.page) || 1 %>">
+          <input type="hidden" name="auditPage" value="<%= (auditPagination && auditPagination.page) || 1 %>">
+          <div class="modal-actions" style="padding-top:0">
+            <button class="btn" type="button" data-close-modal="#deleteDispatcherModal">Cancel</button>
+            <button class="btn warn" type="submit">Delete Dispatcher</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script id="reportsSeed" type="application/json"><%- JSON.stringify(reports) %></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    try {
+      if (!sessionStorage.getItem('svs_admin_window_ok')) {
+        window.location.replace('/login?force=1');
+      }
+    } catch (_e) {
+      window.location.replace('/login?force=1');
+    }
+
+    function safeRun(fn) {
+      try { fn(); } catch (e) { console.error('[admin-ui]', e); }
+    }
+
+    window.addEventListener('pageshow', function (event) {
+      if (event.persisted) {
+        window.location.replace('/admin/login');
+      }
+    });
+
+    const navItems = Array.from(document.querySelectorAll('.nav-item[data-tab]'));
+    const panels = Array.from(document.querySelectorAll('.tab-panel[data-panel]'));
+    const allowedTabs = new Set(navItems.map(n => n.dataset.tab));
+    function showTab(tab) {
+      const safeTab = allowedTabs.has(tab) ? tab : 'dashboard';
+      navItems.forEach(n => n.classList.toggle('active', n.dataset.tab === safeTab));
+      panels.forEach(p => p.classList.toggle('active', p.dataset.panel === safeTab));
+
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', safeTab);
+      window.history.replaceState({}, '', url.toString());
+    }
+    navItems.forEach(n => n.addEventListener('click', () => showTab(n.dataset.tab)));
+    const initialTab = new URLSearchParams(window.location.search).get('tab');
+    if (initialTab) showTab(initialTab);
+
+    function openModal(sel) {
+      const el = document.querySelector(sel);
+      if (!el) return;
+      el.classList.add('show');
+      el.setAttribute('aria-hidden', 'false');
+    }
+    function closeModal(sel) {
+      const el = document.querySelector(sel);
+      if (!el) return;
+      el.classList.remove('show');
+      el.setAttribute('aria-hidden', 'true');
+    }
+    document.querySelectorAll('[data-close-modal]').forEach(btn => {
+      btn.addEventListener('click', () => closeModal(btn.getAttribute('data-close-modal')));
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) closeModal('#' + backdrop.id);
+      });
+    });
+    document.getElementById('openAddDispatcher')?.addEventListener('click', () => openModal('#addDispatcherModal'));
+
+    const editForm = document.getElementById('editDispatcherForm');
+    const deleteForm = document.getElementById('deleteDispatcherForm');
+    const deleteName = document.getElementById('deleteDispatcherName');
+    document.querySelectorAll('[data-action="edit-dispatcher"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        if (!id || !editForm) return;
+        editForm.action = '/admin/dispatchers/' + encodeURIComponent(id) + '/update?tab=dispatchers';
+        document.getElementById('editUsername').value = btn.getAttribute('data-username') || '';
+        document.getElementById('editFullName').value = btn.getAttribute('data-fullname') || '';
+        document.getElementById('editPhone').value = btn.getAttribute('data-phone') || '';
+        document.getElementById('editNewPassword').value = '';
+        document.getElementById('editIsActive').checked = btn.getAttribute('data-active') === '1';
+        openModal('#editDispatcherModal');
+      });
+    });
+    document.querySelectorAll('[data-action="delete-dispatcher"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const username = btn.getAttribute('data-username') || 'this dispatcher';
+        if (!id || !deleteForm) return;
+        deleteForm.action = '/admin/dispatchers/' + encodeURIComponent(id) + '/delete?tab=dispatchers';
+        if (deleteName) deleteName.textContent = username;
+        openModal('#deleteDispatcherModal');
+      });
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      document.querySelectorAll('.modal-backdrop.show').forEach(m => closeModal('#' + m.id));
+    });
+
+    function safeArr(v){ return Array.isArray(v) ? v : []; }
+
+    let reportsData = [];
+    try {
+      reportsData = JSON.parse(document.getElementById('reportsSeed').textContent || '[]');
+    } catch (_e) { reportsData = []; }
+    reportsData = safeArr(reportsData);
+
+    const severityLevels = ['Low', 'Medium', 'High'];
+    const trendRangeSelect = document.getElementById('trendRangeSelect');
+    const trendChartTitle = document.getElementById('trendChartTitle');
+    const severityTypeSelect = document.getElementById('severityTypeSelect');
+    const severityChartTitle = document.getElementById('severityChartTitle');
+    const reportIdTypeFilter = document.getElementById('reportIdTypeFilter');
+    const reportRows = Array.from(document.querySelectorAll('.report-row'));
+    const reportFilterEmptyState = document.getElementById('reportFilterEmptyState');
+
+    function cleanType(value) {
+      return String(value || '').trim() || 'Unknown';
+    }
+
+    function cleanSeverity(value) {
+      const raw = String(value || '').trim().toLowerCase();
+      if (raw === 'low') return 'Low';
+      if (raw === 'medium') return 'Medium';
+      if (raw === 'high') return 'High';
+      return '';
+    }
+
+    function isoWeekParts(date) {
+      const copy = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const day = copy.getUTCDay() || 7;
+      copy.setUTCDate(copy.getUTCDate() + 4 - day);
+      const yearStart = new Date(Date.UTC(copy.getUTCFullYear(), 0, 1));
+      const week = Math.ceil((((copy - yearStart) / 86400000) + 1) / 7);
+      return { year: copy.getUTCFullYear(), week };
+    }
+
+    function formatTrendModeLabel(range) {
+      if (range === 'last-day') return 'Last Day';
+      if (range === 'last-week') return 'Last Week';
+      if (range === 'last-month') return 'Last Month';
+      if (range === 'last-year') return 'Last Year';
+      return range.charAt(0).toUpperCase() + range.slice(1);
+    }
+
+    function startOfDay(date) {
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+
+    function shiftDays(date, days) {
+      const next = new Date(date);
+      next.setDate(next.getDate() + days);
+      return next;
+    }
+
+    function shiftMonths(date, months) {
+      const next = new Date(date);
+      next.setMonth(next.getMonth() + months);
+      return next;
+    }
+
+    function buildWindowEntries(config) {
+      const now = new Date();
+      const labels = [];
+      const counts = [];
+      const indexByKey = {};
+
+      config.labels.forEach((label, idx) => {
+        labels.push(label);
+        counts.push(0);
+        indexByKey[config.keys[idx]] = idx;
+      });
+
+      reportsData.forEach(r => {
+        const d = new Date(r && r.timestamp);
+        if (Number.isNaN(d.getTime()) || d < config.start || d > now) return;
+        const key = config.keyFor(d);
+        if (indexByKey[key] !== undefined) counts[indexByKey[key]] += 1;
+      });
+
+      return labels.map((label, idx) => [label, counts[idx]]);
+    }
+
+    function buildTrendEntries(range) {
+      const now = new Date();
+      if (range === 'last-day') {
+        const start = shiftDays(now, -1);
+        return buildWindowEntries({
+          start,
+          labels: ['Last 24 Hours'],
+          keys: ['last-24-hours'],
+          keyFor: () => 'last-24-hours',
+        });
+      }
+      if (range === 'last-week') {
+        const start = startOfDay(shiftDays(now, -6));
+        const dates = Array.from({ length: 7 }, (_, idx) => shiftDays(start, idx));
+        return buildWindowEntries({
+          start,
+          labels: dates.map(d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`),
+          keys: dates.map(d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`),
+          keyFor: (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+        });
+      }
+      if (range === 'last-month') {
+        const start = startOfDay(shiftDays(now, -29));
+        const dates = Array.from({ length: 30 }, (_, idx) => shiftDays(start, idx));
+        return buildWindowEntries({
+          start,
+          labels: dates.map(d => `${d.getMonth() + 1}/${d.getDate()}`),
+          keys: dates.map(d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`),
+          keyFor: (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+        });
+      }
+      if (range === 'last-year') {
+        const start = startOfDay(shiftMonths(now, -11));
+        const months = Array.from({ length: 12 }, (_, idx) => shiftMonths(new Date(start.getFullYear(), start.getMonth(), 1), idx));
+        return buildWindowEntries({
+          start,
+          labels: months.map(d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`),
+          keys: months.map(d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`),
+          keyFor: (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        });
+      }
+      const buckets = {};
+      reportsData.forEach(r => {
+        const d = new Date(r && r.timestamp);
+        if (Number.isNaN(d.getTime())) return;
+
+        let key = '';
+        if (range === 'weekly') {
+          const parts = isoWeekParts(d);
+          key = `${parts.year}-W${String(parts.week).padStart(2, '0')}`;
+        } else if (range === 'monthly') {
+          key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        } else if (range === 'yearly') {
+          key = String(d.getFullYear());
+        } else {
+          key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+        buckets[key] = (buckets[key] || 0) + 1;
+      });
+      return Object.entries(buckets).sort((a, b) => a[0].localeCompare(b[0]));
+    }
+
+    function buildSeverityCounts(typeFilter) {
+      const counts = { Low: 0, Medium: 0, High: 0 };
+      reportsData.forEach(r => {
+        const reportType = cleanType(r && r.emergencyType);
+        if (typeFilter !== 'all' && reportType !== typeFilter) return;
+        const severity = cleanSeverity(r && r.severity);
+        if (counts[severity] !== undefined) counts[severity] += 1;
+      });
+      return counts;
+    }
+
+    const falseCount = reportsData.reduce((count, r) => {
+      return count + (String((r && r.status) || '') === 'false-report' ? 1 : 0);
+    }, 0);
+
+    const emergencyTypes = Array.from(new Set(reportsData.map(r => cleanType(r && r.emergencyType)))).sort((a, b) => a.localeCompare(b));
+    if (severityTypeSelect) {
+      emergencyTypes.forEach(type => {
+        const opt = document.createElement('option');
+        opt.value = type;
+        opt.textContent = type;
+        severityTypeSelect.appendChild(opt);
+      });
+    }
+
+    function applyReportIdTypeFilter() {
+      if (!reportIdTypeFilter) return;
+      const selected = reportIdTypeFilter.value || 'all';
+      let visibleCount = 0;
+      reportRows.forEach(row => {
+        const kind = String(row.getAttribute('data-report-kind') || '').toUpperCase();
+        const show = selected === 'all' || kind === selected;
+        row.style.display = show ? '' : 'none';
+        if (show) visibleCount += 1;
+      });
+      if (reportFilterEmptyState) {
+        reportFilterEmptyState.style.display = visibleCount === 0 ? '' : 'none';
+      }
+    }
+
+    if (reportIdTypeFilter) {
+      reportIdTypeFilter.addEventListener('change', applyReportIdTypeFilter);
+      applyReportIdTypeFilter();
+    }
+
+    if (window.Chart && document.getElementById('trendChart') && document.getElementById('severityChart') && document.getElementById('falseChart')) {
+      let trendChart = null;
+      let severityChart = null;
+
+      function renderTrendChart() {
+        const range = trendRangeSelect ? trendRangeSelect.value : 'daily';
+        const rangeLabel = formatTrendModeLabel(range);
+        const trendEntries = buildTrendEntries(range);
+        if (trendChartTitle) trendChartTitle.textContent = `Reports Trend (${rangeLabel})`;
+        if (trendChart) trendChart.destroy();
+        trendChart = new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+          labels: trendEntries.map(x => x[0]),
+          datasets: [{
+            label: 'Reports',
+            data: trendEntries.map(x => x[1]),
+            borderColor: '#d97706',
+            backgroundColor: 'rgba(217,119,6,0.16)',
+            pointBackgroundColor: '#d97706',
+            pointRadius: 3,
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#6f624f' }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { precision: 0, color: '#6f624f' } }
+          }
+        }
+      });
+      }
+
+      function renderSeverityChart() {
+        const selectedType = severityTypeSelect ? severityTypeSelect.value : 'all';
+        const counts = buildSeverityCounts(selectedType);
+        if (severityChartTitle) {
+          severityChartTitle.textContent = selectedType === 'all'
+            ? 'Emergency Level'
+            : `Emergency Level (${selectedType})`;
+        }
+        if (severityChart) severityChart.destroy();
+        severityChart = new Chart(document.getElementById('severityChart'), {
+          type: 'bar',
+          data: {
+            labels: severityLevels,
+            datasets: [{
+              label: 'Count',
+              data: severityLevels.map(level => counts[level]),
+              backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+              borderRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#6f624f' }, grid: { display: false } },
+              y: { beginAtZero: true, ticks: { precision: 0, color: '#6f624f' } }
+            }
+          }
+        });
+      }
+
+      safeRun(renderTrendChart);
+      safeRun(renderSeverityChart);
+      if (trendRangeSelect) {
+        trendRangeSelect.addEventListener('change', () => safeRun(renderTrendChart));
+      }
+      if (severityTypeSelect) {
+        severityTypeSelect.addEventListener('change', () => safeRun(renderSeverityChart));
+      }
+
+      const total = reportsData.length;
+      safeRun(() => new Chart(document.getElementById('falseChart'), {
+        type: 'pie',
+        data: {
+          labels: ['False Reports', 'Other Reports'],
+          datasets: [{ data: [falseCount, Math.max(0, total - falseCount)], backgroundColor: ['#ef4444', '#e5dccf'] }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#6f624f' } },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw}` } }
+          }
+        }
+      }));
+    }
+
+    function updateAdminDateTime() {
+      const clockEl = document.getElementById('adminClock');
+      const dateEl = document.getElementById('adminDate');
+      if (!clockEl || !dateEl) return;
+      const now = new Date();
+      const date = now.toLocaleDateString(undefined, {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit'
+      });
+      const time = now.toLocaleTimeString(undefined, {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      clockEl.textContent = time;
+      dateEl.textContent = date;
+    }
+    updateAdminDateTime();
+    setInterval(updateAdminDateTime, 1000);
+
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('[admin-ui] unhandled rejection', event && event.reason ? event.reason : event);
+    });
+    window.addEventListener('error', (event) => {
+      console.error('[admin-ui] runtime error', event && event.error ? event.error : event);
+    });
+  </script>
+</body>
+</html>
+

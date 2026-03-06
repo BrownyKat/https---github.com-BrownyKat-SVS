@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dispatcher Profile</title>
+  <style>
+    :root{
+      --blue:#1d4ed8;
+      --red:#dc2626;
+      --yellow:#facc15;
+      --bg:#e9f2ff;
+      --surface:#f5f9ff;
+      --surface-2:#ffffff;
+      --border:#a9c7ef;
+      --text:#0f172a;
+      --muted:#334155;
+      --shadow-sm:0 4px 14px rgba(15,23,42,.10);
+      --shadow-md:0 14px 32px rgba(15,23,42,.14);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;font-family:'Outfit',Arial,sans-serif;color:var(--text);
+      background:
+        radial-gradient(560px 320px at 100% -10%, rgba(29,78,216,.25), transparent 64%),
+        radial-gradient(420px 260px at -10% 110%, rgba(250,204,21,.25), transparent 64%),
+        radial-gradient(340px 210px at 65% 85%, rgba(220,38,38,.14), transparent 68%),
+        var(--bg);
+      min-height:100vh;
+    }
+    .wrap{max-width:760px;margin:24px auto;padding:0 16px 24px;animation:fadeUp .45s ease both}
+    .topbar{
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:linear-gradient(145deg, rgba(255,255,255,.84), rgba(245,249,255,.92));
+      box-shadow:var(--shadow-sm);
+      padding:14px 14px 12px;
+      margin-bottom:12px;
+    }
+    .title-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+    h1{margin:0;font-size:1.28rem;letter-spacing:-.3px}
+    .title-row p{margin:4px 0 0;color:var(--muted);font-size:13px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .card{
+      background:linear-gradient(180deg,var(--surface),var(--surface-2));
+      border:1px solid var(--border);border-radius:16px;padding:18px;
+      box-shadow:var(--shadow-md);
+    }
+    label{display:block;font-size:12px;font-weight:700;margin:11px 0 6px;text-transform:uppercase;color:#1e3a8a;letter-spacing:.35px}
+    input{
+      width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;box-sizing:border-box;
+      background:#fff;font-size:14px;color:var(--text);
+      transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+    input:focus{
+      outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.16);
+      transform:translateY(-1px);
+    }
+    .btn{
+      margin-top:14px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:#fff;
+      cursor:pointer;font-weight:700;color:var(--text);text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+      transition:all .2s ease;
+    }
+    .btn:hover{transform:translateY(-1px);border-color:#7fb0eb;box-shadow:0 6px 14px rgba(29,78,216,.16)}
+    .btn.primary{
+      background:linear-gradient(135deg,var(--blue),var(--red));
+      border-color:transparent;color:#fff;
+    }
+    .btn.primary:hover{box-shadow:0 8px 18px rgba(29,78,216,.28)}
+    .msg{padding:11px 12px;border-radius:10px;margin-top:12px;font-size:13px;font-weight:600}
+    .ok{background:#fefce8;border:1px solid #fde047;color:#854d0e}
+    .err{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @media (prefers-reduced-motion: reduce){
+      .wrap,*{animation:none!important;transition:none!important}
+    }
+    @media (max-width:560px){
+      .wrap{margin:14px auto;padding:0 12px 16px}
+      .topbar{padding:12px}
+      .card{padding:14px}
+      .actions{width:100%}
+      .actions .btn{flex:1;justify-content:center}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title-row">
+        <div>
+          <h1>Dispatcher Profile</h1>
+          <p>Update your display name, contact details, and password.</p>
+        </div>
+      <div class="actions">
+        <a class="btn" href="/dashboard">Back to Dashboard</a>
+        <form method="post" action="/dispatcher/logout"><button class="btn" type="submit">Logout</button></form>
+      </div>
+      </div>
+    </div>
+
+    <% if (success) { %><div class="msg ok"><%= success %></div><% } %>
+    <% if (error) { %><div class="msg err"><%= error %></div><% } %>
+
+    <form class="card" method="post" action="/dispatcher/profile">
+      <label>Username</label>
+      <input value="<%= dispatcher.username %>" disabled>
+
+      <label for="fullName">Full Name</label>
+      <input id="fullName" name="fullName" value="<%= dispatcher.fullName || '' %>">
+
+      <label for="phone">Phone</label>
+      <input id="phone" name="phone" value="<%= dispatcher.phone || '' %>">
+
+      <label for="currentPassword">Current Password (required to change password)</label>
+      <input id="currentPassword" name="currentPassword" type="password">
+
+      <label for="newPassword">New Password (optional)</label>
+      <input id="newPassword" name="newPassword" type="password" placeholder="At least 6 characters">
+
+      <button class="btn primary" type="submit">Save Profile</button>
+    </form>
+  </div>
+</body>
+</html>

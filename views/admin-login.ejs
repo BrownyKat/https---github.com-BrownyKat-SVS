@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - SVS</title>
+  <style>
+    :root{
+      --bg:#fff1f2;
+      --surface:#fff7ed;
+      --surface-2:#ffffff;
+      --border:#f5c08a;
+      --border-strong:#f59e0b;
+      --text:#3f1d1d;
+      --muted:#7f1d1d;
+      --red:#dc2626;
+      --yellow:#facc15;
+      --shadow:0 14px 30px rgba(127,29,29,.16);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:'Outfit',Arial,sans-serif;
+      color:var(--text);
+      display:flex;
+      min-height:100vh;
+      align-items:center;
+      justify-content:center;
+      background:
+        radial-gradient(620px 320px at 100% 0,rgba(220,38,38,.24),transparent 64%),
+        radial-gradient(480px 280px at 0 100%,rgba(250,204,21,.30),transparent 66%),
+        var(--bg);
+      padding:14px;
+    }
+    .card{
+      width:min(430px,96vw);
+      background:linear-gradient(180deg,var(--surface),var(--surface-2));
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:24px;
+      box-shadow:var(--shadow);
+      animation:fadeUp .4s ease both;
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:'';
+      position:absolute;left:0;right:0;top:0;height:4px;
+      background:linear-gradient(90deg,var(--red),var(--yellow));
+    }
+    h1{margin:0 0 8px;font-size:24px;letter-spacing:-.3px}
+    p{margin:0 0 18px;color:var(--muted);font-size:14px}
+    label{
+      display:block;font-size:12px;font-weight:800;margin:10px 0 6px;
+      text-transform:uppercase;color:var(--muted);letter-spacing:.35px
+    }
+    input{
+      width:100%;padding:11px;border:1px solid var(--border-strong);border-radius:10px;font-size:14px;
+      background:#fff;transition:border-color .18s ease, box-shadow .18s ease
+    }
+    input:focus{
+      outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.12)
+    }
+    .btn{
+      margin-top:14px;width:100%;padding:12px;border:0;border-radius:10px;
+      background:linear-gradient(135deg,var(--red),#f59e0b);
+      color:#fff;font-weight:800;cursor:pointer;
+      transition:transform .2s ease, box-shadow .2s ease;
+    }
+    .btn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(220,38,38,.25)}
+    .err{
+      background:#fef2f2;border:1px solid #fca5a5;color:#b91c1c;padding:10px;border-radius:10px;
+      margin-bottom:12px;font-size:13px;font-weight:600
+    }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:460px){.card{padding:18px;border-radius:12px}}
+  </style>
+</head>
+<body>
+  <form class="card" method="post" action="/admin/login" id="adminLoginForm">
+    <h1>Admin Login</h1>
+    <p>Sign in to manage dispatchers and report exports.</p>
+    <% if (error) { %><div class="err"><%= error %></div><% } %>
+    <label for="username">Username</label>
+    <input id="username" name="username" required autocomplete="username">
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" required autocomplete="current-password">
+    <button class="btn" type="submit">Login</button>
+  </form>
+  <script>
+    try {
+      const q = new URLSearchParams(window.location.search);
+      if (q.get('force') === '1') {
+        sessionStorage.removeItem('svs_admin_window_ok');
+      }
+      const f = document.getElementById('adminLoginForm');
+      if (f) {
+        f.addEventListener('submit', function () {
+          sessionStorage.setItem('svs_admin_window_ok', String(Date.now()));
+          sessionStorage.removeItem('svs_dispatcher_window_ok');
+        });
+      }
+    } catch (_e) {}
+  </script>
+</body>
+</html>
