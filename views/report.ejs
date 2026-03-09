@@ -69,6 +69,35 @@
     .brand-name em{font-style:normal;color:var(--amber-dark);}
     .brand-sub{font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
     .header-right{display:flex;align-items:center;gap:.65rem;}
+    .main-datetime{
+      display:flex;align-items:center;gap:10px;
+      min-height:52px;
+      padding:.55rem .95rem;
+      background:
+        linear-gradient(180deg,rgba(255,255,255,.94),rgba(239,246,255,.96)) padding-box,
+        linear-gradient(135deg,rgba(220,38,38,.95),rgba(29,78,216,.95)) border-box;
+      border:1.5px solid transparent;border-radius:16px;
+      color:var(--text2);white-space:nowrap;
+      box-shadow:0 12px 24px rgba(15,23,42,.08), inset 0 1px 0 rgba(255,255,255,.75);
+      transition:transform .2s ease, box-shadow .2s ease;
+      backdrop-filter:blur(10px);
+    }
+    .main-datetime:hover{
+      transform:translateY(-1px);
+      box-shadow:0 16px 30px rgba(15,23,42,.11), inset 0 1px 0 rgba(255,255,255,.82);
+    }
+    .main-datetime svg{width:22px;height:18px;stroke:var(--blue);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+    .time-block{display:flex;flex-direction:column;line-height:1.05;min-width:0;}
+    .clock-text{
+      font-family:'Orbitron','JetBrains Mono',monospace;
+      font-size:1rem;font-weight:700;letter-spacing:1px;color:var(--text2);
+      overflow-wrap:anywhere;
+    }
+    .date-text{
+      font-family:'JetBrains Mono',monospace;
+      font-size:.62rem;font-weight:700;letter-spacing:.6px;color:var(--muted2);
+      margin-top:4px;overflow-wrap:anywhere;
+    }
     .nav-btn{
       display:inline-flex;align-items:center;gap:5px;
       padding:.36rem .8rem;border:1px solid var(--border-mid);border-radius:99px;
@@ -78,15 +107,6 @@
     }
     .nav-btn:hover{border-color:var(--muted2);color:var(--text2);background:var(--surface);}
     .nav-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
-    .online-pill{
-      display:flex;align-items:center;gap:6px;
-      padding:.28rem .75rem;background:var(--green-light);
-      border:1px solid var(--green-border);border-radius:99px;
-      font-family:'JetBrains Mono',monospace;font-size:.6rem;font-weight:700;
-      letter-spacing:1px;text-transform:uppercase;color:var(--green);
-    }
-    .online-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s ease-in-out infinite;}
-    @keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
 
     /* ── PANIC STRIP ── */
     .panic-strip{
@@ -586,21 +606,125 @@
       .report-footer-inner{grid-template-columns:1fr;gap:1rem}
       .rf-text{max-width:none}
     }
+
+    /* modern polish */
+    body::before{
+      content:'';
+      position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:
+        linear-gradient(rgba(148,163,184,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,.06) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,.92), rgba(0,0,0,.30));
+    }
+    .header,.panic-strip,.form-wrap,.report-footer{position:relative;z-index:1}
+    .header{
+      height:72px;
+      background:rgba(244,248,255,.82);
+      border-bottom:1px solid rgba(151,189,233,.55);
+      box-shadow:0 10px 28px rgba(15,23,42,.08);
+    }
+    .brand{gap:8px}
+    .brand-logo{filter:drop-shadow(0 8px 14px rgba(29,78,216,.08))}
+    .panic-strip{
+      margin: 1rem auto 0;
+      width:min(1220px, calc(100% - 2rem));
+      border:1px solid rgba(252,165,165,.34);
+      border-radius: 32px;
+      box-shadow: 0 22px 48px rgba(15,23,42,.10);
+      backdrop-filter: blur(12px);
+    }
+    .panic-strip::after{
+      content:'';
+      position:absolute; inset:auto 8% -90px auto; width:260px; height:260px; border-radius:50%;
+      background:radial-gradient(circle, rgba(220,38,38,.12), transparent 70%);
+      pointer-events:none;
+    }
+    .panic-eyebrow{font-size:1rem; letter-spacing:4px}
+    .panic-btn{
+      width:182px; height:182px;
+      box-shadow:0 0 0 14px rgba(220,38,38,.08),0 0 0 30px rgba(220,38,38,.05),0 24px 48px rgba(220,38,38,.34);
+    }
+    .panic-sublabel{
+      background:rgba(255,255,255,.58);
+      border:1px solid rgba(191,213,238,.58);
+      border-radius:18px;
+      padding:1rem 1.2rem;
+      max-width: 420px;
+      box-shadow: var(--shadow-sm);
+    }
+    .form-wrap{max-width:860px;padding-top:3.2rem}
+    .form-head{margin-bottom:2.2rem}
+    .form-head p{max-width:560px}
+    .alert-strip{
+      background:rgba(255,255,255,.72);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 14px 30px rgba(15,23,42,.06);
+    }
+    .card{
+      background:linear-gradient(180deg, rgba(248,251,255,.95), rgba(238,245,255,.92));
+      border:1px solid rgba(191,214,245,.9);
+      border-radius:24px;
+      box-shadow:0 18px 40px rgba(15,23,42,.08);
+    }
+    .card:hover{transform:translateY(-2px); box-shadow:0 24px 48px rgba(15,23,42,.12)}
+    .card-head{margin-bottom:1.35rem}
+    .card-icon{
+      width:52px; height:52px; border-radius:16px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    .field label{font-size:.72rem; letter-spacing:1px}
+    input,select,textarea{
+      border-radius:14px;
+      background:rgba(255,255,255,.82);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+    }
+    .etype-btn,.sev-btn,.upload-box,.gps-btn{
+      border-radius:16px;
+      background:rgba(255,255,255,.72);
+      box-shadow: var(--shadow-xs);
+    }
+    .submit-btn,.panic-number-pill,.nav-btn{
+      box-shadow: var(--shadow-sm);
+    }
+    .report-footer{
+      margin-top:1rem;
+      background:linear-gradient(180deg, rgba(29,78,216,.12), rgba(220,38,38,.08));
+    }
+    @media(max-width:768px){
+      .panic-strip{
+        width:min(100%, calc(100% - 1rem));
+        border-radius:24px;
+      }
+      .header{height:auto;min-height:64px;padding:.75rem 1rem;align-items:flex-start;gap:.75rem;flex-wrap:wrap;}
+      .header-right{width:100%;justify-content:flex-start;}
+      .main-datetime{width:100%;white-space:normal;}
+      .panic-sublabel{padding:.85rem 1rem}
+    }
+    @media(max-width:520px){
+      .main-datetime{padding:.68rem .85rem;gap:.7rem;}
+      .main-datetime svg{width:20px;height:20px;}
+      .clock-text{font-size:.95rem;letter-spacing:.7px;}
+      .date-text{font-size:.6rem;letter-spacing:.45px;}
+    }
   </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <header class="header">
-  <a href="/" class="brand">
+  <div class="brand" aria-label="Smart Verification System">
     <img class="brand-logo" src="/images/logo.png" alt="MDRRMO SVS Logo">
     <div class="brand-text">
       <div class="brand-name">SVS</div>
       <div class="brand-sub">Smart Verification System</div>
     </div>
-  </a>
+  </div>
   <div class="header-right">
-    <div class="online-pill"><div class="online-dot"></div>Online</div>
+    <div class="main-datetime" id="dateTimeText">
+      <svg viewBox="0 0 24 24"><path d="M6.75 3v2.25m10.5-2.25v2.25M3.75 9.75h16.5M4.5 5.25h15A1.5 1.5 0 0 1 21 6.75v12A1.5 1.5 0 0 1 19.5 20.25h-15A1.5 1.5 0 0 1 3 18.75v-12A1.5 1.5 0 0 1 4.5 5.25Z"/></svg>
+      Loading time...
+    </div>
   </div>
 </header>
 
@@ -1564,6 +1688,28 @@
     setRequiredError(document.getElementById('gpsBtn'), false);
     return `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
   }
+
+  function updateDateTime() {
+    const el = document.getElementById('dateTimeText');
+    if (!el) return;
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const month = pad(now.getMonth() + 1);
+    const day = pad(now.getDate());
+    const year = now.getFullYear();
+    const h24 = now.getHours();
+    const hour12 = h24 % 12 || 12;
+    const minute = pad(now.getMinutes());
+    const second = pad(now.getSeconds());
+    const ampm = h24 >= 12 ? 'PM' : 'AM';
+    const dateText = `${days[now.getDay()]}  ${month}/${day}/${year}`;
+    const clockText = `${pad(hour12)}:${minute}:${second} ${ampm}`;
+    el.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6.75 3v2.25m10.5-2.25v2.25M3.75 9.75h16.5M4.5 5.25h15A1.5 1.5 0 0 1 21 6.75v12A1.5 1.5 0 0 1 19.5 20.25h-15A1.5 1.5 0 0 1 3 18.75v-12A1.5 1.5 0 0 1 4.5 5.25Z"/></svg><div class="time-block"><span class="clock-text">${clockText}</span><span class="date-text">${dateText}</span></div>`;
+  }
+
+  updateDateTime();
+  setInterval(updateDateTime, 1000);
 </script>
 </body>
 </html>

@@ -495,68 +495,34 @@ app.post('/api/dispatcher/profile', requireRolesApi(['dispatcher']), async (req,
 
 app.get('/admin', requireRolesPage(['admin'], '/login'), async (req, res) => {
   try {
-    const { from, to, where } = buildReportDateRangeFilter(req.query.from, req.query.to);
-    const reportPage = parsePositiveInt(req.query.reportPage, 1);
-    const auditPage = parsePositiveInt(req.query.auditPage, 1);
-    const dispatchers = await Dispatcher.find().sort({ createdAt: -1 }).lean();
-    const reportTotal = await Report.countDocuments(where);
-    const reportTotalPages = Math.max(1, Math.ceil(reportTotal / ADMIN_REPORTS_PAGE_SIZE));
-    const safeReportPage = Math.min(reportPage, reportTotalPages);
-    const reports = await Report.find(where)
-      .sort({ timestamp: -1 })
-      .skip((safeReportPage - 1) * ADMIN_REPORTS_PAGE_SIZE)
-      .limit(ADMIN_REPORTS_PAGE_SIZE)
-      .lean({ virtuals: true });
-
-    const auditWhere = { actorRole: 'dispatcher' };
-    const auditTotal = await AuditLog.countDocuments(auditWhere);
-    const auditTotalPages = Math.max(1, Math.ceil(auditTotal / ADMIN_AUDIT_PAGE_SIZE));
-    const safeAuditPage = Math.min(auditPage, auditTotalPages);
-    const auditLogs = await AuditLog.find(auditWhere)
-      .sort({ timestamp: -1 })
-      .skip((safeAuditPage - 1) * ADMIN_AUDIT_PAGE_SIZE)
-      .limit(ADMIN_AUDIT_PAGE_SIZE)
-      .lean();
-    const reportPagination = buildPaginationMeta(safeReportPage, reportTotal, ADMIN_REPORTS_PAGE_SIZE);
-    const auditPagination = buildPaginationMeta(safeAuditPage, auditTotal, ADMIN_AUDIT_PAGE_SIZE);
-    res.render('admin', {
-      dispatchers,
-      reports,
-      auditLogs,
-      stats: {
-        totalReports: reportTotal,
-        activeDispatchers: dispatchers.filter(d => d.isActive).length,
-        totalDispatchers: dispatchers.length,
-        auditCount: auditTotal,
-      },
-      reportPagination,
-      auditPagination,
-      reportPager: {
-        currentPage: reportPagination.page,
-        totalPages: reportPagination.totalPages,
-        totalCount: reportPagination.totalCount,
-        hasPrev: reportPagination.hasPrev,
-        hasNext: reportPagination.hasNext,
-      },
-      auditPager: {
-        currentPage: auditPagination.page,
-        totalPages: auditPagination.totalPages,
-        totalCount: auditPagination.totalCount,
-        hasPrev: auditPagination.hasPrev,
-        hasNext: auditPagination.hasNext,
-      },
-      reportLimit: ADMIN_REPORTS_PAGE_SIZE,
-      auditLimit: ADMIN_AUDIT_PAGE_SIZE,
-      from,
-      to,
-      tab: pickAdminTab(req.query.tab),
-      currentUser: req.auth,
+    return renderAdminPage(req, res, {
       error: String(req.query.err || ''),
       success: String(req.query.ok || ''),
     });
   } catch (err) {
     console.error(err);
     res.status(500).send('Could not load admin page');
+  }
+});
+
+app.get('/api/admin/live', requireRolesApi(['admin']), async (req, res) => {
+  try {
+    const data = await getAdminViewData(req);
+    return res.json({
+      reports: data.reports,
+      auditLogs: data.auditLogs,
+      stats: data.stats,
+      reportPagination: data.reportPagination,
+      auditPagination: data.auditPagination,
+      reportLimit: data.reportLimit,
+      auditLimit: data.auditLimit,
+      from: data.from,
+      to: data.to,
+      tab: data.tab,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Could not load admin live data' });
   }
 });
 
@@ -1651,9 +1617,47 @@ function sanitizePanicInput(body) {
 }
 
 async function renderAdminPage(req, res, options = {}, statusCode = 200) {
-  const { from, to, where } = buildReportDateRangeFilter(req.query.from, req.query.to);
-  const reportPage = parsePositiveInt(req.query.reportPage || req.body.reportPage, 1);
-  const auditPage = parsePositiveInt(req.query.auditPage || req.body.auditPage, 1);
+  const data = await getAdminViewData(req);
+  return res.status(statusCode).render('admin', {
+    dispatchers: data.dispatchers,
+    reports: data.reports,
+    auditLogs: data.auditLogs,
+    stats: data.stats,
+    reportPagination: data.reportPagination,
+    auditPagination: data.auditPagination,
+    reportPager: {
+      currentPage: data.reportPagination.page,
+      totalPages: data.reportPagination.totalPages,
+      totalCount: data.reportPagination.totalCount,
+      hasPrev: data.reportPagination.hasPrev,
+      hasNext: data.reportPagination.hasNext,
+    },
+    auditPager: {
+      currentPage: data.auditPagination.page,
+      totalPages: data.auditPagination.totalPages,
+      totalCount: data.auditPagination.totalCount,
+      hasPrev: data.auditPagination.hasPrev,
+      hasNext: data.auditPagination.hasNext,
+    },
+    reportLimit: data.reportLimit,
+    auditLimit: data.auditLimit,
+    from: data.from,
+    to: data.to,
+    tab: data.tab,
+    currentUser: req.auth,
+    error: options.error || '',
+    success: options.success || '',
+  });
+}
+
+async function getAdminViewData(req) {
+  const source = {
+    ...(req.query || {}),
+    ...(req.body || {}),
+  };
+  const { from, to, where } = buildReportDateRangeFilter(source.from, source.to);
+  const reportPage = parsePositiveInt(source.reportPage, 1);
+  const auditPage = parsePositiveInt(source.auditPage, 1);
   const dispatchers = await Dispatcher.find().sort({ createdAt: -1 }).lean();
   const reportTotal = await Report.countDocuments(where);
   const reportTotalPages = Math.max(1, Math.ceil(reportTotal / ADMIN_REPORTS_PAGE_SIZE));
@@ -1675,7 +1679,8 @@ async function renderAdminPage(req, res, options = {}, statusCode = 200) {
     .lean();
   const reportPagination = buildPaginationMeta(safeReportPage, reportTotal, ADMIN_REPORTS_PAGE_SIZE);
   const auditPagination = buildPaginationMeta(safeAuditPage, auditTotal, ADMIN_AUDIT_PAGE_SIZE);
-  return res.status(statusCode).render('admin', {
+
+  return {
     dispatchers,
     reports,
     auditLogs,
@@ -1687,29 +1692,12 @@ async function renderAdminPage(req, res, options = {}, statusCode = 200) {
     },
     reportPagination,
     auditPagination,
-    reportPager: {
-      currentPage: reportPagination.page,
-      totalPages: reportPagination.totalPages,
-      totalCount: reportPagination.totalCount,
-      hasPrev: reportPagination.hasPrev,
-      hasNext: reportPagination.hasNext,
-    },
-    auditPager: {
-      currentPage: auditPagination.page,
-      totalPages: auditPagination.totalPages,
-      totalCount: auditPagination.totalCount,
-      hasPrev: auditPagination.hasPrev,
-      hasNext: auditPagination.hasNext,
-    },
     reportLimit: ADMIN_REPORTS_PAGE_SIZE,
     auditLimit: ADMIN_AUDIT_PAGE_SIZE,
     from,
     to,
-    tab: pickAdminTab(req.body.tab || req.query.tab),
-    currentUser: req.auth,
-    error: options.error || '',
-    success: options.success || '',
-  });
+    tab: pickAdminTab(source.tab),
+  };
 }
 
 function pickAdminTab(tabRaw) {
@@ -1838,7 +1826,7 @@ async function emitRealtime(eventName, payload) {
 async function logAudit(entry) {
   try {
     if (!entry) return;
-    await AuditLog.create({
+    const saved = await AuditLog.create({
       actorRole: String(entry.actorRole || ''),
       actorId: String(entry.actorId || ''),
       actorName: String(entry.actorName || ''),
@@ -1848,6 +1836,7 @@ async function logAudit(entry) {
       details: String(entry.details || ''),
       timestamp: new Date(),
     });
+    await emitRealtime('audit-log-created', saved.toJSON());
   } catch (e) {
     console.error('[audit] failed to write log:', e && e.message ? e.message : e);
   }

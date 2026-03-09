@@ -12,73 +12,130 @@
       min-height: 100vh;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      padding: 2rem;
+      padding: 2.5rem 1.5rem;
+      background:
+        radial-gradient(720px 420px at 12% 10%, rgba(250,204,21,.22), transparent 62%),
+        radial-gradient(860px 520px at 100% 0, rgba(29,78,216,.18), transparent 64%),
+        linear-gradient(180deg, #f7fbff 0%, #ecf4ff 52%, #f8fbff 100%);
     }
 
-    /* subtle dot grid */
     body::before {
       content: '';
       position: fixed; inset: 0; z-index: 0;
-      background-image: radial-gradient(circle, rgba(29,78,216,.10) 1px, transparent 1px);
-      background-size: 26px 26px;
+      background-image:
+        linear-gradient(rgba(148,163,184,.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,.08) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,.95), rgba(0,0,0,.42));
       pointer-events: none;
     }
 
-    .landing { position: relative; z-index: 1; max-width: 900px; width: 100%; text-align: center; }
+    body::after{
+      content:'';
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+      background:
+        radial-gradient(380px 220px at 82% 76%, rgba(220,38,38,.08), transparent 70%),
+        radial-gradient(420px 280px at 18% 88%, rgba(29,78,216,.08), transparent 72%);
+    }
 
-    /* hero brand */
+    .landing {
+      position: relative; z-index: 1; max-width: 1080px; width: 100%; text-align: center;
+      padding: 2.35rem clamp(1.1rem, 2vw, 2rem);
+      background: rgba(255,255,255,.52);
+      border: 1px solid rgba(191,213,238,.72);
+      border-radius: 32px;
+      box-shadow: 0 24px 60px rgba(15,23,42,.10), inset 0 1px 0 rgba(255,255,255,.75);
+      backdrop-filter: blur(14px) saturate(135%);
+      overflow: hidden;
+    }
+    .landing::before{
+      content:'';
+      position:absolute; inset:auto auto 0 0;
+      width: 280px; height: 280px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(250,204,21,.18), transparent 70%);
+      transform: translate(-28%, 26%);
+      pointer-events:none;
+    }
+    .landing::after{
+      content:'';
+      position:absolute; top:0; right:0;
+      width: 320px; height: 320px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(29,78,216,.14), transparent 72%);
+      transform: translate(28%, -28%);
+      pointer-events:none;
+    }
+
     .hero-brand {
       display: flex; align-items: center; justify-content: center;
-      gap: 14px; margin-bottom: 2.75rem;
+      gap: 16px; margin-bottom: 1.9rem;
+      position: relative;
     }
     .hero-logo {
-      width: 100px; height: 100px; object-fit: contain;
+      width: 110px; height: 110px; object-fit: contain;
       display: block;
+      filter: drop-shadow(0 14px 24px rgba(29,78,216,.10));
     }
     .hero-copy { text-align: left; }
-    .hero-name { font-weight: 900; font-size: 1.45rem; letter-spacing: -0.5px; line-height: 1.1; }
+    .hero-name { font-weight: 900; font-size: 1.65rem; letter-spacing: -0.8px; line-height: 1.05; }
     .hero-name em { font-style: normal; color: var(--amber-dark); }
-    .hero-sub  { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+    .hero-sub  {
+      display:inline-flex; align-items:center; gap:8px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.64rem; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-top: 8px;
+      padding: .42rem .68rem; background: rgba(255,255,255,.72);
+      border: 1px solid rgba(191,213,238,.78); border-radius: 999px;
+      box-shadow: var(--shadow-xs);
+    }
+    .hero-sub::before{
+      content:'';
+      width:8px; height:8px; border-radius:50%;
+      background: linear-gradient(135deg, var(--amber), var(--orange));
+      box-shadow: 0 0 0 4px rgba(250,204,21,.16);
+    }
 
-    h1 { font-weight: 900; font-size: 2.1rem; letter-spacing: -1.2px; line-height: 1.1; margin-bottom: .65rem; }
+    h1 { font-weight: 900; font-size: clamp(2.35rem, 4vw, 3.8rem); letter-spacing: -2px; line-height: 1.02; margin-bottom: .85rem; }
     h1 span { color: var(--amber-dark); }
-    .subtitle { color: var(--text2); font-size: .97rem; line-height: 1.7; margin-bottom: 2.75rem; }
+    .subtitle {
+      color: var(--text2); font-size: 1rem; line-height: 1.8; margin: 0 auto 2.5rem;
+      max-width: 640px;
+    }
 
-    /* role cards */
-    .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+    .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
 
     .role-card {
       display: flex; flex-direction: column; align-items: flex-start; text-align: left;
-      padding: 1.75rem 1.5rem 1.5rem;
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: var(--r-xl);
+      padding: 1.9rem 1.6rem 1.55rem;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(244,248,255,.92));
+      border: 1px solid rgba(191,213,238,.92);
+      border-radius: 26px;
       text-decoration: none; color: inherit;
-      box-shadow: var(--shadow-sm);
-      transition: transform .22s, box-shadow .22s, border-color .22s;
+      box-shadow: 0 12px 34px rgba(15,23,42,.07), inset 0 1px 0 rgba(255,255,255,.72);
+      transition: transform .22s, box-shadow .22s, border-color .22s, background .22s;
       position: relative; overflow: hidden;
+      min-height: 248px;
     }
     .role-card::after {
       content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      border-radius: var(--r-xl) var(--r-xl) 0 0;
-      opacity: 0; transition: opacity .22s;
+      position: absolute; inset: auto -8% -26% auto; width: 180px; height: 180px;
+      border-radius: 50%;
+      opacity: .34; transition: transform .22s, opacity .22s;
     }
-    .role-card.reporter::after { background: linear-gradient(90deg, var(--amber), var(--orange)); }
-    .role-card.dispatcher::after { background: linear-gradient(90deg, var(--blue), #6366F1); }
-    .role-card.admin::after { background: linear-gradient(90deg, #059669, #0f766e); }
-    .role-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .role-card.reporter::after { background: radial-gradient(circle, rgba(250,204,21,.34), transparent 68%); }
+    .role-card.dispatcher::after { background: radial-gradient(circle, rgba(29,78,216,.28), transparent 68%); }
+    .role-card.admin::after { background: radial-gradient(circle, rgba(37,99,235,.26), transparent 68%); }
+    .role-card:hover { transform: translateY(-6px); box-shadow: 0 24px 50px rgba(15,23,42,.12); }
     .role-card.reporter:hover  { border-color: var(--amber-border); }
     .role-card.dispatcher:hover{ border-color: var(--blue-border);  }
     .role-card.admin:hover{ border-color: var(--green-border);  }
-    .role-card:hover::after { opacity: 1; }
+    .role-card:hover::after { opacity: .48; transform: scale(1.08); }
 
     .role-icon-box {
-      width: 46px; height: 46px; border-radius: 12px;
+      width: 54px; height: 54px; border-radius: 16px;
       display: flex; align-items: center; justify-content: center;
-      margin-bottom: 1.1rem;
+      margin-bottom: 1.2rem;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.65);
     }
-    .role-icon-box svg { width: 22px; height: 22px; stroke-width: 1.75; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .role-icon-box svg { width: 24px; height: 24px; stroke-width: 1.75; fill: none; stroke-linecap: round; stroke-linejoin: round; }
     .reporter  .role-icon-box { background: var(--amber-light); border: 1.5px solid var(--amber-border); }
     .reporter  .role-icon-box svg { stroke: var(--amber-dark); }
     .dispatcher .role-icon-box { background: var(--blue-light); border: 1.5px solid var(--blue-border); }
@@ -95,13 +152,17 @@
     .dispatcher .role-tag { color: var(--blue); }
     .admin .role-tag { color: var(--green); }
 
-    .role-title { font-weight: 800; font-size: 1.05rem; margin-bottom: .4rem; letter-spacing: -.2px; }
-    .role-desc  { font-size: .82rem; color: var(--muted); line-height: 1.55; font-weight: 400; flex: 1; }
+    .role-title { font-weight: 800; font-size: 1.1rem; margin-bottom: .48rem; letter-spacing: -.3px; }
+    .role-desc  { font-size: .87rem; color: var(--muted); line-height: 1.65; font-weight: 400; flex: 1; max-width: 28ch; }
 
     .role-cta {
       display: flex; align-items: center; gap: 5px;
-      margin-top: 1.25rem;
-      font-size: .78rem; font-weight: 700;
+      margin-top: 1.4rem;
+      font-size: .79rem; font-weight: 800;
+      padding: .65rem .9rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(191,213,238,.8);
     }
     .role-cta svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
     .role-card:hover .role-cta svg { transform: translateX(4px); }
@@ -110,18 +171,26 @@
     .admin .role-cta { color: var(--green); }
 
     .footer {
-      margin-top: 2.25rem;
+      margin-top: 2rem;
       font-family: 'JetBrains Mono', monospace;
-      font-size: .62rem; font-weight: 500;
-      letter-spacing: .5px; color: var(--muted2);
+      font-size: .64rem; font-weight: 700;
+      letter-spacing: .8px; color: var(--muted2);
+      display:inline-flex; align-items:center; justify-content:center;
+      padding: .8rem 1rem; border-radius: 999px;
+      background: rgba(255,255,255,.7);
+      border: 1px solid rgba(191,213,238,.84);
     }
 
     @media (max-width: 920px) {
       .role-grid { grid-template-columns: 1fr 1fr; }
+      .landing { padding: 1.5rem 1rem; border-radius: 26px; }
     }
     @media (max-width: 560px) {
       .role-grid { grid-template-columns: 1fr; }
-      h1 { font-size: 1.8rem; }
+      .hero-brand { flex-direction: column; }
+      .hero-copy { text-align: center; }
+      h1 { font-size: 2rem; }
+      .subtitle { font-size: .92rem; }
     }
   </style>
 </head>
