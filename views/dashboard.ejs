@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SVS — Dispatcher Dashboard</title>
+  <title>SVS â€” Dispatcher Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -54,7 +54,7 @@
     }
     ::-webkit-scrollbar{width:5px;height:5px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:99px;}
 
-    /* ── HEADER ── */
+    /* â”€â”€ HEADER â”€â”€ */
     .header{
       height:84px;flex-shrink:0;
       display:flex;align-items:center;justify-content:space-between;
@@ -103,7 +103,7 @@
     .online-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s ease-in-out infinite;}
     @keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
 
-    /* ── BODY LAYOUT ── */
+    /* â”€â”€ BODY LAYOUT â”€â”€ */
     .body{display:flex;flex:1;min-height:0;height:calc(100vh - 84px);overflow:hidden;}
     .header,.sidebar,.main-inner{animation:uiFade .45s ease both;}
     .sidebar{animation-delay:.08s;}
@@ -116,7 +116,7 @@
       .header,.sidebar,.main-inner,.rcard,.filter-item,.user-greet{animation:none!important;transition:none!important;}
     }
 
-    /* ── SIDEBAR ── */
+    /* â”€â”€ SIDEBAR â”€â”€ */
     .sidebar{
       width:312px;flex-shrink:0;
       background:#DCEBFF;
@@ -185,11 +185,25 @@
     .fi-false .fi-count{color:var(--muted);}
     .fi-all .fi-count{color:var(--muted);}
 
-    .sidebar-footer{padding:1rem 1.1rem;border-top:1px solid var(--border);margin-top:auto;}
-    .sidebar-footer p{font-size:.7rem;color:var(--muted2);line-height:1.55;}
-    .sidebar-footer strong{color:var(--text2);}
+    .sidebar-footer{
+      padding:1rem 1.1rem;border-top:1px solid var(--border);margin-top:auto;
+      display:grid;gap:.55rem;
+      background:linear-gradient(180deg, rgba(255,255,255,.2), rgba(255,255,255,0));
+    }
+    .rf-brand{display:flex;align-items:center;gap:.55rem;}
+    .rf-logo{
+      width:56px;height:48px;object-fit:contain;display:block;flex-shrink:0;
+    }
+    .rf-copy{min-width:0;}
+    .rf-name{font-weight:800;font-size:.82rem;line-height:1.15;color:var(--text2);}
+    .rf-sub{
+      font-family:'JetBrains Mono',monospace;
+      font-size:.56rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);
+      margin-top:3px;
+    }
+    .rf-text{font-size:.7rem;color:var(--muted2);line-height:1.55;margin:0;}
 
-    /* ── MAIN ── */
+    /* â”€â”€ MAIN â”€â”€ */
     .main{flex:1;min-width:0;height:calc(100vh - 84px);overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;}
     .main-inner{padding:1.5rem 1.75rem 3rem;display:flex;flex-direction:column;gap:1.25rem;flex:1;}
 
@@ -202,6 +216,7 @@
       box-shadow:var(--shadow-sm);
       backdrop-filter:blur(8px);
     }
+    .main-head-copy{flex:1 1 360px;min-width:0;}
     .main-title{font-weight:900;font-size:1.55rem;letter-spacing:-.75px;line-height:1.1;}
     .main-sub{font-size:.78rem;color:var(--muted);margin-top:3px;}
     .main-quick-filters{display:flex;gap:.5rem;margin-top:.65rem;flex-wrap:wrap;}
@@ -218,31 +233,36 @@
       font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:800;line-height:1;
       padding:2px 6px;border-radius:999px;background:rgba(255,255,255,.7);border:1px solid var(--border);
     }
-    .main-head-tools{display:flex;flex-direction:column;align-items:flex-end;gap:.55rem;justify-content:flex-end;}
+    .main-head-tools{display:flex;flex:0 1 282px;flex-direction:column;align-items:flex-end;gap:.55rem;justify-content:flex-end;width:100%;max-width:282px;}
     .main-datetime{
       display:flex;align-items:center;gap:10px;
-      padding:.62rem 1.05rem;min-height:66px;
-      background:linear-gradient(165deg,#0B1220,#05080F);
-      border:1px solid #1F2937;border-radius:14px;
-      color:#A7F3D0;white-space:nowrap;
-      box-shadow:inset 0 0 0 1px rgba(148,163,184,.08),0 10px 24px rgba(2,6,23,.28);
+      width:100%;padding:.62rem 1.05rem;min-height:66px;
+      background:
+        linear-gradient(180deg,rgba(255,255,255,.94),rgba(239,246,255,.96)) padding-box,
+        linear-gradient(135deg,rgba(220,38,38,.95),rgba(29,78,216,.95)) border-box;
+      border:1.5px solid transparent;border-radius:16px;
+      color:var(--text2);white-space:nowrap;
+      box-shadow:0 12px 24px rgba(15,23,42,.08), inset 0 1px 0 rgba(255,255,255,.75);
       transition:transform .2s ease, box-shadow .2s ease;
+      backdrop-filter:blur(10px);
     }
     .main-datetime:hover{
       transform:translateY(-1px);
-      box-shadow:inset 0 0 0 1px rgba(148,163,184,.14),0 14px 28px rgba(2,6,23,.33);
+      box-shadow:0 16px 30px rgba(15,23,42,.11), inset 0 1px 0 rgba(255,255,255,.82);
     }
-    .main-datetime svg{width:24px;height:18px;stroke:#60A5FA;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
-    .time-block{display:flex;flex-direction:column;line-height:1.05;}
+    .main-datetime svg{width:24px;height:18px;stroke:var(--blue);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+    .time-block{display:flex;flex-direction:column;line-height:1.05;min-width:0;}
     .clock-text{
       font-family:'Orbitron','JetBrains Mono',monospace;
-      font-size:1.36rem;font-weight:700;letter-spacing:1.3px;color:#86EFAC;
-      text-shadow:0 0 12px rgba(134,239,172,.22);
+      font-size:1.2rem;font-weight:700;letter-spacing:1.1px;color:var(--text2);
+      text-shadow:none;
+      overflow-wrap:anywhere;
     }
     .date-text{
       font-family:'JetBrains Mono',monospace;
-      font-size:.68rem;font-weight:700;letter-spacing:.7px;color:#93C5FD;
+      font-size:.66rem;font-weight:700;letter-spacing:.7px;color:var(--muted2);
       margin-top:4px;
+      overflow-wrap:anywhere;
     }
     .user-greet{
       display:inline-flex;
@@ -307,13 +327,13 @@
       letter-spacing:2px;text-transform:uppercase;color:var(--muted);
       display:flex;align-items:center;gap:10px;
       position:sticky;top:0;z-index:8;
-      background:linear-gradient(180deg, rgba(248,250,252,.98), rgba(248,250,252,.92));
+      background:transparent;
       padding:.35rem 0;
       backdrop-filter:blur(4px);
     }
     .filter-label-bar::after{content:'';flex:1;height:1px;background:var(--border);}
 
-    /* ── REPORT CARDS ── */
+    /* â”€â”€ REPORT CARDS â”€â”€ */
     .report-list{display:flex;flex-direction:column;gap:1rem;}
 
     .rcard{
@@ -629,13 +649,13 @@
     @media(max-width:768px){
       body{overflow:auto;height:auto;}
       .body{flex-direction:column;}
-      .sidebar{width:100%;height:auto;}
+      .sidebar{width:100%;height:auto;min-height:0;position:relative;top:0;align-self:stretch;overflow:visible;}
       .sidebar-top,.sidebar-footer{padding:.9rem .85rem}
       .filter-list{flex-direction:row;flex-wrap:wrap;padding:.6rem;}
       .filter-item{flex:1;min-width:124px;padding:.65rem .72rem}
       .main{overflow:visible;}
       .main-inner{padding:.85rem .75rem 1.5rem}
-      .main-header{padding:.85rem .9rem;}
+      .main-header{padding:.85rem .9rem;align-items:stretch;}
       .main-title{font-size:1.3rem}
       .header-right{gap:.4rem;flex-wrap:wrap;justify-content:flex-end}
       .nav-btn{padding:.34rem .62rem;font-size:.72rem}
@@ -643,7 +663,8 @@
       .rcard-right{justify-content:flex-start}
       .rcard-loc{gap:.55rem}
       .rcard-map-canvas{height:250px;}
-      .main-head-tools{align-items:flex-start;}
+      .main-head-copy,.main-head-tools{flex-basis:100%;max-width:none;}
+      .main-head-tools{align-items:stretch;}
     }
     @media(max-width:520px){
       .header{height:auto;padding:.62rem .65rem;align-items:flex-start;gap:.6rem;flex-direction:column}
@@ -653,6 +674,15 @@
       .fi-icon{width:30px;height:30px}
       .fi-label{font-size:.78rem}
       .rcard{padding:.92rem .82rem}
+      .main-header{padding:.9rem .8rem;border-radius:18px;}
+      .main-title{font-size:1.15rem}
+      .main-sub{font-size:.74rem;line-height:1.45;}
+      .main-quick-filters{gap:.45rem;}
+      .quick-filter-btn{flex:1 1 calc(50% - .25rem);justify-content:center;min-width:0;}
+      .main-datetime{padding:.68rem .85rem;min-height:unset;gap:.7rem;white-space:normal;}
+      .main-datetime svg{width:20px;height:20px;}
+      .clock-text{font-size:1rem;letter-spacing:.7px;}
+      .date-text{font-size:.62rem;letter-spacing:.5px;}
       .rcard-type{gap:6px}
       .type-name{font-size:.9rem}
       .rcard-meta{font-size:.66rem;gap:.58rem}
@@ -663,6 +693,10 @@
       .profile-actions{flex-direction:column}
       .profile-btn{width:100%;text-align:center}
       .toast{left:.5rem;right:.5rem;max-width:none;width:auto}
+      .sidebar-footer{gap:.45rem;padding:.85rem .8rem 1rem;}
+      .rf-brand{align-items:center;gap:.5rem;}
+      .rf-copy,.rf-text{min-width:0;}
+      .rf-text{font-size:.66rem;line-height:1.45;overflow-wrap:anywhere;}
       .user-greet{
         width:100%;
         justify-content:center;
@@ -670,6 +704,97 @@
       }
       .user-greet-icon{width:20px;height:20px;}
       .filter-label-bar{top:-1px;}
+      .rf-logo{width:48px;height:40px;}
+      .rf-name{font-size:.76rem;}
+    }
+
+    /* modern polish */
+    body::before{
+      content:'';
+      position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:
+        linear-gradient(rgba(148,163,184,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,.06) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,.92), rgba(0,0,0,.28));
+    }
+    .header,.body{position:relative;z-index:1}
+    .header{
+      height:90px;
+      background:rgba(236,245,255,.76);
+      border-bottom:1px solid rgba(154,188,232,.6);
+      box-shadow:0 18px 40px rgba(15,23,42,.08);
+    }
+    .brand-logo{filter:drop-shadow(0 10px 16px rgba(29,78,216,.08))}
+    .header-weather,.online-pill,.nav-btn,.user-greet{
+      box-shadow: var(--shadow-sm);
+    }
+    .sidebar{
+      background:
+        linear-gradient(180deg, rgba(220,235,255,.92), rgba(232,242,255,.86)),
+        linear-gradient(180deg, rgba(250,204,21,.10), transparent 42%);
+      border-right:1px solid rgba(154,188,232,.6);
+      box-shadow: inset -1px 0 0 rgba(255,255,255,.55);
+    }
+    .sidebar-top{
+      padding:1.35rem 1.15rem 1rem;
+      background:linear-gradient(180deg, rgba(250,204,21,.20), rgba(255,255,255,0));
+    }
+    .filter-list{padding:.85rem}
+    .filter-item{
+      border-radius:16px;
+      background:rgba(255,255,255,.68);
+      box-shadow: 0 8px 18px rgba(15,23,42,.05);
+      backdrop-filter: blur(10px);
+    }
+    .filter-item.active{
+      background:linear-gradient(135deg, rgba(250,204,21,.34), rgba(255,255,255,.76));
+      box-shadow:0 16px 30px rgba(15,23,42,.10);
+    }
+    .main-inner{
+      padding:1.65rem 1.8rem 3rem;
+      gap:1.35rem;
+    }
+    .main-header{
+      padding:1.15rem 1.2rem;
+      border-radius:22px;
+      background:rgba(255,255,255,.58);
+      box-shadow:0 16px 38px rgba(15,23,42,.08);
+      backdrop-filter: blur(14px);
+    }
+    .main-title{font-size:1.7rem}
+    .quick-filter-btn{
+      border-radius:999px;
+      padding:.5rem .92rem;
+      box-shadow: var(--shadow-xs);
+    }
+    .rcard{
+      border-radius:24px;
+      padding:1.45rem 1.55rem;
+      background:linear-gradient(180deg, rgba(255,255,255,.94), rgba(244,248,255,.92));
+      box-shadow:0 16px 34px rgba(15,23,42,.08);
+      backdrop-filter: blur(10px);
+    }
+    .rcard:hover{transform:translateY(-3px); box-shadow:0 22px 44px rgba(15,23,42,.12)}
+    .type-icon,.photo-thumb,.rcard-map,.rcard-desc,.act-btn,.edit-modal,.profile-modal{
+      box-shadow: var(--shadow-xs);
+    }
+    .rcard-desc{
+      background:linear-gradient(180deg, rgba(239,246,255,.72), rgba(231,240,255,.8));
+      border-radius:16px;
+    }
+    .act-btn{
+      border-radius:12px;
+      padding:.5rem .95rem;
+    }
+    .empty{
+      border-radius:24px;
+      background:linear-gradient(180deg, rgba(243,248,255,.92), rgba(234,242,255,.92));
+      box-shadow:0 16px 30px rgba(15,23,42,.06);
+    }
+    @media(max-width:1024px){
+      .main-inner{padding:1rem 1rem 2rem}
+      .header{height:78px}
     }
   </style>
 </head>
@@ -677,13 +802,13 @@
 
 <!-- HEADER -->
 <header class="header">
-  <a href="/" class="brand">
+  <div class="brand" aria-label="Smart Verification System">
     <img class="brand-logo" src="/images/logo.png" alt="MDRRMO SVS Logo">
     <div class="brand-text">
       <div class="brand-name">SVS</div>
       <div class="brand-sub">Smart Verification System</div>
     </div>
-  </a>
+  </div>
   <div class="header-right">
     <% if (currentUser && currentUser.role === 'admin') { %>
       <a class="nav-btn" href="/admin">Admin Panel</a>
@@ -767,7 +892,14 @@
     </div>
 
     <div class="sidebar-footer">
-      <p><strong>Real-time via Pusher.</strong><br>Citizen reports appear here instantly — no refresh needed.</p>
+      <div class="rf-brand">
+        <img class="rf-logo" src="/images/logo.png" alt="MDRRMO SVS Logo">
+        <div class="rf-copy">
+          <div class="rf-name">Smart Verification System</div>
+          <div class="rf-sub">Emergency Reporting</div>
+        </div>
+      </div>
+      <p class="rf-text">Fast and reliable citizen incident reporting with real-time dispatcher visibility and location-aware alerts.</p>
     </div>
   </aside>
 
@@ -776,7 +908,7 @@
     <div class="main-inner">
 
       <div class="main-header">
-        <div>
+        <div class="main-head-copy">
           <div class="main-title">Live Dispatch Console</div>
           <div class="main-sub">Real-time emergency report management</div>
           <div class="main-quick-filters">
@@ -953,7 +1085,7 @@
   const geoCache = new Map();
   const geoInFlight = new Set();
 
-  // ── Icon SVGs per type ──
+  // â”€â”€ Icon SVGs per type â”€â”€
   const typeIcons = {
     Fire: `<svg viewBox="0 0 24 24"><path d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/><path d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z"/></svg>`,
     Flood: `<svg viewBox="0 0 24 24"><path d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/></svg>`,
@@ -1041,7 +1173,7 @@
           setWeatherText('Weather unavailable');
           return;
         }
-        setWeatherText(`${weatherCodeText(code)} ${Math.round(temp)}°C`);
+        setWeatherText(`${weatherCodeText(code)} ${Math.round(temp)}\u00B0C`);
       } catch (_err) {
         setWeatherText('Weather unavailable');
       }
@@ -1592,7 +1724,7 @@
       if (!res.ok) throw new Error(data.error || 'Could not update status');
       const r = reports.find(x=>x.id===id);
       if (r) { r.status=status; lastReportsSig = reportsSignature(reports); render(); }
-      const msgs = {verifying:'Calling reporter to verify…',dispatched:'Response team dispatched!',resolved:'Incident resolved.',['false-report']:'Flagged as false report.'};
+      const msgs = {verifying:'Calling reporter to verifyâ€¦',dispatched:'Response team dispatched!',resolved:'Incident resolved.',['false-report']:'Flagged as false report.'};
       toast_(id, msgs[status]||'');
     } catch(e) { toast_('Error', e && e.message ? e.message : 'Could not update status.','warn'); }
   }
@@ -1778,7 +1910,7 @@
     t._t=setTimeout(()=>t.classList.remove('show'),3600);
   }
 
-  // ── Realtime events ──
+  // â”€â”€ Realtime events â”€â”€
   if (channel) channel.bind('new-report', r => {
     const nr = normalizeReport(r);
     if (!canSeeReport(nr)) return;
@@ -1786,7 +1918,7 @@
     lastReportsSig = reportsSignature(reports);
     render();
     void hydrateLegacyPanicLocations();
-    toast_(nr.isPanic?'PANIC SOS':'New Report', `${nr.emergencyType} — ${nr.barangay}`);
+    toast_(nr.isPanic?'PANIC SOS':'New Report', `${nr.emergencyType} â€” ${nr.barangay}`);
     requestAnimationFrame(()=>{
       const el=document.getElementById(`card-${nr.id}`);
       if (el){el.classList.add('card-flash');setTimeout(()=>el.classList.remove('card-flash'),1800);}

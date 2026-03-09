@@ -109,21 +109,22 @@
     .admin-dt{
       display:flex;align-items:center;gap:10px;
       padding:.62rem 1.05rem;min-height:66px;
-      background:linear-gradient(165deg,#0B1220,#05080F);
-      border:1.5px solid #FACC15;border-radius:14px;
-      color:#A7F3D0;white-space:nowrap;
-      box-shadow:inset 0 0 0 1px rgba(250,204,21,.18),0 10px 24px rgba(2,6,23,.28);
+      background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,250,242,.94));
+      border:1px solid rgba(245,192,138,.92);border-radius:16px;
+      color:var(--text);white-space:nowrap;
+      box-shadow:0 12px 24px rgba(127,29,29,.10), inset 0 1px 0 rgba(255,255,255,.82);
+      backdrop-filter:blur(10px);
     }
-    .admin-dt svg{width:24px;height:18px;stroke:#60A5FA;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+    .admin-dt svg{width:24px;height:18px;stroke:#dc2626;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
     .admin-time-block{display:flex;flex-direction:column;line-height:1.05}
     .admin-clock{
       font-family:'JetBrains Mono',monospace;
-      font-size:1.12rem;font-weight:800;letter-spacing:1px;color:#86EFAC;
-      text-shadow:0 0 12px rgba(134,239,172,.22);
+      font-size:1.08rem;font-weight:800;letter-spacing:1px;color:var(--text);
+      text-shadow:none;
     }
     .admin-date{
       font-family:'JetBrains Mono',monospace;
-      font-size:.66rem;font-weight:700;letter-spacing:.7px;color:#93C5FD;
+      font-size:.66rem;font-weight:700;letter-spacing:.7px;color:var(--muted2);
       margin-top:4px;
     }
     .chip{
@@ -376,6 +377,98 @@
       .row-form{grid-template-columns:1fr}
       .modal-form{grid-template-columns:1fr}
     }
+
+    /* modern polish */
+    body::before{
+      content:'';
+      position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:
+        linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,.92), rgba(0,0,0,.24));
+    }
+    .layout{position:relative; z-index:1}
+    .side{
+      background:
+        radial-gradient(220px 140px at 50% 0, rgba(250,204,21,.14), transparent 72%),
+        linear-gradient(180deg,#7f1d1d 0%, #991b1b 45%, #7f1d1d 100%);
+      box-shadow: 24px 0 48px rgba(127,29,29,.14);
+    }
+    .brand-wrap{
+      padding:10px 12px 18px;
+      margin-bottom:18px;
+    }
+    .nav{gap:10px}
+    .nav-item,.nav button{
+      border-radius:16px;
+      background:rgba(255,255,255,.11);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    .main{padding:24px 24px 28px}
+    .top{
+      padding:14px 16px;
+      border-radius:22px;
+      background:rgba(255,255,255,.58);
+      box-shadow:0 18px 38px rgba(127,29,29,.10);
+      backdrop-filter: blur(12px);
+    }
+    .section{
+      margin-top:18px;
+      padding:18px;
+      border-radius:24px;
+      background:linear-gradient(180deg, rgba(255,247,237,.92), rgba(255,255,255,.9));
+      box-shadow:0 18px 40px rgba(127,29,29,.10);
+      backdrop-filter: blur(12px);
+    }
+    .stats{gap:14px}
+    .kpi,.chart-card,.filters,.table-wrap,.pager,.dispatcher-card,.modal{
+      box-shadow:0 12px 28px rgba(127,29,29,.08);
+    }
+    .kpi,.chart-card,.filters,.pager,.dispatcher-card{
+      border-radius:18px;
+    }
+    .kpi{
+      background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,250,242,.92));
+    }
+    .chart-card{
+      padding:14px;
+      background:rgba(255,255,255,.92);
+    }
+    .filters{
+      padding:14px;
+      background:rgba(255,255,255,.86);
+    }
+    .btn,.chart-select,.filters input,.row-form input,.modal-field input{
+      border-radius:12px;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .btn:hover,.chart-select:hover,.filters input:hover,.row-form input:hover,.modal-field input:hover{
+      transform:translateY(-1px);
+      box-shadow:0 8px 18px rgba(127,29,29,.08);
+    }
+    .table-wrap{
+      background:rgba(255,255,255,.95);
+      border-radius:18px;
+      overflow:auto;
+    }
+    th{
+      background:linear-gradient(180deg,#fffaf2,#fff6e8);
+      backdrop-filter: blur(8px);
+    }
+    td{border-bottom:1px solid rgba(127,29,29,.08)}
+    .dispatcher-card{
+      padding:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,250,242,.92));
+    }
+    .modal{
+      border-radius:20px;
+      background:linear-gradient(180deg,#fffdf9,#ffffff);
+    }
+    @media(max-width:860px){
+      .main{padding:14px}
+      .section{border-radius:20px}
+    }
   </style>
 </head>
 <body>
@@ -432,10 +525,10 @@
           Dashboard
         </h2>
         <div class="stats">
-          <div class="kpi"><div class="k">Reports (Filtered)</div><div class="v"><%= stats.totalReports %></div></div>
-          <div class="kpi"><div class="k">Dispatchers</div><div class="v"><%= stats.totalDispatchers %></div></div>
-          <div class="kpi"><div class="k">Active Dispatchers</div><div class="v"><%= stats.activeDispatchers %></div></div>
-          <div class="kpi"><div class="k">Audit Entries</div><div class="v"><%= stats.auditCount %></div></div>
+          <div class="kpi"><div class="k">Reports (Filtered)</div><div class="v" id="statTotalReports"><%= stats.totalReports %></div></div>
+          <div class="kpi"><div class="k">Dispatchers</div><div class="v" id="statTotalDispatchers"><%= stats.totalDispatchers %></div></div>
+          <div class="kpi"><div class="k">Active Dispatchers</div><div class="v" id="statActiveDispatchers"><%= stats.activeDispatchers %></div></div>
+          <div class="kpi"><div class="k">Audit Entries</div><div class="v" id="statAuditCount"><%= stats.auditCount %></div></div>
         </div>
         <div class="chart-grid">
           <div class="chart-card">
@@ -507,7 +600,7 @@
         <div class="table-wrap">
           <table>
             <thead><tr><th>ID</th><th>Type</th><th>Status</th><th>Claimed By</th><th>Current Dispatcher</th><th>Pass Count</th><th>Severity</th><th>Reporter</th><th>Location</th><th>Timestamp</th></tr></thead>
-            <tbody>
+            <tbody id="reportsTableBody">
               <% reports.forEach(function(r){ %>
               <% const claimedBy = r.claimedByUsername || r.claimedByName || r.dispatcherName || '-'; %>
               <% const currentDispatcher = r.assignedToUsername || r.assignedToName || '-'; %>
@@ -535,11 +628,11 @@
         </div>
         <% const rp = reportPagination || { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false }; %>
         <% const reportsBase = '/admin?tab=reports&from=' + encodeURIComponent(from || '') + '&to=' + encodeURIComponent(to || '') + '&auditPage=' + encodeURIComponent((auditPagination && auditPagination.page) || 1); %>
-        <div class="pager">
-          <div>Showing page <strong><%= rp.page %></strong> of <strong><%= rp.totalPages %></strong> (<%= rp.totalCount %> reports)</div>
+        <div class="pager" id="reportsPager">
+          <div id="reportsPagerSummary">Showing page <strong><%= rp.page %></strong> of <strong><%= rp.totalPages %></strong> (<%= rp.totalCount %> reports)</div>
           <div class="pager-actions">
-            <a class="btn" href="<%= reportsBase %>&reportPage=<%= rp.page - 1 %>" aria-disabled="<%= rp.hasPrev ? 'false' : 'true' %>">Previous</a>
-            <a class="btn" href="<%= reportsBase %>&reportPage=<%= rp.page + 1 %>" aria-disabled="<%= rp.hasNext ? 'false' : 'true' %>">Next</a>
+            <a class="btn" id="reportsPrevLink" href="<%= reportsBase %>&reportPage=<%= rp.page - 1 %>" aria-disabled="<%= rp.hasPrev ? 'false' : 'true' %>">Previous</a>
+            <a class="btn" id="reportsNextLink" href="<%= reportsBase %>&reportPage=<%= rp.page + 1 %>" aria-disabled="<%= rp.hasNext ? 'false' : 'true' %>">Next</a>
           </div>
         </div>
       </section>
@@ -618,7 +711,7 @@
         <div class="table-wrap">
           <table>
             <thead><tr><th>Timestamp</th><th>Dispatcher</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
-            <tbody>
+            <tbody id="auditTableBody">
               <% auditLogs.forEach(function(a){ %>
                 <tr>
                   <td><%= new Date(a.timestamp).toLocaleString() %></td>
@@ -633,11 +726,11 @@
         </div>
         <% const ap = auditPagination || { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false }; %>
         <% const auditBase = '/admin?tab=audit&reportPage=' + encodeURIComponent((reportPagination && reportPagination.page) || 1); %>
-        <div class="pager">
-          <div>Showing page <strong><%= ap.page %></strong> of <strong><%= ap.totalPages %></strong> (<%= ap.totalCount %> audit entries)</div>
+        <div class="pager" id="auditPager">
+          <div id="auditPagerSummary">Showing page <strong><%= ap.page %></strong> of <strong><%= ap.totalPages %></strong> (<%= ap.totalCount %> audit entries)</div>
           <div class="pager-actions">
-            <a class="btn" href="<%= auditBase %>&auditPage=<%= ap.page - 1 %>" aria-disabled="<%= ap.hasPrev ? 'false' : 'true' %>">Previous</a>
-            <a class="btn" href="<%= auditBase %>&auditPage=<%= ap.page + 1 %>" aria-disabled="<%= ap.hasNext ? 'false' : 'true' %>">Next</a>
+            <a class="btn" id="auditPrevLink" href="<%= auditBase %>&auditPage=<%= ap.page - 1 %>" aria-disabled="<%= ap.hasPrev ? 'false' : 'true' %>">Previous</a>
+            <a class="btn" id="auditNextLink" href="<%= auditBase %>&auditPage=<%= ap.page + 1 %>" aria-disabled="<%= ap.hasNext ? 'false' : 'true' %>">Next</a>
           </div>
         </div>
       </section>
@@ -734,6 +827,8 @@
     </div>
   </div>
   <script id="reportsSeed" type="application/json"><%- JSON.stringify(reports) %></script>
+  <script id="auditSeed" type="application/json"><%- JSON.stringify(auditLogs) %></script>
+  <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     try {
@@ -823,7 +918,63 @@
       document.querySelectorAll('.modal-backdrop.show').forEach(m => closeModal('#' + m.id));
     });
 
+    const realtimeCfg = <%- JSON.stringify(realtime || {}) %>;
+    const pusher = (realtimeCfg.key && realtimeCfg.cluster && window.Pusher)
+      ? new Pusher(realtimeCfg.key, { cluster: realtimeCfg.cluster, forceTLS: true })
+      : null;
+    const channel = pusher ? pusher.subscribe(realtimeCfg.channel || 'mdrrmo-reports') : null;
+
     function safeArr(v){ return Array.isArray(v) ? v : []; }
+    function escHtml(v) {
+      return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    function toNum(v) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    }
+    function formatDateTime(value) {
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? '-' : d.toLocaleString();
+    }
+    function buildReportLocation(r) {
+      const parts = [r && r.street, r && r.landmark, r && r.barangay].filter(Boolean);
+      return parts.join(', ') || '-';
+    }
+    function reportRowHtml(r) {
+      const claimedBy = (r && (r.claimedByUsername || r.claimedByName || r.dispatcherName)) || '-';
+      const currentDispatcher = (r && (r.assignedToUsername || r.assignedToName)) || '-';
+      const passCount = Math.max(0, toNum(r && r.passCount));
+      const reportId = (r && (r.reportId || r._id)) || '';
+      const reportKind = String(reportId).split('-')[0] || 'OTHER';
+      return `
+        <tr class="report-row" data-report-kind="${escHtml(reportKind)}">
+          <td>${escHtml(reportId || '-')}</td>
+          <td>${escHtml((r && r.emergencyType) || '-')}</td>
+          <td>${escHtml((r && r.status) || '-')}</td>
+          <td>${escHtml(claimedBy)}</td>
+          <td>${escHtml(currentDispatcher)}</td>
+          <td>${passCount}</td>
+          <td>${escHtml((r && r.severity) || '-')}</td>
+          <td>${escHtml((r && r.name) || '-')}<br><span style="font-size:12px;color:#6f644f">${escHtml((r && r.contact) || '-')}</span></td>
+          <td>${escHtml(buildReportLocation(r))}</td>
+          <td>${escHtml(formatDateTime(r && r.timestamp))}</td>
+        </tr>`;
+    }
+    function auditRowHtml(a) {
+      return `
+        <tr>
+          <td>${escHtml(formatDateTime(a && a.timestamp))}</td>
+          <td>${escHtml((a && (a.actorName || a.actorId)) || '-')}</td>
+          <td>${escHtml((a && a.action) || '-')}</td>
+          <td>${escHtml(`${(a && a.targetType) || '-'} ${(a && a.targetId) || ''}`.trim())}</td>
+          <td>${escHtml((a && a.details) || '-')}</td>
+        </tr>`;
+    }
 
     let reportsData = [];
     try {
@@ -831,14 +982,37 @@
     } catch (_e) { reportsData = []; }
     reportsData = safeArr(reportsData);
 
+    let auditLogsData = [];
+    try {
+      auditLogsData = JSON.parse(document.getElementById('auditSeed').textContent || '[]');
+    } catch (_e) { auditLogsData = []; }
+    auditLogsData = safeArr(auditLogsData);
+
+    let adminStats = {
+      totalReports: toNum(document.getElementById('statTotalReports') && document.getElementById('statTotalReports').textContent),
+      totalDispatchers: toNum(document.getElementById('statTotalDispatchers') && document.getElementById('statTotalDispatchers').textContent),
+      activeDispatchers: toNum(document.getElementById('statActiveDispatchers') && document.getElementById('statActiveDispatchers').textContent),
+      auditCount: toNum(document.getElementById('statAuditCount') && document.getElementById('statAuditCount').textContent),
+    };
+    let reportPaginationState = <%- JSON.stringify(reportPagination || { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false }) %>;
+    let auditPaginationState = <%- JSON.stringify(auditPagination || { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false }) %>;
+
     const severityLevels = ['Low', 'Medium', 'High'];
     const trendRangeSelect = document.getElementById('trendRangeSelect');
     const trendChartTitle = document.getElementById('trendChartTitle');
     const severityTypeSelect = document.getElementById('severityTypeSelect');
     const severityChartTitle = document.getElementById('severityChartTitle');
     const reportIdTypeFilter = document.getElementById('reportIdTypeFilter');
-    const reportRows = Array.from(document.querySelectorAll('.report-row'));
-    const reportFilterEmptyState = document.getElementById('reportFilterEmptyState');
+    let reportRows = Array.from(document.querySelectorAll('.report-row'));
+    let reportFilterEmptyState = document.getElementById('reportFilterEmptyState');
+    const reportsTableBody = document.getElementById('reportsTableBody');
+    const auditTableBody = document.getElementById('auditTableBody');
+    const reportsPagerSummary = document.getElementById('reportsPagerSummary');
+    const auditPagerSummary = document.getElementById('auditPagerSummary');
+    const reportsPrevLink = document.getElementById('reportsPrevLink');
+    const reportsNextLink = document.getElementById('reportsNextLink');
+    const auditPrevLink = document.getElementById('auditPrevLink');
+    const auditNextLink = document.getElementById('auditNextLink');
 
     function cleanType(value) {
       return String(value || '').trim() || 'Unknown';
@@ -980,18 +1154,76 @@
       return counts;
     }
 
-    const falseCount = reportsData.reduce((count, r) => {
-      return count + (String((r && r.status) || '') === 'false-report' ? 1 : 0);
-    }, 0);
+    function falseCountValue() {
+      return reportsData.reduce((count, r) => {
+        return count + (String((r && r.status) || '') === 'false-report' ? 1 : 0);
+      }, 0);
+    }
 
-    const emergencyTypes = Array.from(new Set(reportsData.map(r => cleanType(r && r.emergencyType)))).sort((a, b) => a.localeCompare(b));
-    if (severityTypeSelect) {
-      emergencyTypes.forEach(type => {
+    function emergencyTypesList() {
+      return Array.from(new Set(reportsData.map(r => cleanType(r && r.emergencyType)))).sort((a, b) => a.localeCompare(b));
+    }
+
+    function syncSeverityTypeOptions() {
+      if (!severityTypeSelect) return;
+      const current = severityTypeSelect.value || 'all';
+      severityTypeSelect.innerHTML = '<option value="all">All Types</option>';
+      emergencyTypesList().forEach(type => {
         const opt = document.createElement('option');
         opt.value = type;
         opt.textContent = type;
         severityTypeSelect.appendChild(opt);
       });
+      severityTypeSelect.value = Array.from(severityTypeSelect.options).some(opt => opt.value === current) ? current : 'all';
+    }
+    syncSeverityTypeOptions();
+
+    function updateStats() {
+      const totalReportsEl = document.getElementById('statTotalReports');
+      const totalDispatchersEl = document.getElementById('statTotalDispatchers');
+      const activeDispatchersEl = document.getElementById('statActiveDispatchers');
+      const auditCountEl = document.getElementById('statAuditCount');
+      if (totalReportsEl) totalReportsEl.textContent = String(toNum(adminStats.totalReports));
+      if (totalDispatchersEl) totalDispatchersEl.textContent = String(toNum(adminStats.totalDispatchers));
+      if (activeDispatchersEl) activeDispatchersEl.textContent = String(toNum(adminStats.activeDispatchers));
+      if (auditCountEl) auditCountEl.textContent = String(toNum(adminStats.auditCount));
+    }
+
+    function updatePager(summaryEl, prevLink, nextLink, baseUrl, pagination, itemLabel, pageParam) {
+      if (summaryEl) {
+        summaryEl.innerHTML = `Showing page <strong>${pagination.page}</strong> of <strong>${pagination.totalPages}</strong> (${pagination.totalCount} ${itemLabel})`;
+      }
+      if (prevLink) {
+        prevLink.href = `${baseUrl}&${pageParam}=${pagination.page - 1}`;
+        prevLink.setAttribute('aria-disabled', pagination.hasPrev ? 'false' : 'true');
+      }
+      if (nextLink) {
+        nextLink.href = `${baseUrl}&${pageParam}=${pagination.page + 1}`;
+        nextLink.setAttribute('aria-disabled', pagination.hasNext ? 'false' : 'true');
+      }
+    }
+
+    function updateReportTable() {
+      if (!reportsTableBody) return;
+      reportsTableBody.innerHTML = `${reportsData.map(reportRowHtml).join('')}<tr id="reportFilterEmptyState" style="display:none"><td colspan="10" style="text-align:center;color:#6f644f">No reports match the selected ID type.</td></tr>`;
+      reportRows = Array.from(document.querySelectorAll('.report-row'));
+      reportFilterEmptyState = document.getElementById('reportFilterEmptyState');
+      applyReportIdTypeFilter();
+    }
+
+    function updateAuditTable() {
+      if (!auditTableBody) return;
+      auditTableBody.innerHTML = auditLogsData.length
+        ? auditLogsData.map(auditRowHtml).join('')
+        : '<tr><td colspan="5" style="text-align:center;color:#6f644f">No audit entries yet.</td></tr>';
+    }
+
+    function updatePagers() {
+      const currentUrl = new URL(window.location.href);
+      const reportsBase = `/admin?tab=reports&from=${encodeURIComponent(currentUrl.searchParams.get('from') || '')}&to=${encodeURIComponent(currentUrl.searchParams.get('to') || '')}&auditPage=${encodeURIComponent(String(auditPaginationState.page || 1))}`;
+      const auditBase = `/admin?tab=audit&reportPage=${encodeURIComponent(String(reportPaginationState.page || 1))}`;
+      updatePager(reportsPagerSummary, reportsPrevLink, reportsNextLink, reportsBase, reportPaginationState, 'reports', 'reportPage');
+      updatePager(auditPagerSummary, auditPrevLink, auditNextLink, auditBase, auditPaginationState, 'audit entries', 'auditPage');
     }
 
     function applyReportIdTypeFilter() {
@@ -1092,22 +1324,103 @@
         severityTypeSelect.addEventListener('change', () => safeRun(renderSeverityChart));
       }
 
-      const total = reportsData.length;
-      safeRun(() => new Chart(document.getElementById('falseChart'), {
-        type: 'pie',
-        data: {
-          labels: ['False Reports', 'Other Reports'],
-          datasets: [{ data: [falseCount, Math.max(0, total - falseCount)], backgroundColor: ['#ef4444', '#e5dccf'] }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { color: '#6f624f' } },
-            tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw}` } }
+      let falseChart = null;
+
+      function renderFalseChart() {
+        const total = reportsData.length;
+        const falseCount = falseCountValue();
+        if (falseChart) falseChart.destroy();
+        falseChart = new Chart(document.getElementById('falseChart'), {
+          type: 'pie',
+          data: {
+            labels: ['False Reports', 'Other Reports'],
+            datasets: [{ data: [falseCount, Math.max(0, total - falseCount)], backgroundColor: ['#ef4444', '#e5dccf'] }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { color: '#6f624f' } },
+              tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw}` } }
+            }
           }
+        });
+      }
+
+      safeRun(renderFalseChart);
+
+      window.__adminRefreshCharts = function () {
+        safeRun(renderTrendChart);
+        safeRun(renderSeverityChart);
+        safeRun(renderFalseChart);
+      };
+    }
+
+    function refreshAdminVisuals() {
+      syncSeverityTypeOptions();
+      updateStats();
+      updateReportTable();
+      updateAuditTable();
+      updatePagers();
+      if (typeof window.__adminRefreshCharts === 'function') {
+        window.__adminRefreshCharts();
+      }
+    }
+
+    function adminSnapshotSignature(snapshot) {
+      const reportsSig = safeArr(snapshot && snapshot.reports)
+        .map(r => `${(r && (r.reportId || r._id)) || ''}|${(r && r.status) || ''}|${(r && r.timestamp) || ''}|${(r && r.assignedToId) || ''}`)
+        .join('||');
+      const auditSig = safeArr(snapshot && snapshot.auditLogs)
+        .map(a => `${(a && a._id) || ''}|${(a && a.timestamp) || ''}|${(a && a.action) || ''}`)
+        .join('||');
+      return `${reportsSig}###${auditSig}###${JSON.stringify((snapshot && snapshot.stats) || {})}`;
+    }
+
+    let lastAdminSnapshotSig = adminSnapshotSignature({
+      reports: reportsData,
+      auditLogs: auditLogsData,
+      stats: adminStats,
+    });
+
+    async function syncAdminLiveData(force) {
+      try {
+        const current = new URL(window.location.href);
+        const liveUrl = new URL('/api/admin/live', window.location.origin);
+        current.searchParams.forEach((value, key) => {
+          if (key === 'ok' || key === 'err') return;
+          liveUrl.searchParams.set(key, value);
+        });
+        liveUrl.searchParams.set('_', String(Date.now()));
+        const res = await fetch(liveUrl.toString(), {
+          cache: 'no-store',
+          credentials: 'same-origin',
+        });
+        if (res.status === 401) {
+          window.location.assign('/login?force=1');
+          return;
         }
-      }));
+        if (!res.ok) return;
+        const snapshot = await res.json().catch(() => null);
+        if (!snapshot) return;
+        const nextSig = adminSnapshotSignature(snapshot);
+        if (!force && nextSig === lastAdminSnapshotSig) return;
+        reportsData = safeArr(snapshot.reports);
+        auditLogsData = safeArr(snapshot.auditLogs);
+        adminStats = snapshot.stats || adminStats;
+        reportPaginationState = snapshot.reportPagination || reportPaginationState;
+        auditPaginationState = snapshot.auditPagination || auditPaginationState;
+        lastAdminSnapshotSig = nextSig;
+        refreshAdminVisuals();
+      } catch (_e) {}
+    }
+
+    let adminSyncTimer = null;
+    function scheduleAdminSync(delay) {
+      clearTimeout(adminSyncTimer);
+      adminSyncTimer = setTimeout(() => {
+        void syncAdminLiveData(false);
+      }, delay);
     }
 
     function updateAdminDateTime() {
@@ -1131,6 +1444,19 @@
     }
     updateAdminDateTime();
     setInterval(updateAdminDateTime, 1000);
+    refreshAdminVisuals();
+    void syncAdminLiveData(true);
+    setInterval(() => {
+      if (document.hidden) return;
+      void syncAdminLiveData(false);
+    }, 15000);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) scheduleAdminSync(250);
+    });
+    if (channel) {
+      ['new-report', 'report-updated', 'report-details-updated', 'report-assignment-updated', 'reports-cleared', 'audit-log-created']
+        .forEach(eventName => channel.bind(eventName, () => scheduleAdminSync(300)));
+    }
 
     window.addEventListener('unhandledrejection', (event) => {
       console.error('[admin-ui] unhandled rejection', event && event.reason ? event.reason : event);

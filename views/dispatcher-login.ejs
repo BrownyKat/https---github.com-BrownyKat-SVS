@@ -4,20 +4,58 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dispatcher Login - SVS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
-    body{margin:0;font-family:Arial,sans-serif;color:#0f172a;display:flex;min-height:100vh;align-items:center;justify-content:center;background:radial-gradient(520px 280px at 100% 0,rgba(29,78,216,.24),transparent 64%),radial-gradient(420px 260px at 0 100%,rgba(250,204,21,.28),transparent 66%),#e7f0ff}
-    .card{width:min(420px,92vw);background:linear-gradient(180deg,#f6f9ff,#ffffff);border:1px solid #9dc4ef;border-radius:14px;padding:24px;box-shadow:0 12px 28px rgba(15,23,42,.12);animation:fadeUp .4s ease both}
-    .logo-wrap{text-align:center;margin-bottom:10px}
-    .logo{width:170px;max-width:56vw;height:auto;object-fit:contain;display:inline-block}
-    h1{margin:0 0 8px;font-size:24px}
-    p{margin:0 0 18px;color:#1e3a8a;font-size:14px}
-    label{display:block;font-size:12px;font-weight:700;margin:10px 0 6px;text-transform:uppercase;color:#1e3a8a}
-    input{width:100%;padding:11px;border:1px solid #93c5fd;border-radius:10px;font-size:14px;box-sizing:border-box}
-    .btn{margin-top:14px;width:100%;padding:12px;border:0;border-radius:10px;background:#1d4ed8;color:#fff;font-weight:700;cursor:pointer}
-    .err{background:#fef2f2;border:1px solid #fca5a5;color:#b91c1c;padding:10px;border-radius:10px;margin-bottom:12px;font-size:13px}
-    .hint{margin-top:12px;font-size:12px;color:#334155}
+    :root{
+      --blue:#1d4ed8; --blue-light:#dbeafe; --blue-border:#93c5fd;
+      --amber:#facc15; --red:#dc2626; --surface:#ffffff; --border:#bfd6f5;
+      --text:#0f172a; --muted:#334155;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;font-family:'Outfit',sans-serif;color:var(--text);display:flex;min-height:100vh;align-items:center;justify-content:center;
+      padding:18px;
+      background:
+        radial-gradient(560px 320px at 100% 0,rgba(29,78,216,.24),transparent 64%),
+        radial-gradient(420px 240px at 8% 100%,rgba(250,204,21,.26),transparent 66%),
+        linear-gradient(180deg,#f5f9ff 0%,#e8f1ff 100%);
+      overflow:hidden;position:relative;
+    }
+    body::before,body::after{content:'';position:fixed;border-radius:50%;pointer-events:none}
+    body::before{width:280px;height:280px;left:-90px;top:-70px;background:rgba(250,204,21,.14);filter:blur(6px)}
+    body::after{width:360px;height:360px;right:-120px;bottom:-110px;background:rgba(29,78,216,.10);filter:blur(8px)}
+    .card{
+      width:min(460px,94vw);background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(244,248,255,.94));
+      border:1px solid var(--border);border-radius:24px;padding:28px;box-shadow:0 24px 58px rgba(15,23,42,.14);animation:fadeUp .4s ease both;
+      position:relative;overflow:hidden;backdrop-filter:blur(12px)
+    }
+    .card::before{
+      content:'';position:absolute;inset:0 0 auto 0;height:5px;background:linear-gradient(90deg,var(--blue),var(--amber),var(--red));
+    }
+    .logo-wrap{text-align:center;margin-bottom:14px}
+    .logo{width:180px;max-width:58vw;height:auto;object-fit:contain;display:inline-block;filter:drop-shadow(0 10px 18px rgba(29,78,216,.08))}
+    h1{margin:0 0 10px;font-size:28px;letter-spacing:-.8px}
+    p{margin:0 0 20px;color:#1e3a8a;font-size:14px;line-height:1.7}
+    label{
+      display:block;font-size:11px;font-weight:800;margin:12px 0 7px;text-transform:uppercase;color:#1e3a8a;letter-spacing:1px;
+      font-family:'JetBrains Mono',monospace
+    }
+    input{
+      width:100%;padding:13px 14px;border:1px solid var(--blue-border);border-radius:14px;font-size:14px;box-sizing:border-box;background:#fff;
+      font-family:'Outfit',sans-serif;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease
+    }
+    input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(29,78,216,.12);transform:translateY(-1px)}
+    .btn{
+      margin-top:18px;width:100%;padding:13px 14px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--blue),#2563eb);
+      color:#fff;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 14px 30px rgba(29,78,216,.24);
+      transition:transform .2s ease,box-shadow .2s ease
+    }
+    .btn:hover{transform:translateY(-2px);box-shadow:0 18px 34px rgba(29,78,216,.28)}
+    .err{background:#fef2f2;border:1px solid #fca5a5;color:#b91c1c;padding:11px 12px;border-radius:12px;margin-bottom:12px;font-size:13px;font-weight:600}
+    .hint{margin-top:12px;font-size:12px;color:var(--muted)}
     @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-    @media(max-width:460px){.card{padding:18px;border-radius:12px}}
+    @media(max-width:460px){.card{padding:20px;border-radius:18px}h1{font-size:24px}}
   </style>
 </head>
 <body>
