@@ -332,6 +332,31 @@
       backdrop-filter:blur(4px);
     }
     .filter-label-bar::after{content:'';flex:1;height:1px;background:var(--border);}
+    .ops-grid{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.85rem;
+    }
+    .ops-card{
+      position:relative;overflow:hidden;
+      padding:1rem 1rem .95rem;border-radius:18px;
+      border:1.5px solid var(--border);
+      background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(240,247,255,.9));
+      box-shadow:var(--shadow-sm);
+    }
+    .ops-card::before{
+      content:'';position:absolute;inset:0 auto 0 0;width:4px;
+      border-radius:18px 0 0 18px;background:var(--border-mid);
+    }
+    .ops-card.urgent::before{background:var(--red);}
+    .ops-card.mine::before{background:var(--blue);}
+    .ops-card.verify::before{background:var(--amber-dark);}
+    .ops-card.resolved::before{background:var(--green);}
+    .ops-kicker{
+      font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:700;
+      letter-spacing:1.6px;text-transform:uppercase;color:var(--muted2);margin-bottom:.45rem;
+    }
+    .ops-value{font-size:1.55rem;line-height:1;font-weight:900;letter-spacing:-1px;color:var(--text);}
+    .ops-label{margin-top:.45rem;font-size:.8rem;font-weight:700;color:var(--text2);}
+    .ops-meta{margin-top:.2rem;font-size:.72rem;color:var(--muted);line-height:1.45;}
 
     /* â”€â”€ REPORT CARDS â”€â”€ */
     .report-list{display:flex;flex-direction:column;gap:1rem;}
@@ -470,6 +495,48 @@
       border-radius:var(--r-md);border:1px solid var(--border);
       margin-bottom:.95rem;
     }
+    .ownership-bar{
+      display:flex;align-items:center;justify-content:space-between;gap:.75rem;
+      padding:.72rem .85rem;margin-bottom:.9rem;border-radius:14px;
+      border:1px solid var(--border);background:rgba(255,255,255,.72);
+    }
+    .ownership-main{display:flex;align-items:flex-start;gap:.65rem;min-width:0;}
+    .ownership-icon{
+      width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;border:1px solid transparent;background:var(--surface2);color:var(--text2);
+    }
+    .ownership-icon svg{
+      width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;
+      stroke-linecap:round;stroke-linejoin:round;
+    }
+    .ownership-copy{min-width:0;}
+    .ownership-title{font-size:.8rem;font-weight:800;color:var(--text);line-height:1.2;}
+    .ownership-sub{margin-top:2px;font-size:.71rem;line-height:1.45;color:var(--muted);}
+    .ownership-tag{
+      flex-shrink:0;align-self:center;padding:.26rem .62rem;border-radius:999px;
+      font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:1px;
+      text-transform:uppercase;border:1px solid var(--border);color:var(--muted);background:var(--surface);
+    }
+    .ownership-bar.mine{
+      border-color:var(--blue-border);
+      background:linear-gradient(135deg,rgba(219,234,254,.7),rgba(255,255,255,.85));
+    }
+    .ownership-bar.mine .ownership-icon{
+      color:var(--blue);background:var(--blue-light);border-color:var(--blue-border);
+    }
+    .ownership-bar.mine .ownership-tag{
+      color:var(--blue);background:var(--blue-light);border-color:var(--blue-border);
+    }
+    .ownership-bar.open{
+      border-color:var(--amber-border);
+      background:linear-gradient(135deg,rgba(254,252,232,.8),rgba(255,255,255,.85));
+    }
+    .ownership-bar.open .ownership-icon{
+      color:var(--amber-deep);background:var(--amber-light);border-color:var(--amber-border);
+    }
+    .ownership-bar.open .ownership-tag{
+      color:var(--amber-deep);background:var(--amber-light);border-color:var(--amber-border);
+    }
 
     .rcard-actions{display:flex;gap:.45rem;flex-wrap:wrap;}
     .act-btn{
@@ -490,6 +557,10 @@
     .act-btn.success:hover{box-shadow:0 4px 16px rgba(5,150,105,.28);transform:translateY(-1px);}
     .act-btn.danger-act{color:var(--red);border-color:var(--red-border);}
     .act-btn.danger-act:hover{background:var(--red-light);border-color:var(--red);}
+    .act-btn.call-act{background:linear-gradient(135deg,var(--blue),var(--indigo));border-color:transparent;color:#fff;}
+    .act-btn.call-act:hover{box-shadow:0 4px 16px rgba(29,78,216,.28);transform:translateY(-1px);}
+    .act-btn.utility{background:rgba(255,255,255,.88);color:var(--muted);border-color:var(--border);}
+    .act-btn.utility:hover{color:var(--text2);border-color:var(--border-mid);background:var(--surface2);}
 
     /* empty state */
     .empty{
@@ -647,6 +718,7 @@
       .rcard{padding:1.1rem 1.05rem}
     }
     @media(max-width:768px){
+      .ops-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
       body{overflow:auto;height:auto;}
       .body{flex-direction:column;}
       .sidebar{width:100%;height:auto;min-height:0;position:relative;top:0;align-self:stretch;overflow:visible;}
@@ -667,6 +739,8 @@
       .main-head-tools{align-items:stretch;}
     }
     @media(max-width:520px){
+      .ops-grid{grid-template-columns:1fr;}
+      .ops-card{padding:.9rem;border-radius:16px;}
       .header{height:auto;padding:.62rem .65rem;align-items:flex-start;gap:.6rem;flex-direction:column}
       .header-right{width:100%}
       .brand-name{font-size:.9rem}
@@ -674,6 +748,8 @@
       .fi-icon{width:30px;height:30px}
       .fi-label{font-size:.78rem}
       .rcard{padding:.92rem .82rem}
+      .ownership-bar{flex-direction:column;align-items:stretch}
+      .ownership-tag{align-self:flex-start}
       .main-header{padding:.9rem .8rem;border-radius:18px;}
       .main-title{font-size:1.15rem}
       .main-sub{font-size:.74rem;line-height:1.45;}
@@ -936,6 +1012,33 @@
         </div>
       </div>
 
+      <div class="ops-grid" aria-label="Dispatch summary">
+        <div class="ops-card urgent">
+          <div class="ops-kicker">Incoming</div>
+          <div class="ops-value" id="opsIncoming">0</div>
+          <div class="ops-label">New / urgent queue</div>
+          <div class="ops-meta">Fresh reports that may need immediate pickup.</div>
+        </div>
+        <div class="ops-card mine">
+          <div class="ops-kicker">Assigned</div>
+          <div class="ops-value" id="opsMine">0</div>
+          <div class="ops-label">Owned by you</div>
+          <div class="ops-meta">Reports you can verify, edit, dispatch, or resolve.</div>
+        </div>
+        <div class="ops-card verify">
+          <div class="ops-kicker">Verification</div>
+          <div class="ops-value" id="opsVerify">0</div>
+          <div class="ops-label">In call-back stage</div>
+          <div class="ops-meta">Reports currently under verification follow-up.</div>
+        </div>
+        <div class="ops-card resolved">
+          <div class="ops-kicker">Closed</div>
+          <div class="ops-value" id="opsResolved">0</div>
+          <div class="ops-label">Resolved queue</div>
+          <div class="ops-meta">Handled incidents already marked complete.</div>
+        </div>
+      </div>
+
       <div class="filter-label-bar" id="filterLabel">All Reports</div>
 
       <div class="report-list" id="reportList">
@@ -1082,8 +1185,11 @@
   const currentUserId = String((currentUser && currentUser.userId) || '').trim();
   let curFilter = 'all';
   let editReportId = '';
+  const callStartedIds = new Set();
   const geoCache = new Map();
   const geoInFlight = new Set();
+  const REPORTS_POLL_MS = 2000;
+  const ACTIVE_DISPATCHERS_POLL_MS = 5000;
 
   // â”€â”€ Icon SVGs per type â”€â”€
   const typeIcons = {
@@ -1219,6 +1325,7 @@
 
   function counts() {
     const visible = reports.filter(canSeeReport);
+    const mine = visible.filter(r => String(r.assignedToId || '').trim() === currentUserId);
     document.getElementById('cAll').textContent   = visible.length;
     document.getElementById('cNew').textContent    = visible.filter(r=>r.status==='new').length;
     document.getElementById('cSos').textContent    = visible.filter(isSosReport).length;
@@ -1227,6 +1334,10 @@
     document.getElementById('cDisp').textContent   = visible.filter(r=>r.status==='dispatched').length;
     document.getElementById('cRes').textContent    = visible.filter(r=>r.status==='resolved').length;
     document.getElementById('cFalse').textContent  = visible.filter(r=>r.status==='false-report').length;
+    document.getElementById('opsIncoming').textContent = visible.filter(r => r.status === 'new' || isSosReport(r)).length;
+    document.getElementById('opsMine').textContent = mine.length;
+    document.getElementById('opsVerify').textContent = visible.filter(r=>r.status==='verifying').length;
+    document.getElementById('opsResolved').textContent = visible.filter(r=>r.status==='resolved').length;
   }
 
   function setFilter(f, el) {
@@ -1262,9 +1373,28 @@
     confirmFalseReport(id, report ? report.emergencyType : '');
   }
 
-  function callReporterById(id) {
-    const report = reports.find(x => x.id === id);
+  async function callReporterById(id) {
+    if (!id) return;
+    let report = reports.find(x => x.id === id);
+    if (!report) {
+      toast_('Error', 'Report not found.', 'warn');
+      return;
+    }
+
+    const isUnassigned = !String(report.assignedToId || '').trim();
+    if (isUnassigned) {
+      const claimed = await claimReport(id, { silent: true });
+      if (!claimed) return;
+      report = reports.find(x => x.id === id) || claimed;
+    }
+
     toast_('Calling...', `Initiating call to ${report && report.contact ? report.contact : 'unknown number'}`);
+
+    const isMineNow = String(report.assignedToId || '').trim() === currentUserId;
+    if (isMineNow && String(report.status || '') === 'new') {
+      callStartedIds.add(id);
+      render();
+    }
   }
 
   function cardHTML(r) {
@@ -1280,6 +1410,14 @@
     const meter = trustMeter(prankCount);
     const isUnassigned = !String(r.assignedToId || '').trim();
     const isMine = String(r.assignedToId || '').trim() === currentUserId;
+    const canManageAssignedReport = isMine;
+    const callStarted = callStartedIds.has(rid);
+    const ownershipClass = isMine ? 'mine' : 'open';
+    const ownershipTitle = isMine ? 'Assigned to you' : 'Unassigned report';
+    const ownershipSub = isMine
+      ? 'You currently control verification, edits, dispatch, and closeout.'
+      : 'Claim or call to take ownership before verification and sensitive actions unlock.';
+    const ownershipTag = isMine ? 'Owned' : 'Open';
     return `
     <div class="rcard sev-${r.severity}" id="card-${rid}">
       <div class="rcard-top">
@@ -1319,6 +1457,18 @@
           <span class="status-pill sp-${esc(r.status)}">${esc(r.status).replace('-',' ')}</span>
         </div>
       </div>
+      <div class="ownership-bar ${ownershipClass}">
+        <div class="ownership-main">
+          <div class="ownership-icon">
+            <svg viewBox="0 0 24 24"><path d="M9 12.75 11.25 15 15 9.75M3.75 12a8.25 8.25 0 1 1 16.5 0 8.25 8.25 0 0 1-16.5 0Z"/></svg>
+          </div>
+          <div class="ownership-copy">
+            <div class="ownership-title">${ownershipTitle}</div>
+            <div class="ownership-sub">${ownershipSub}</div>
+          </div>
+        </div>
+        <span class="ownership-tag">${ownershipTag}</span>
+      </div>
       <div class="rcard-loc">
         ${isPanic ? `
           <span>
@@ -1355,11 +1505,11 @@
           <svg viewBox="0 0 24 24"><path d="M7.5 8.25h9m-9 3h6m-6 3h3M3 5.25A2.25 2.25 0 0 1 5.25 3h13.5A2.25 2.25 0 0 1 21 5.25v13.5A2.25 2.25 0 0 1 18.75 21H5.25A2.25 2.25 0 0 1 3 18.75V5.25Z"/></svg>
           Pass
         </button>` : ''}
-        <button class="act-btn" onclick="editDetails('${rid}')">
+        ${canManageAssignedReport ? `<button class="act-btn utility" onclick="editDetails('${rid}')">
           <svg viewBox="0 0 24 24"><path d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487ZM19.5 7.125 16.875 4.5"/></svg>
           Edit Name/Location
-        </button>
-        ${r.status==='new' ? `<button class="act-btn primary" onclick="updStatus('${rid}','verifying')">
+        </button>` : ''}
+        ${canManageAssignedReport && r.status==='new' && callStarted ? `<button class="act-btn primary" onclick="updStatus('${rid}','verifying')">
           <svg viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12L2.25 6.338Z"/></svg>
           Verify
         </button>` : ''}
@@ -1371,14 +1521,14 @@
           <svg viewBox="0 0 24 24"><path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
           Resolved
         </button>` : ''}
-        ${(r.status!=='resolved'&&r.status!=='false-report') ? `<button class="act-btn danger-act" onclick="confirmFalseReportById('${rid}')">
+        ${(canManageAssignedReport && r.status!=='resolved'&&r.status!=='false-report') ? `<button class="act-btn danger-act" onclick="confirmFalseReportById('${rid}')">
           <svg viewBox="0 0 24 24"><path d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
           False Report
         </button>` : ''}
-        <button class="act-btn" onclick="callReporterById('${rid}')">
+        ${(canManageAssignedReport && r.status==='new' && callStarted) ? '' : `<button class="act-btn call-act" onclick="callReporterById('${rid}')">
           <svg viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12L2.25 6.338Z"/></svg>
           Call ${esc(r.contact)}
-        </button>
+        </button>`}
       </div>
     </div>`;
   }
@@ -1517,6 +1667,11 @@
   }
 
   function render() {
+    for (const id of Array.from(callStartedIds)) {
+      const r = reports.find(x => x.id === id);
+      const stillMine = r && String(r.assignedToId || '').trim() === currentUserId;
+      if (!r || String(r.status || '') !== 'new' || !stillMine) callStartedIds.delete(id);
+    }
     counts();
     const list = document.getElementById('reportList');
     const existingMaps = new Map();
@@ -1618,8 +1773,9 @@
     } catch (_e) {}
   }
 
-  async function claimReport(id) {
-    if (!id) return;
+  async function claimReport(id, options = {}) {
+    if (!id) return null;
+    const silent = !!options.silent;
     try {
       const res = await fetch(`/api/report/${encodeURIComponent(id)}/claim`, {
         method: 'POST',
@@ -1627,7 +1783,10 @@
         headers: { 'Content-Type': 'application/json' },
       });
       const data = await res.json().catch(() => ({}));
-      if (res.status === 401) return handleUnauthorized(data);
+      if (res.status === 401) {
+        handleUnauthorized(data);
+        return null;
+      }
       if (!res.ok || !data.success) throw new Error(data.error || 'Could not claim report');
       const incoming = normalizeReport(data.report || {});
       const idx = reports.findIndex(x => x.id === incoming.id);
@@ -1635,9 +1794,13 @@
       else reports.unshift(incoming);
       lastReportsSig = reportsSignature(reports);
       render();
-      toast_('Report claimed', `${incoming.id || id} is now assigned to you.`);
+      if (!silent) {
+        toast_('Report claimed', `${incoming.id || id} is now assigned to you.`);
+      }
+      return incoming;
     } catch (e) {
       toast_('Error', e && e.message ? e.message : 'Could not claim report.', 'warn');
+      return null;
     }
   }
 
@@ -1725,7 +1888,9 @@
       const r = reports.find(x=>x.id===id);
       if (r) { r.status=status; lastReportsSig = reportsSignature(reports); render(); }
       const msgs = {verifying:'Calling reporter to verifyâ€¦',dispatched:'Response team dispatched!',resolved:'Incident resolved.',['false-report']:'Flagged as false report.'};
-      toast_(id, msgs[status]||'');
+      callStartedIds.delete(id);
+      const msg = status === 'verifying' ? 'Verification stage started.' : (msgs[status] || '');
+      toast_(id, msg);
     } catch(e) { toast_('Error', e && e.message ? e.message : 'Could not update status.','warn'); }
   }
 
@@ -1968,12 +2133,33 @@
   });
   if (channel) channel.bind('reports-cleared', ()=>{ reports=[]; lastReportsSig = reportsSignature(reports); render(); });
 
+  let refreshInFlight = false;
+  async function refreshDashboardNow(forceRender = false) {
+    if (refreshInFlight) return;
+    refreshInFlight = true;
+    try {
+      await Promise.all([
+        syncReportsFromServer(forceRender),
+        syncActiveDispatchers(),
+      ]);
+    } finally {
+      refreshInFlight = false;
+    }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      void refreshDashboardNow(true);
+    }
+  });
+  window.addEventListener('focus', () => { void refreshDashboardNow(true); });
+  window.addEventListener('online', () => { void refreshDashboardNow(true); });
+
   // initial render
   render();
-  void syncReportsFromServer(true);
-  void syncActiveDispatchers();
-  setInterval(() => { void syncReportsFromServer(); }, 10000);
-  setInterval(() => { void syncActiveDispatchers(); }, 15000);
+  void refreshDashboardNow(true);
+  setInterval(() => { void syncReportsFromServer(); }, REPORTS_POLL_MS);
+  setInterval(() => { void syncActiveDispatchers(); }, ACTIVE_DISPATCHERS_POLL_MS);
   updateDateTime();
   setInterval(updateDateTime, 1000);
   loadWeather();

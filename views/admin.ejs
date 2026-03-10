@@ -19,7 +19,9 @@
       --amber:#facc15;
       --amber-soft:#fefce8;
       --amber-strong:#ca8a04;
-      --blue:#dc2626;
+      --accent:#dc2626;
+      --accent-deep:#7f1d1d;
+      --accent-soft:#fef2f2;
       --green:#ef4444;
       --red:#dc2626;
       --shadow-sm:0 2px 8px rgba(127,29,29,.10);
@@ -35,8 +37,8 @@
       font-family:'Outfit',sans-serif;
       color:var(--text);
       background:
-        radial-gradient(900px 520px at 90% -10%, rgba(220,38,38,.22) 0%, transparent 58%),
-        radial-gradient(640px 380px at -10% 110%, rgba(250,204,21,.36) 0%, transparent 60%),
+        radial-gradient(1200px 800px at 10% 15%, rgba(220,38,38,.24), transparent 50%),
+        radial-gradient(900px 720px at 90% 0%, rgba(220,38,38,.18), transparent 55%),
         var(--bg);
     }
     .layout{display:flex;min-height:100vh;animation:fadeUp .45s ease both}
@@ -45,54 +47,58 @@
       .layout,*{animation:none!important;transition:none!important}
     }
     .side{
-      width:312px;flex-shrink:0;
-      background:linear-gradient(180deg,#7f1d1d 0%, #991b1b 45%, #7f1d1d 100%);
+      width:240px;flex-shrink:0;
+      background:
+        radial-gradient(220px 140px at 50% 0, rgba(250,204,21,.18), transparent 78%),
+        linear-gradient(180deg,#7f1d1d 0%, #991b1b 45%, #7f1d1d 100%);
       border-right:1px solid rgba(255,255,255,.18);
-      padding:18px 14px 16px;
+      padding:28px 18px;
       position:sticky;top:0;height:100vh;overflow:auto;
+      box-shadow:0 30px 60px rgba(127,29,29,.35);
     }
     .brand-wrap{
-      padding:4px 10px 14px;
+      padding-bottom:14px;
       margin-bottom:14px;
-      border-bottom:1px solid rgba(255,255,255,.22);
+      border-bottom:1px solid rgba(255,255,255,.25);
       text-align:center;
     }
     .brand{
-      display:flex;flex-direction:column;align-items:center;gap:8px;
-      font-weight:800;font-size:18px;line-height:1.1;color:#fff7ed;
+      display:flex;flex-direction:column;align-items:center;gap:6px;
+      font-weight:800;font-size:18px;line-height:1.1;color:#fff;
     }
     .brand-logo{
-      width:260px;height:138px;object-fit:contain;display:block;
+      width:200px;height:110px;object-fit:contain;display:block;
     }
-    .sub{font-size:12px;color:#fecaca;margin-top:6px;font-weight:600;letter-spacing:.4px;}
+    .sub{font-size:12px;color:rgba(255,255,255,.82);margin-top:4px;font-weight:600;letter-spacing:.3px;}
     .nav-title{
       font-family:'JetBrains Mono',monospace;
-      font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#fde68a;
-      margin:11px 4px 9px;text-align:center;
+      font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,.75);
+      margin:10px 0 8px;text-align:center;
     }
-    .nav{display:flex;flex-direction:column;gap:14px}
+    .nav{display:flex;flex-direction:column;gap:12px}
     .nav-item,.nav button{
       display:flex;align-items:center;gap:10px;width:100%;
       text-align:left;text-decoration:none;
-      background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.24);
-      border-radius:11px;padding:14px 13px;
-      color:#fff7ed;font-weight:700;font-size:15px;line-height:1.2;cursor:pointer;
-      transition:transform .18s ease, border-color .18s ease, background .18s ease;
+      background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);
+      border-radius:14px;padding:12px 14px;
+      color:#fff7ed;font-weight:600;font-size:14px;line-height:1.3;cursor:pointer;
+      transition:transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
       font-family:'Outfit',sans-serif;
-      position:relative;backdrop-filter:blur(2px);
+      position:relative;
     }
     .nav-item svg,.nav button svg{
-      width:20px;height:10px;min-width:20px;min-height:20px;stroke:currentColor;fill:none;stroke-width:1.9;
+      width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9;
       stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;
-      overflow:visible;
     }
     .nav-item:hover,.nav button:hover{
-      border-color:#fde68a;background:rgba(250,204,21,.18);transform:translateY(-1px);
+      border-color:rgba(250,204,21,.6);background:rgba(250,204,21,.15);transform:translateY(-1px);
+      box-shadow:0 12px 24px rgba(127,29,29,.25);
     }
     .nav-item.active{
-      background:linear-gradient(180deg,rgba(250,204,21,.28),rgba(254,240,138,.24));
-      border-color:#fde047;color:#fefce8;
-      box-shadow:0 0 0 2px rgba(250,204,21,.24) inset;
+      background:rgba(248,113,113,.24);
+      border-color:rgba(220,38,38,.45);
+      color:#fff;
+      box-shadow:0 0 0 3px rgba(220,38,38,.3) inset;
     }
     .nav-item.active::before{
       content:'';
@@ -100,17 +106,37 @@
       background:linear-gradient(180deg,#dc2626,#facc15);
       border-radius:14px 0 0 14px;
     }
-    .main{flex:1;min-width:0;padding:22px}
+    .main{flex:1;min-width:0;padding:28px 30px 34px}
     .top{
-      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
-      padding:10px 14px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.75);box-shadow:var(--shadow-sm);
+      display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+      padding:18px 24px;
+      border:1px solid rgba(250,204,21,.45);
+      border-radius:var(--r-lg);
+      background:rgba(255,255,255,.95);
+      box-shadow:var(--shadow-sm);
+      backdrop-filter:blur(14px);
+    }
+    .top-copy{display:flex;flex-direction:column;gap:6px;min-width:240px}
+    .top-kicker{
+      display:inline-flex;align-items:center;gap:8px;width:max-content;
+      font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+      letter-spacing:.9px;text-transform:uppercase;color:var(--muted2);
+      background:rgba(255,255,255,.9);border:1px solid rgba(250,204,21,.45);border-radius:999px;padding:7px 11px;
     }
     .top h1{margin:0;font-size:1.5rem;letter-spacing:-.5px}
+    .top-sub{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      max-width:620px;
+      line-height:1.5;
+    }
     .admin-dt{
       display:flex;align-items:center;gap:10px;
-      padding:.62rem 1.05rem;min-height:66px;
-      background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,250,242,.94));
-      border:1px solid rgba(245,192,138,.92);border-radius:16px;
+      padding:.75rem 1.15rem;min-height:68px;
+      background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,250,242,.94));
+      border:1px solid rgba(245,192,138,.92);
+      border-radius:16px;
       color:var(--text);white-space:nowrap;
       box-shadow:0 12px 24px rgba(127,29,29,.10), inset 0 1px 0 rgba(255,255,255,.82);
       backdrop-filter:blur(10px);
@@ -145,6 +171,49 @@
     .section-head{
       display:flex;align-items:center;gap:9px;
       margin:0 0 10px;font-size:1.35rem;letter-spacing:-.4px;
+    }
+    .section-intro{
+      margin:0 0 14px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.55;
+      max-width:760px;
+    }
+    .section-bar{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .section-bar-copy{display:flex;flex-direction:column;min-width:220px}
+    .section-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      width:max-content;
+      margin-bottom:8px;
+      padding:7px 11px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.78);
+      color:var(--muted2);
+      font:700 11px 'JetBrains Mono',monospace;
+      letter-spacing:.8px;
+      text-transform:uppercase;
+    }
+    .section-note{
+      margin:0;
+      padding:12px 14px;
+      max-width:360px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:rgba(255,255,255,.82);
+      color:var(--text);
+      font-size:13px;
+      line-height:1.5;
+      box-shadow:var(--shadow-sm);
     }
     .section-head svg{
       width:22px;height:22px;stroke:var(--amber);fill:none;stroke-width:1.9;
@@ -222,12 +291,25 @@
       display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;
       padding:12px;border:1px solid var(--border);border-radius:12px;background:#fff;
     }
+    .filter-controls{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+      gap:10px;
+      flex:1;
+      min-width:min(100%,460px);
+    }
+    .filter-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
     .filters .f{display:flex;flex-direction:column;gap:4px}
     .filters label{
       font-family:'JetBrains Mono',monospace;
       font-size:11px;color:var(--muted2);font-weight:700;text-transform:uppercase;letter-spacing:.8px
     }
-    .filters input{
+    .filters input,.filters select{
       padding:9px;border:1px solid #d8cdbd;border-radius:8px;font-family:'Outfit',sans-serif
     }
     .btn{
@@ -268,6 +350,7 @@
       font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;
       color:var(--muted);letter-spacing:.8px;background:#fffaf2;position:sticky;top:0;z-index:1;
     }
+    tbody tr:hover{background:rgba(255,247,237,.72)}
     .row-form{
       display:grid;
       grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
@@ -285,7 +368,7 @@
       display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
       margin-bottom:10px;
     }
-    .dispatchers-top p{margin:0;color:var(--muted);font-size:14px}
+    .dispatchers-top p{margin:0;color:var(--muted);font-size:14px;line-height:1.5;max-width:620px}
     .dispatcher-grid{
       display:grid;
       grid-template-columns:repeat(auto-fill, minmax(270px, 1fr));
@@ -297,6 +380,30 @@
     }
     .dispatcher-user{
       display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;
+    }
+    .dispatcher-meta{
+      display:grid;
+      gap:8px;
+      margin-bottom:12px;
+    }
+    .dispatcher-meta-item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 11px;
+      border:1px solid rgba(245,192,138,.72);
+      border-radius:12px;
+      background:#fffaf4;
+      font-size:13px;
+    }
+    .dispatcher-meta-item strong{
+      font-family:'JetBrains Mono',monospace;
+      font-size:11px;
+      letter-spacing:.7px;
+      text-transform:uppercase;
+      color:var(--muted2);
+      font-weight:700;
     }
     .dispatcher-name{font-size:19px;font-weight:900;line-height:1.05;margin:0 0 4px}
     .dispatcher-sub{font-size:13px;color:var(--muted);line-height:1.4}
@@ -365,17 +472,23 @@
       .brand-wrap{margin-bottom:10px}
     }
     @media(max-width:560px){
-      .main{padding:10px}
-      .section{padding:12px;border-radius:16px}
-      .top{padding:10px 11px}
-      .top h1{font-size:1.22rem}
+      .layout{flex-direction:column}
+      .side{width:100%;height:auto;position:static;border-right:none;box-shadow:none}
+      .main{padding:16px}
+      .section{padding:14px;border-radius:18px}
+      .top{flex-direction:column;align-items:flex-start;padding:14px 16px}
+      .top h1{font-size:1.3rem}
+      .top-sub{font-size:13px}
       .kpi .v{font-size:24px}
       .chart-canvas{height:220px !important;max-height:220px}
       .chart-canvas.compact{height:200px !important;max-height:200px}
-      .nav{grid-template-columns:1fr}
-      .nav-item,.nav button{padding:12px 11px}
-      .row-form{grid-template-columns:1fr}
-      .modal-form{grid-template-columns:1fr}
+      .nav{grid-template-columns:repeat(2,1fr)}
+      .nav-item,.nav button{padding:11px 12px;font-size:13px}
+      .row-form,.modal-form{grid-template-columns:1fr}
+      .filter-actions{width:100%}
+      .filter-actions .btn{flex:1;justify-content:center;text-align:center}
+      .section-note{max-width:none;width:100%}
+      .dispatcher-meta-item{align-items:flex-start;flex-direction:column}
     }
 
     /* modern polish */
@@ -383,17 +496,17 @@
       content:'';
       position:fixed; inset:0; pointer-events:none; z-index:0;
       background:
-        linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px);
-      background-size: 36px 36px;
+        linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 40px 40px;
       mask-image: radial-gradient(circle at center, rgba(0,0,0,.92), rgba(0,0,0,.24));
     }
     .layout{position:relative; z-index:1}
     .side{
       background:
-        radial-gradient(220px 140px at 50% 0, rgba(250,204,21,.14), transparent 72%),
+        radial-gradient(220px 140px at 50% 0, rgba(250,204,21,.18), transparent 78%),
         linear-gradient(180deg,#7f1d1d 0%, #991b1b 45%, #7f1d1d 100%);
-      box-shadow: 24px 0 48px rgba(127,29,29,.14);
+      box-shadow: 20px 0 44px rgba(127,29,29,.3);
     }
     .brand-wrap{
       padding:10px 12px 18px;
@@ -401,29 +514,26 @@
     }
     .nav{gap:10px}
     .nav-item,.nav button{
-      border-radius:16px;
-      background:rgba(255,255,255,.11);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
     }
     .main{padding:24px 24px 28px}
     .top{
       padding:14px 16px;
-      border-radius:22px;
-      background:rgba(255,255,255,.58);
-      box-shadow:0 18px 38px rgba(127,29,29,.10);
-      backdrop-filter: blur(12px);
+      background:rgba(255,255,255,.84);
+      border-radius:20px;
+      box-shadow:0 18px 36px rgba(15,23,42,.12);
     }
     .section{
       margin-top:18px;
       padding:18px;
-      border-radius:24px;
+      border-radius:22px;
       background:linear-gradient(180deg, rgba(255,247,237,.92), rgba(255,255,255,.9));
       box-shadow:0 18px 40px rgba(127,29,29,.10);
       backdrop-filter: blur(12px);
     }
     .stats{gap:14px}
     .kpi,.chart-card,.filters,.table-wrap,.pager,.dispatcher-card,.modal{
-      box-shadow:0 12px 28px rgba(127,29,29,.08);
+      box-shadow:0 12px 28px rgba(15,23,42,.08);
     }
     .kpi,.chart-card,.filters,.pager,.dispatcher-card{
       border-radius:18px;
@@ -452,6 +562,7 @@
       border-radius:18px;
       overflow:auto;
     }
+    .table-wrap table{min-width:860px}
     th{
       background:linear-gradient(180deg,#fffaf2,#fff6e8);
       backdrop-filter: blur(8px);
@@ -465,9 +576,12 @@
       border-radius:20px;
       background:linear-gradient(180deg,#fffdf9,#ffffff);
     }
+    .top-copy,.section-bar-copy,.filters,.dispatchers-top{position:relative;z-index:1}
+    .section-note strong{color:var(--text)}
     @media(max-width:860px){
       .main{padding:14px}
       .section{border-radius:20px}
+      .section-bar{margin-bottom:12px}
     }
   </style>
 </head>
@@ -506,7 +620,11 @@
 
     <main class="main">
       <div class="top">
-        <h1>SVS Admin Console</h1>
+        <div class="top-copy">
+          <span class="top-kicker">Control Center</span>
+          <h1>SVS Admin Console</h1>
+          <p class="top-sub">Monitor reports, manage dispatchers, and review operational history with a calmer, more polished console that keeps the key controls within reach.</p>
+        </div>
         <div class="admin-dt" id="adminDateTime">
           <svg viewBox="0 0 24 24"><path d="M6.75 3v2.25m10.5-2.25v2.25M3.75 9.75h16.5M4.5 5.25h15A1.5 1.5 0 0 1 21 6.75v12A1.5 1.5 0 0 1 19.5 20.25h-15A1.5 1.5 0 0 1 3 18.75v-12A1.5 1.5 0 0 1 4.5 5.25Z"/></svg>
           <div class="admin-time-block">
@@ -515,15 +633,21 @@
           </div>
         </div>
       </div>
-
       <% if (success) { %><div class="msg ok"><%= success %></div><% } %>
       <% if (error) { %><div class="msg err"><%= error %></div><% } %>
 
       <section class="section tab-panel active" id="dashboard" data-panel="dashboard">
-        <h2 class="section-head">
-          <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-          Dashboard
-        </h2>
+        <div class="section-bar">
+          <div class="section-bar-copy">
+            <span class="section-badge">Live Overview</span>
+            <h2 class="section-head">
+              <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+              Dashboard
+            </h2>
+            <p class="section-intro">Start here for the current system picture. The cards and charts summarize report volume, dispatcher readiness, and false report trends without changing the underlying admin process.</p>
+          </div>
+          <p class="section-note"><strong>Use this panel for quick situational awareness.</strong> Drill into Reports for detailed history, Dispatchers for account changes, and Audit Trail for action review.</p>
+        </div>
         <div class="stats">
           <div class="kpi"><div class="k">Reports (Filtered)</div><div class="v" id="statTotalReports"><%= stats.totalReports %></div></div>
           <div class="kpi"><div class="k">Dispatchers</div><div class="v" id="statTotalDispatchers"><%= stats.totalDispatchers %></div></div>
@@ -568,34 +692,45 @@
       </section>
 
       <section class="section tab-panel" id="reports" data-panel="reports">
-        <h2 class="section-head">
-          <svg viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25"/></svg>
-          Reports
-        </h2>
+        <div class="section-bar">
+          <div class="section-bar-copy">
+            <span class="section-badge">Report Records</span>
+            <h2 class="section-head">
+              <svg viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25"/></svg>
+              Reports
+            </h2>
+            <p class="section-intro">Filter historical reports, review ownership and severity, and export records. The workflow is unchanged, but the controls are grouped to make routine admin work faster.</p>
+          </div>
+          <p class="section-note"><strong>Use this table when checking accountability.</strong> Keep the row count lean and add more only when needed so live operations stay easy to scan.</p>
+        </div>
         <form class="filters" method="get" action="/admin">
           <input type="hidden" name="tab" value="reports">
           <input type="hidden" name="reportPage" value="1">
           <input type="hidden" name="auditPage" value="<%= (auditPagination && auditPagination.page) || 1 %>">
-          <div class="f">
-            <label for="from">From</label>
-            <input id="from" type="date" name="from" value="<%= from || '' %>">
+          <div class="filter-controls">
+            <div class="f">
+              <label for="from">From</label>
+              <input id="from" type="date" name="from" value="<%= from || '' %>">
+            </div>
+            <div class="f">
+              <label for="to">To</label>
+              <input id="to" type="date" name="to" value="<%= to || '' %>">
+            </div>
+            <div class="f">
+              <label for="reportIdTypeFilter">ID Type</label>
+              <select id="reportIdTypeFilter" aria-label="Filter reports by ID type">
+                <option value="all" selected>All</option>
+                <option value="RPT">RPT</option>
+                <option value="SOS">SOS</option>
+              </select>
+            </div>
           </div>
-          <div class="f">
-            <label for="to">To</label>
-            <input id="to" type="date" name="to" value="<%= to || '' %>">
+          <div class="filter-actions">
+            <button class="btn" type="submit">Apply</button>
+            <a class="btn" href="/admin?tab=reports&auditPage=<%= (auditPagination && auditPagination.page) || 1 %>&reportPage=1">Reset</a>
+            <a class="btn" href="/admin/reports/export.xls?tab=reports&from=<%= encodeURIComponent(from || '') %>&to=<%= encodeURIComponent(to || '') %>">Export Excel</a>
+            <a class="btn" href="/admin/reports/export.pdf?tab=reports&from=<%= encodeURIComponent(from || '') %>&to=<%= encodeURIComponent(to || '') %>">Export PDF</a>
           </div>
-          <div class="f">
-            <label for="reportIdTypeFilter">ID Type</label>
-            <select id="reportIdTypeFilter" class="btn" aria-label="Filter reports by ID type">
-              <option value="all" selected>All</option>
-              <option value="RPT">RPT</option>
-              <option value="SOS">SOS</option>
-            </select>
-          </div>
-          <button class="btn" type="submit">Apply</button>
-          <a class="btn" href="/admin?tab=reports&auditPage=<%= (auditPagination && auditPagination.page) || 1 %>&reportPage=1">Reset</a>
-          <a class="btn" href="/admin/reports/export.xls?tab=reports&from=<%= encodeURIComponent(from || '') %>&to=<%= encodeURIComponent(to || '') %>">Export Excel</a>
-          <a class="btn" href="/admin/reports/export.pdf?tab=reports&from=<%= encodeURIComponent(from || '') %>&to=<%= encodeURIComponent(to || '') %>">Export PDF</a>
         </form>
         <div class="table-wrap">
           <table>
@@ -638,12 +773,18 @@
       </section>
 
       <section class="section tab-panel" id="dispatchers" data-panel="dispatchers">
-        <h2 class="section-head">
-          <svg viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0M4.5 20.25a7.5 7.5 0 0 1 15 0"/></svg>
-          Dispatchers
-        </h2>
+        <div class="section-bar">
+          <div class="section-bar-copy">
+            <span class="section-badge">Account Management</span>
+            <h2 class="section-head">
+              <svg viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0M4.5 20.25a7.5 7.5 0 0 1 15 0"/></svg>
+              Dispatchers
+            </h2>
+            <p class="section-intro">Manage dispatcher accounts in a cleaner card view. Edit, activate, and remove users without changing the existing account process or modal flows.</p>
+          </div>
+        </div>
         <div class="dispatchers-top">
-          <p>Manage dispatcher accounts with quick actions.</p>
+          <p>Each card surfaces the most important account details first, so admin changes can be made with less scanning.</p>
           <button class="btn primary" type="button" id="openAddDispatcher">Add Dispatcher</button>
         </div>
         <div class="dispatcher-grid">
@@ -655,6 +796,16 @@
                 <div class="dispatcher-sub"><%= d.fullName || '-' %> - <%= d.phone || '-' %></div>
               </div>
               <span class="dispatcher-pill <%= d.isActive ? '' : 'off' %>"><%= d.isActive ? 'Active' : 'Inactive' %></span>
+            </div>
+            <div class="dispatcher-meta">
+              <div class="dispatcher-meta-item">
+                <strong>Full Name</strong>
+                <span><%= d.fullName || '-' %></span>
+              </div>
+              <div class="dispatcher-meta-item">
+                <strong>Phone</strong>
+                <span><%= d.phone || '-' %></span>
+              </div>
             </div>
             <div class="dispatcher-actions">
               <button
@@ -685,10 +836,17 @@
       </section>
 
       <section class="section tab-panel" id="audit" data-panel="audit">
-        <h2 class="section-head">
-          <svg viewBox="0 0 24 24"><path d="M12 6v6l4 2m5-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-          Audit Trail (Dispatcher Actions)
-        </h2>
+        <div class="section-bar">
+          <div class="section-bar-copy">
+            <span class="section-badge">Action History</span>
+            <h2 class="section-head">
+              <svg viewBox="0 0 24 24"><path d="M12 6v6l4 2m5-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+              Audit Trail (Dispatcher Actions)
+            </h2>
+            <p class="section-intro">Review recorded dispatcher actions with a simpler filter area and the same audit data. This view remains read-only and process-safe.</p>
+          </div>
+          <p class="section-note"><strong>Use this when checking accountability.</strong> Increase rows only when needed to keep the table easier to scan on live operations.</p>
+        </div>
         <div class="filters">
           <form method="get" action="/admin" class="row-form" style="width:100%">
             <input type="hidden" name="tab" value="audit">
@@ -831,21 +989,13 @@
   <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    try {
-      if (!sessionStorage.getItem('svs_admin_window_ok')) {
-        window.location.replace('/login?force=1');
-      }
-    } catch (_e) {
-      window.location.replace('/login?force=1');
-    }
-
     function safeRun(fn) {
       try { fn(); } catch (e) { console.error('[admin-ui]', e); }
     }
 
     window.addEventListener('pageshow', function (event) {
       if (event.persisted) {
-        window.location.replace('/admin/login');
+        window.location.reload();
       }
     });
 
@@ -862,6 +1012,12 @@
       window.history.replaceState({}, '', url.toString());
     }
     navItems.forEach(n => n.addEventListener('click', () => showTab(n.dataset.tab)));
+    document.querySelectorAll('[data-tab-link]').forEach(link => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        showTab(link.getAttribute('data-tab-link') || 'dashboard');
+      });
+    });
     const initialTab = new URLSearchParams(window.location.search).get('tab');
     if (initialTab) showTab(initialTab);
 
@@ -1397,7 +1553,7 @@
           credentials: 'same-origin',
         });
         if (res.status === 401) {
-          window.location.assign('/login?force=1');
+          window.location.assign('/admin/login?force=1');
           return;
         }
         if (!res.ok) return;

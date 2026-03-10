@@ -7,6 +7,7 @@ const crypto     = require('crypto');
 const Pusher     = require('pusher');
 const path       = require('path');
 const mongoose   = require('mongoose');
+const compression = require('compression');
 
 const Report      = require('./models/Report');
 const Counter     = require('./models/Counter');
@@ -16,7 +17,9 @@ const AuditLog    = require('./models/AuditLog');
 const Session     = require('./models/Session');
 
 const app    = express();
+const STATIC_CACHE_OPTIONS = { maxAge: '1d' };
 const server = http.createServer(app);
+app.use(compression());
 const SESSION_TTL_MS = 1000 * 60 * 60 * 8; // 8 hours
 const ADMIN_REPORTS_PAGE_SIZE = 20;
 const ADMIN_AUDIT_PAGE_SIZE = 20;
@@ -199,7 +202,8 @@ app.use('/api', (req, res, next) => {
   }
   return next();
 });
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), STATIC_CACHE_OPTIONS));
+app.use(express.static(path.join(__dirname, 'views', 'public'), STATIC_CACHE_OPTIONS));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
