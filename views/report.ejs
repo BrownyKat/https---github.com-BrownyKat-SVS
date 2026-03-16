@@ -23,7 +23,9 @@
       --green-light:  #DBEAFE;
       --green-border: #93C5FD;
       --blue:         #1D4ED8;
-      --bg:           #E8F1FF;
+      --page-bg:      #e9f0ff;
+      --page-bg2:     #fff7ef;
+      --bg:           #f5f7ff;
       --surface:      #F4F8FF;
       --border:       #BFD6F5;
       --border-mid:   #97BDE9;
@@ -40,73 +42,57 @@
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
     html{scroll-behavior:smooth;}
     body{
-      font-family:'Outfit',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;
+      font-family:'Outfit',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.65;
       background:
-        radial-gradient(760px 450px at 110% -10%, rgba(29,78,216,.26), transparent 62%),
-        radial-gradient(560px 330px at -10% 110%, rgba(220,38,38,.16), transparent 62%),
-        radial-gradient(420px 260px at 55% 10%, rgba(250,204,21,.22), transparent 66%),
-        var(--bg);
+        radial-gradient(520px 360px at 120% -20%, rgba(59,130,246,.16), transparent 60%),
+        radial-gradient(420px 280px at -10% 120%, rgba(239,68,68,.12), transparent 60%),
+        linear-gradient(180deg, #f2f6ff 0%, #fff7ef 82%, #ffffff 100%);
     }
+    a{color:var(--blue);text-decoration:none;}
+    a:visited{color:var(--blue);}
+    a:hover{color:#0f3fb5;}
     ::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:99px;}
 
-    /* ── HEADER ── */
-    .header {
-      position:sticky;top:0;z-index:200;
-      height:64px;
-      display:flex;align-items:center;justify-content:space-between;
-      padding:0 1.75rem;
-      background:rgba(235,245,255,.9);
-      backdrop-filter:blur(20px) saturate(160%);
-      border-bottom:1px solid var(--border);
-      box-shadow:0 1px 2px rgba(0,0,0,.05);
-    }
-    .brand{display:flex;align-items:center;gap:2px;text-decoration:none;color:inherit;}
-    .brand-logo{
-      width:120px;height:100px;object-fit:contain;display:block;flex-shrink:0;
-    }
-    .brand-text{margin-left:-24px;}
-    .brand-name{font-weight:800;font-size:1.2rem;letter-spacing:-.2px;line-height:1.1;color:var(--text);}
-    .brand-name em{font-style:normal;color:var(--amber-dark);}
-    .brand-sub{font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
-    .header-right{display:flex;align-items:center;gap:.65rem;}
-    .main-datetime{
-      display:flex;align-items:center;gap:10px;
-      min-height:52px;
-      padding:.55rem .95rem;
-      background:
-        linear-gradient(180deg,rgba(255,255,255,.94),rgba(239,246,255,.96)) padding-box,
-        linear-gradient(135deg,rgba(220,38,38,.95),rgba(29,78,216,.95)) border-box;
-      border:1.5px solid transparent;border-radius:16px;
-      color:var(--text2);white-space:nowrap;
-      box-shadow:0 12px 24px rgba(15,23,42,.08), inset 0 1px 0 rgba(255,255,255,.75);
-      transition:transform .2s ease, box-shadow .2s ease;
-      backdrop-filter:blur(10px);
-    }
+    header{position:sticky;top:0;z-index:10;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:1rem;padding:1rem 1.5rem;background:rgba(243,247,255,.9);backdrop-filter:blur(18px);border-bottom:1px solid rgba(191,214,245,.9);box-shadow:0 6px 18px rgba(0,0,0,.08);color:var(--text);}
+    .brand{display:flex;align-items:center;gap:.6rem;color:var(--text);text-decoration:none;}
+    .brand img{width:72px;height:60px;object-fit:contain;flex-shrink:0;}
+    .brand-text{line-height:1;}
+    .brand-name{font-weight:900;font-size:1.25rem;letter-spacing:-.2px;color:var(--text);}
+    .brand-sub{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:1px;color:#475569;}
+    .header-right{display:grid;grid-template-columns:1fr auto;align-items:center;gap:.7rem;width:100%;justify-items:center;}
+    .nav-links{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;justify-content:center;}
+    .nav-btn{display:inline-flex;align-items:center;gap:8px;padding:.5rem 1.1rem;border:1.6px solid rgba(151,189,233,.9);border-radius:15px;background:linear-gradient(180deg,#fff,#f3f7ff);color:var(--text);font-weight:820;font-size:.9rem;transition:.16s;box-shadow:0 9px 18px rgba(15,23,42,.08);}
+    .nav-btn:hover{border-color:var(--blue);color:var(--blue);box-shadow:0 12px 24px rgba(29,78,216,.15);}
+    .nav-btn.active{border-color:var(--blue);background:linear-gradient(180deg,#f0f5ff,#dfe9ff);color:var(--blue);box-shadow:0 12px 26px rgba(29,78,216,.22);}
+    .nav-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+    .nav-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+    .main-datetime{display:flex;align-items:center;gap:12px;min-height:56px;padding:.65rem 1rem;background:linear-gradient(180deg,#ffffff,#eef3ff) padding-box,linear-gradient(135deg,rgba(239,68,68,.9),rgba(59,130,246,.9)) border-box;border:1.6px solid transparent;border-radius:18px;color:#0F172A;white-space:nowrap;box-shadow:0 14px 26px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.65);backdrop-filter:blur(10px);}
     .main-datetime:hover{
       transform:translateY(-1px);
-      box-shadow:0 16px 30px rgba(15,23,42,.11), inset 0 1px 0 rgba(255,255,255,.82);
+      box-shadow:0 16px 30px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.8);
     }
-    .main-datetime svg{width:22px;height:18px;stroke:var(--blue);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+    .main-datetime svg{width:22px;height:18px;stroke:var(--blue);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
     .time-block{display:flex;flex-direction:column;line-height:1.05;min-width:0;}
-    .clock-text{
-      font-family:'Orbitron','JetBrains Mono',monospace;
-      font-size:1rem;font-weight:700;letter-spacing:1px;color:var(--text2);
-      overflow-wrap:anywhere;
+    .clock-text{font-family:'Orbitron','JetBrains Mono',monospace;font-size:1.08rem;font-weight:900;letter-spacing:1.1px;color:#0b1a3a;}
+    .date-text{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:800;letter-spacing:.8px;color:#4b5563;margin-top:3px;}
+    .sos-save-row{
+      display:flex;align-items:center;gap:.55rem;flex-wrap:wrap;
+      margin-top:.4rem;background:rgba(255,255,255,.6);
+      border:1px solid var(--border);border-radius:12px;padding:.55rem .75rem;
     }
-    .date-text{
-      font-family:'JetBrains Mono',monospace;
-      font-size:.62rem;font-weight:700;letter-spacing:.6px;color:var(--muted2);
-      margin-top:4px;overflow-wrap:anywhere;
+    .sos-save-row label{font-weight:800;font-size:.85rem;color:var(--text2);}
+    .sos-save-row input{
+      width:180px;max-width:220px;
+      padding:.55rem .75rem;border-radius:10px;border:1.5px solid var(--border-mid);
+      font-weight:700;font-size:.92rem;
     }
-    .nav-btn{
-      display:inline-flex;align-items:center;gap:5px;
-      padding:.36rem .8rem;border:1px solid var(--border-mid);border-radius:99px;
-      background:transparent;color:var(--muted);
-      font-family:'Outfit',sans-serif;font-size:.77rem;font-weight:600;
-      cursor:pointer;text-decoration:none;transition:all .18s;
+    .sos-save-row button{
+      border:1.5px solid var(--blue);background:var(--blue);color:#fff;
+      padding:.5rem .9rem;border-radius:10px;font-weight:800;cursor:pointer;
+      box-shadow:var(--shadow-sm);
     }
-    .nav-btn:hover{border-color:var(--muted2);color:var(--text2);background:var(--surface);}
-    .nav-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+    .sos-save-row button:hover{box-shadow:var(--shadow-md);}
+    .sos-save-row .pill-status{font-weight:700;font-size:.85rem;color:var(--muted);}
 
     /* ── PANIC STRIP ── */
     .panic-strip{
@@ -179,6 +165,16 @@
       border-radius:2px;opacity:.55;
     }
     .form-head p{margin-top:1rem;color:var(--text2);font-size:.95rem;line-height:1.7;max-width:500px;}
+    .head-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem;}
+    .chip-btn{
+      display:inline-flex;align-items:center;gap:6px;padding:.45rem .8rem;
+      border-radius:999px;border:1.5px solid var(--border-mid);background:#fff;
+      color:var(--text2);font-weight:800;font-size:.8rem;cursor:pointer;
+      transition:all .18s;box-shadow:var(--shadow-xs);
+    }
+    .chip-btn:hover{border-color:var(--amber-border);background:var(--amber-light);color:var(--amber-deep);}
+    .chip-btn.primary{background:linear-gradient(135deg,var(--red),#ef4444);border-color:transparent;color:#fff;box-shadow:0 10px 24px rgba(220,38,38,.2);}
+    .chip-btn.primary:hover{box-shadow:0 12px 28px rgba(220,38,38,.26);transform:translateY(-1px);}
 
     .alert-strip{
       display:flex;align-items:flex-start;gap:.85rem;
@@ -196,8 +192,8 @@
       background:linear-gradient(180deg,#F8FBFF,#EEF5FF);border:1.5px solid var(--border);
       border-radius:var(--r-xl);padding:2rem;
       margin-bottom:1.25rem;
-      box-shadow:var(--shadow-sm);
-      transition:box-shadow .22s,border-color .22s;
+      box-shadow:0 14px 30px rgba(15,23,42,.08);
+      transition:box-shadow .22s,border-color .22s,transform .22s;
       position:relative;overflow:hidden;
       animation:fadeUp .5s ease both;
     }
@@ -206,7 +202,7 @@
       background:linear-gradient(90deg,var(--amber),var(--orange),transparent);
       opacity:0;transition:opacity .22s;border-radius:var(--r-xl) var(--r-xl) 0 0;
     }
-    .card:hover{box-shadow:var(--shadow-md);border-color:var(--border-mid);}
+    .card:hover{box-shadow:var(--shadow-md);border-color:var(--border-mid);transform:translateY(-2px);}
     .card:hover::before{opacity:1;}
     .card:nth-child(1){animation-delay:.07s;}
     .card:nth-child(2){animation-delay:.14s;}
@@ -222,7 +218,7 @@
     }
     .card-icon svg{width:22px;height:22px;stroke:var(--amber-deep);fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
     .card-step{font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:700;color:var(--red);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
-    .card-title{font-weight:800;font-size:1.03rem;color:var(--text);letter-spacing:-.2px;}
+    .card-title{font-weight:820;font-size:1.08rem;color:var(--blue);letter-spacing:-.25px;}
     .card-sub{font-size:.77rem;color:var(--muted);margin-top:2px;}
 
     .row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
@@ -238,6 +234,16 @@
     }
     .input-wrap.has-icon input,
     .input-wrap.has-icon select{padding-left:2.35rem;}
+    .attest-check{
+      display:flex;align-items:center;gap:.65rem;
+      font-weight:800;font-size:.9rem;color:var(--text2);
+      cursor:pointer;user-select:none;
+    }
+    .attest-check input{
+      width:18px;height:18px;accent-color:var(--red);
+      cursor:pointer;flex-shrink:0;
+    }
+    .attest-check span{line-height:1.4;}
     input,select,textarea{
       width:100%;background:var(--bg);border:1.5px solid var(--border);
       color:var(--text);padding:.78rem 1rem;border-radius:var(--r-md);
@@ -298,6 +304,7 @@
     }
     .etype-btn:hover .etype-icon,.etype-btn.sel .etype-icon{background:var(--amber-light);border-color:var(--amber-border);}
     .etype-btn:hover .etype-icon svg,.etype-btn.sel .etype-icon svg{stroke:var(--amber-deep);}
+    .etype-btn:hover .etype-copy strong,.etype-btn.sel .etype-copy strong{color:var(--amber-deep);}
 
     /* severity */
     .sev-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;}
@@ -305,16 +312,32 @@
       display:flex;align-items:center;justify-content:center;gap:7px;
       padding:.9rem;border:1.5px solid var(--border);border-radius:11px;
       background:var(--bg);color:var(--muted);
-      cursor:pointer;font-family:'Outfit',sans-serif;font-weight:700;font-size:.88rem;
+      cursor:pointer;font-family:'Outfit',sans-serif;font-weight:700;font-size:.9rem;
       transition:all .2s;
     }
     .sev-btn svg{width:17px;height:17px;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s;}
+    .sev-btn.low{border-color:rgba(16,185,129,.18);background:rgba(236,253,245,.6);color:#0f766e;}
+    .sev-btn.med{border-color:rgba(245,158,11,.22);background:rgba(255,251,235,.65);color:#b45309;}
+    .sev-btn.high{border-color:rgba(239,68,68,.22);background:rgba(254,242,242,.65);color:#b91c1c;}
     .sev-btn.low:hover,.sev-btn.low.sel   {background:var(--green-light);border-color:var(--green);color:var(--green);transform:translateY(-2px);box-shadow:0 4px 14px rgba(5,150,105,.14);}
     .sev-btn.low:hover svg,.sev-btn.low.sel svg{stroke:var(--green);}
     .sev-btn.med:hover,.sev-btn.med.sel   {background:var(--amber-light);border-color:var(--amber);color:var(--amber-dark);transform:translateY(-2px);box-shadow:0 4px 14px rgba(245,158,11,.14);}
     .sev-btn.med:hover svg,.sev-btn.med.sel svg{stroke:var(--amber-dark);}
     .sev-btn.high:hover,.sev-btn.high.sel {background:var(--red-light);border-color:var(--red);color:var(--red);transform:translateY(-2px);box-shadow:0 4px 14px rgba(220,38,38,.14);}
     .sev-btn.high:hover svg,.sev-btn.high.sel svg{stroke:var(--red);}
+
+    /* tags */
+    .tag-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.55rem;}
+    .tag-chip{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:.48rem .78rem;border-radius:999px;
+      border:1.5px solid var(--border-mid);
+      background:#fff;color:var(--text2);font-weight:750;font-size:.8rem;
+      cursor:pointer;transition:all .18s;box-shadow:var(--shadow-xs);
+    }
+    .tag-chip:hover{border-color:var(--amber-border);background:var(--amber-light);color:var(--amber-deep);}
+    .tag-chip.sel{border-color:var(--blue);background:var(--blue-light);color:var(--blue);}
+    .tag-chip svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;}
 
     /* gps btn */
     .gps-btn{
@@ -330,10 +353,12 @@
     .gps-map-wrap{
       display:none;
       margin:-.2rem 0 1rem;
-      border:1.5px solid var(--border);
+      border:1.5px solid var(--border-mid);
       border-radius:12px;
       overflow:hidden;
       background:var(--surface);
+      position:relative;
+      box-shadow:var(--shadow-md);
     }
     .gps-map-head{
       display:flex;align-items:center;justify-content:space-between;gap:.65rem;
@@ -343,6 +368,7 @@
       font-family:'JetBrains Mono',monospace;
       font-size:.62rem;font-weight:700;letter-spacing:.7px;color:var(--muted);
       text-transform:uppercase;
+      z-index:2;
     }
     .gps-map-head a{
       color:var(--amber-dark);
@@ -350,12 +376,88 @@
       font-weight:700;
     }
     .gps-map-head a:hover{text-decoration:underline;}
+    .gps-map-canvas{
+      position:relative;
+      width:100%;
+      background:#EEF2FF;
+      border-radius:0 0 10px 10px;
+      overflow:hidden;
+    }
     .gps-map-frame{
       width:100%;
-      height:210px;
+      height:260px;
       border:0;
       display:block;
       background:#F3F4F6;
+      position:relative;
+      z-index:1;
+    }
+    .gps-map-view-toggle{
+      position:absolute;
+      top:12px;
+      left:12px;
+      z-index:3;
+    }
+    .gps-map-zoom{
+      position:absolute;
+      top:12px;
+      right:12px;
+      z-index:3;
+      display:flex;
+      align-items:center;
+      gap:.4rem;
+      padding:4px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.9);
+      border:1px solid rgba(15,23,42,.1);
+      box-shadow:0 12px 32px rgba(15,23,42,.18);
+      font-family:'JetBrains Mono',monospace;
+      font-size:.68rem;
+      letter-spacing:.6px;
+      color:var(--muted2);
+      text-transform:uppercase;
+    }
+    .gps-map-control{
+      border:1px solid transparent;
+      border-radius:999px;
+      background:rgba(255,255,255,.95);
+      color:var(--text2);
+      font-weight:700;
+      padding:.35rem .9rem;
+      font-size:.78rem;
+      cursor:pointer;
+      box-shadow:0 4px 18px rgba(15,23,42,.2);
+      transition:all .2s;
+    }
+    .gps-map-control--compact{
+      width:34px;
+      height:34px;
+      padding:0;
+      font-size:1.25rem;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:none;
+    }
+    .gps-map-control:hover:not(:disabled){
+      border-color:var(--border-mid);
+      transform:translateY(-1px);
+    }
+    .gps-map-control.active{
+      border-color:var(--blue);
+      color:var(--blue);
+      background:rgba(59,130,246,.12);
+    }
+    .gps-map-control:disabled{
+      opacity:.5;
+      cursor:not-allowed;
+    }
+    .gps-map-zoom span{
+      min-width:44px;
+      text-align:center;
+      font-size:.85rem;
+      font-weight:700;
+      color:var(--text2);
     }
 
     /* upload */
@@ -561,6 +663,13 @@
     .toast strong{display:block;font-weight:700;font-size:.83rem;color:var(--text);margin-bottom:1px;}
     .toast span{font-size:.76rem;color:var(--text2);}
 
+    /* Highlight overrides */
+    .card-title{font-weight:820;font-size:1.08rem;color:var(--blue);letter-spacing:-.25px;}
+    .card-sub{color:var(--muted2);font-size:.82rem;}
+    .field-note{color:var(--amber-deep);font-weight:600;}
+    .mini-point strong{color:var(--blue);font-weight:850;font-size:.9rem;}
+    .mini-point span{font-size:.82rem;}
+
     /* footer */
     .report-footer{
       margin:0;
@@ -619,13 +728,17 @@
     }
     .header,.panic-strip,.form-wrap,.report-footer{position:relative;z-index:1}
     .header{
-      height:72px;
-      background:rgba(244,248,255,.82);
-      border-bottom:1px solid rgba(151,189,233,.55);
-      box-shadow:0 10px 28px rgba(15,23,42,.08);
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      gap:1rem;
+      padding:1rem 1.5rem;
+      background:rgba(243,247,255,.9);
+      backdrop-filter:blur(18px);
+      border-bottom:1px solid rgba(191,214,245,.9);
+      box-shadow:0 6px 18px rgba(0,0,0,.08);
     }
-    .brand{gap:8px}
-    .brand-logo{filter:drop-shadow(0 8px 14px rgba(29,78,216,.08))}
+    .brand{gap:.6rem}
     .panic-strip{
       margin: 1rem auto 0;
       width:min(1220px, calc(100% - 2rem));
@@ -852,7 +965,7 @@
       line-height:1.5;
       color:var(--muted);
     }
-    .submit-btn,.panic-number-pill,.nav-btn{
+    .submit-btn,.panic-number-pill{
       box-shadow: var(--shadow-sm);
     }
     .report-shell{
@@ -1055,12 +1168,13 @@
       text-transform:uppercase;
       color:var(--muted);
     }
-    .card-sub{max-width:44ch;line-height:1.55;}
+    .card-sub{max-width:44ch;line-height:1.55;color:var(--muted2);font-size:.82rem;}
     .field-note{
       margin-top:.45rem;
-      font-size:.74rem;
-      line-height:1.5;
-      color:var(--muted2);
+      font-size:.78rem;
+      line-height:1.55;
+      color:var(--amber-deep);
+      font-weight:600;
     }
     .gps-meta{
       display:flex;
@@ -1279,8 +1393,7 @@
         border-radius:24px;
       }
       .header{height:auto;min-height:64px;padding:.75rem 1rem;align-items:flex-start;gap:.75rem;flex-wrap:wrap;}
-      .header-right{width:100%;justify-content:flex-start;}
-      .main-datetime{width:100%;white-space:normal;}
+    .main-datetime{width:100%;white-space:normal;}
       .panic-sublabel{padding:.85rem 1rem}
     }
     @media(max-width:520px){
@@ -1358,50 +1471,27 @@
 
 <!-- HEADER -->
 <header class="header">
-  <div class="brand" aria-label="Smart Verification System">
-    <img class="brand-logo" src="/images/logo.png" alt="MDRRMO SVS Logo">
+  <a class="brand" href="/about">
+    <img src="/images/logo.png" alt="SVS logo">
     <div class="brand-text">
       <div class="brand-name">SVS</div>
-      <div class="brand-sub">Smart Verification System</div>
+    <div class="brand-sub">Smart Verification System</div>
     </div>
-  </div>
-  <div class="header-right">
-    <div class="main-datetime" id="dateTimeText">
+  </a>
+    <div class="header-right" style="display:grid;grid-template-columns:1fr auto;align-items:center;gap:.7rem;width:100%;">
+      <div class="nav-links">
+        <a class="nav-btn" href="/sos">SOS</a>
+        <a class="nav-btn active" href="/report">Report</a>
+        <a class="nav-btn" href="/about">About Us</a>
+        <a class="nav-btn" href="/faq">FAQ</a>
+      </div>
+    <div class="main-datetime" id="reportTime">
       <svg viewBox="0 0 24 24"><path d="M6.75 3v2.25m10.5-2.25v2.25M3.75 9.75h16.5M4.5 5.25h15A1.5 1.5 0 0 1 21 6.75v12A1.5 1.5 0 0 1 19.5 20.25h-15A1.5 1.5 0 0 1 3 18.75v-12A1.5 1.5 0 0 1 4.5 5.25Z"/></svg>
-      Loading time...
+      <div class="time-block"><span class="clock-text">--:--:--</span><span class="date-text">Loading...</span></div>
     </div>
   </div>
 </header>
 
-<!-- PANIC STRIP -->
-<div class="panic-strip">
-  <div class="panic-eyebrow"><span>Urgent Emergency</span></div>
-  <button class="panic-btn" id="panicBtn" type="button" onclick="triggerPanic()">
-    <!-- Heroicon: exclamation-triangle -->
-    <svg viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
-    <div class="panic-btn-label">PANIC SOS</div>
-  </button>
-  <div class="panic-sublabel" id="panicSublabel">
-    <strong>Tap to send instant SOS.</strong><br>Sends your exact location immediately - no forms needed.
-  </div>
-  <div class="action-strip">
-    <a class="action-chip" href="#report-form">
-      <svg viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
-      Open report form
-    </a>
-    <a class="action-chip" href="#step-location">
-      <svg viewBox="0 0 24 24"><path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
-      Jump to location
-    </a>
-  </div>
-  <div class="panic-number-pill" id="panicPill" onclick="openPanicSetup()" style="display:none;">
-    <!-- Heroicon: phone -->
-    <svg viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12L2.25 6.338Z"/></svg>
-    Sending as: <strong id="savedNum"></strong> &nbsp;·&nbsp; tap to change
-  </div>
-</div>
-
-<!-- FORM -->
 <div class="form-wrap" id="report-form">
   <div class="report-shell">
     <div class="report-main">
@@ -1413,6 +1503,9 @@
     </div>
     <h1>Report an <em>Emergency</em></h1>
     <p>Your report will be received immediately by SVS dispatchers. Provide as much detail as possible for a faster response.</p>
+    <div class="head-actions">
+      <button class="chip-btn" type="button" onclick="alertQueued()">Offline Queue (<span id="pendingCount">0</span>)</button>
+    </div>
     <div class="intro-grid">
       <div class="intro-card">
         <div class="intro-title">
@@ -1487,6 +1580,12 @@
           <input type="tel" id="iContact" placeholder="+63 917 123 4567" inputmode="tel" autocomplete="tel" maxlength="16" required>
         </div>
         <div class="field-note">Use an active PH mobile number so dispatchers can call or text back immediately.</div>
+        <div class="sos-save-row">
+          <label for="iPanicContact">SOS number (for one-tap panic):</label>
+          <input type="tel" id="iPanicContact" placeholder="+63 9XX XXX XXXX" inputmode="tel" maxlength="16">
+          <button type="button" onclick="savePanicNumber()">Save SOS</button>
+          <span class="pill-status" id="panicSavedStatus"></span>
+        </div>
       </div>
     </div>
   </div>
@@ -1635,7 +1734,19 @@
         <span id="gpsMapLabel">Detected location</span>
         <a id="gpsMapLink" href="#" target="_blank" rel="noopener noreferrer">Open map</a>
       </div>
-      <iframe class="gps-map-frame" id="gpsMapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <div class="gps-map-canvas">
+        <iframe class="gps-map-frame" id="gpsMapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <div class="gps-map-view-toggle">
+          <button class="gps-map-control" id="gpsMapViewToggle" type="button" disabled title="Switch between standard and satellite imagery">
+            Show satellite image
+          </button>
+        </div>
+        <div class="gps-map-zoom" id="gpsMapZoomGroup">
+          <button class="gps-map-control gps-map-control--compact" id="gpsMapZoomOut" type="button" aria-label="Zoom out" disabled>−</button>
+          <span id="gpsMapZoomValue">16x</span>
+          <button class="gps-map-control gps-map-control--compact" id="gpsMapZoomIn" type="button" aria-label="Zoom in" disabled>+</button>
+        </div>
+      </div>
     </div>
     <input type="hidden" id="iGPS">
     <input type="hidden" id="iGPSAt">
@@ -1685,9 +1796,37 @@
       <div class="step-badge">Context</div>
     </div>
     <div class="field">
-      <label>Description *</label>
-      <textarea id="iDesc" placeholder="Describe what is happening. Include: number of people affected, current situation, any danger present…" required></textarea>
-      <div class="field-note">Prioritize injuries, trapped people, hazards, flooding depth, fire spread, or anything changing fast.</div>
+      <label>Key conditions (optional)</label>
+      <div class="tag-grid" id="tagGrid">
+        <button type="button" class="tag-chip" data-tag="people_trapped" onclick="toggleTag('people_trapped')">People trapped</button>
+        <button type="button" class="tag-chip" data-tag="injured" onclick="toggleTag('injured')">Injured</button>
+        <button type="button" class="tag-chip" data-tag="road_blocked" onclick="toggleTag('road_blocked')">Road blocked</button>
+        <button type="button" class="tag-chip" data-tag="power_out" onclick="toggleTag('power_out')">Power out</button>
+        <button type="button" class="tag-chip" data-tag="rising_water" onclick="toggleTag('rising_water')">Rising water</button>
+        <button type="button" class="tag-chip" data-tag="fire_spreading" onclick="toggleTag('fire_spreading')">Fire spreading</button>
+        <button type="button" class="tag-chip" data-tag="hazmat" onclick="toggleTag('hazmat')">Chemical / HazMat</button>
+        <button type="button" class="tag-chip" data-tag="structure_damage" onclick="toggleTag('structure_damage')">Structural damage</button>
+        <button type="button" class="tag-chip" data-tag="blocked_access" onclick="toggleTag('blocked_access')">Access blocked</button>
+        <button type="button" class="tag-chip" data-tag="missing_persons" onclick="toggleTag('missing_persons')">Missing persons</button>
+        <button type="button" class="tag-chip" data-tag="medical_needed" onclick="toggleTag('medical_needed')">Medical needed</button>
+        <button type="button" class="tag-chip" data-tag="evac_needed" onclick="toggleTag('evac_needed')">Evac needed</button>
+      </div>
+      <div class="field-note">Check any that apply to help dispatch triage faster.</div>
+    </div>
+    <div class="field">
+      <label>Description (optional)</label>
+      <textarea id="iDesc" placeholder="Describe what is happening. Include: number of people affected, current situation, any danger present…"></textarea>
+      <div class="field-note">Optional but helpful: injuries, trapped people, hazards, flooding depth, fire spread, or anything changing fast.</div>
+    </div>
+    <div class="field">
+      <label>Attestation *</label>
+      <div class="input-wrap">
+        <label class="attest-check">
+          <input type="checkbox" id="iAttest">
+          <span>I confirm this report is truthful and not a prank.</span>
+        </label>
+        <div class="field-note">False reports may delay real emergencies and can be subject to penalties.</div>
+      </div>
     </div>
     <div class="field">
       <label>Upload Photo (Optional)</label>
@@ -1844,19 +1983,36 @@
 
 <script>
   let selType_ = '', selSev_ = '', photoData = null;
+  let selectedTags = [];
+  const TAG_OPTIONS = ['people_trapped','injured','road_blocked','power_out','rising_water','fire_spreading','hazmat','structure_damage'];
   let panicNum = '';
+  const MAP_MIN_ZOOM = 6;
+  const MAP_MAX_ZOOM = 20;
+  const mapState = { lat: null, lng: null, zoom: 16, view: 'map' };
+  const MAP_TYPE_CODES = { map: 'm', satellite: 'k' };
   const API_TIMEOUT_MS = 15000;
+  const PENDING_KEY = 'svs_pending_reports_v1';
   const fy = document.getElementById('footerYear');
   if (fy) fy.textContent = String(new Date().getFullYear());
   try { panicNum = localStorage.getItem('mdrrmo_panic') || ''; } catch(e) {}
   panicNum = toIntlPhone(panicNum) || '';
   bindInputSecurity();
   bindRequiredFieldWatchers();
-  if (panicNum) initPanicUI();
+  flushPendingQueue();
+  updatePendingCount();
+  window.addEventListener('online', flushPendingQueue);
+  if (panicNum) {
+    initPanicUI();
+    const sosField = document.getElementById('iPanicContact');
+    if (sosField) sosField.value = formatPhoneForDisplay(panicNum);
+    const status = document.getElementById('panicSavedStatus');
+    if (status) { status.textContent = 'Saved'; status.style.color = 'var(--green)'; }
+  }
 
   function bindInputSecurity() {
     const contactInput = document.getElementById('iContact');
     const panicInput = document.getElementById('panicInput');
+    const sosField = document.getElementById('iPanicContact');
     [contactInput, panicInput].forEach(el => {
       if (!el) return;
       el.addEventListener('input', () => {
@@ -1873,6 +2029,17 @@
         el.value = formatPhoneForDisplay(pasted);
       });
     });
+    if (sosField) {
+      sosField.addEventListener('input', () => {
+        const clean = formatPhoneForDisplay(sosField.value);
+        if (sosField.value !== clean) sosField.value = clean;
+      });
+      sosField.addEventListener('paste', evt => {
+        evt.preventDefault();
+        const pasted = (evt.clipboardData || window.clipboardData).getData('text');
+        sosField.value = formatPhoneForDisplay(pasted);
+      });
+    }
   }
 
   function toIntlPhone(v) {
@@ -1898,6 +2065,66 @@
     }
     const local = intl.slice(3); // 9XXXXXXXXX
     return `+63 ${local.slice(0, 3)} ${local.slice(3, 6)} ${local.slice(6, 10)}`;
+  }
+
+  function debounce(fn, wait = 250) {
+    let t;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn(...args), wait);
+    };
+  }
+
+  function getPendingQueue() {
+    try {
+      const raw = localStorage.getItem(PENDING_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (_e) { return []; }
+  }
+
+  function enqueuePending(payload) {
+    try {
+      const arr = getPendingQueue();
+      arr.push({ payload, createdAt: Date.now() });
+      localStorage.setItem(PENDING_KEY, JSON.stringify(arr.slice(-50)));
+      updatePendingCount();
+    } catch (_e) {}
+  }
+
+  async function flushPendingQueue() {
+    if (!navigator.onLine) return;
+    let queue = getPendingQueue();
+    while (queue.length) {
+      const next = queue.shift();
+      try {
+        localStorage.setItem(PENDING_KEY, JSON.stringify(queue));
+        const { res, data: d } = await fetchJson('/api/report', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(next.payload || {})
+        }, 12000);
+        if (!res.ok || !d || !d.success) {
+          enqueuePending(next.payload || {});
+          break;
+        }
+        toast('Sent pending report', `Queued report delivered${d.id ? ` (ID ${d.id})` : ''}.`);
+      } catch (_e) {
+        enqueuePending(next.payload || {});
+        break;
+      }
+      queue = getPendingQueue();
+      updatePendingCount();
+    }
+  }
+
+  function updatePendingCount() {
+    const el = document.getElementById('pendingCount');
+    if (el) el.textContent = String(getPendingQueue().length);
+  }
+
+  function alertQueued() {
+    const c = getPendingQueue().length;
+    toast('Offline queue', c ? `${c} report${c>1?'s':''} will auto-send when online.` : 'No pending reports.');
   }
 
   function isValidPhMobile(v) {
@@ -1940,7 +2167,7 @@
   }
 
   function bindRequiredFieldWatchers() {
-    const requiredInputs = ['iName', 'iContact', 'iBarangay', 'iLandmark', 'iStreet', 'iDesc'];
+    const requiredInputs = ['iName', 'iContact', 'iBarangay', 'iLandmark', 'iStreet'];
     requiredInputs.forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
@@ -1951,12 +2178,20 @@
   }
 
   function initPanicUI() {
-    document.getElementById('savedNum').textContent = formatPhoneForDisplay(panicNum);
-    document.getElementById('panicPill').style.display = 'inline-flex';
-    document.getElementById('panicSublabel').innerHTML = '<strong>One tap sends instant SOS.</strong><br>Your exact location will be sent to dispatchers immediately.';
+    const numEl = document.getElementById('savedNum');
+    const pill = document.getElementById('panicPill');
+    const sub = document.getElementById('panicSublabel');
+    if (!numEl || !pill || !sub) return;
+    numEl.textContent = formatPhoneForDisplay(panicNum);
+    pill.style.display = 'inline-flex';
+    sub.innerHTML = '<strong>One tap sends instant SOS.</strong><br>Your exact location will be sent to dispatchers immediately.';
   }
 
-  function selType(el, t) {
+  // Draft saving removed to simplify flow and avoid stale local data.
+
+  
+  // Draft helper functions removed.
+function selType(el, t) {
     document.querySelectorAll('.etype-btn').forEach(b => b.classList.remove('sel'));
     el.classList.add('sel'); selType_ = t;
     setRequiredError(document.getElementById('typeGrid'), false);
@@ -1965,6 +2200,23 @@
     document.querySelectorAll('.sev-btn').forEach(b => b.classList.remove('sel'));
     el.classList.add('sel'); selSev_ = s;
     setRequiredError(document.getElementById('sevGrid'), false);
+  }
+
+  function toggleTag(tag) {
+    if (!TAG_OPTIONS.includes(tag)) return;
+    if (selectedTags.includes(tag)) {
+      selectedTags = selectedTags.filter(t => t !== tag);
+    } else {
+      selectedTags = [...selectedTags, tag].slice(0, 6);
+    }
+    syncTagUi();
+  }
+
+  function syncTagUi() {
+    document.querySelectorAll('#tagGrid .tag-chip').forEach(btn => {
+      const t = btn.getAttribute('data-tag');
+      btn.classList.toggle('sel', selectedTags.includes(t));
+    });
   }
 
   function detectGPS() {
@@ -2061,9 +2313,10 @@
     setRequiredError(barangayInput, !barangay);
     setRequiredError(landmarkInput, !landmark);
     setRequiredError(streetInput, !street);
-    setRequiredError(descInput, !description);
+    const attest = document.getElementById('iAttest');
+    setRequiredError(attest, !attest || !attest.checked);
 
-    if (!name||!contact||!selType_||!selSev_||!barangay||!landmark||!street||!description) {
+    if (!name||!contact||!selType_||!selSev_||!barangay||!landmark||!street||!attest?.checked) {
       toast('Missing fields', 'Please complete all required fields and selections.','warn'); return;
     }
     if (!isValidPhMobile(contact)) {
@@ -2087,19 +2340,33 @@
         submitBtn.disabled = true;
         submitBtn.style.opacity = '.7';
       }
+      const payload = { name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue, photo: photoData, tags: selectedTags };
+      if (!navigator.onLine) {
+        enqueuePending(payload);
+        toast('Saved offline', 'Will auto-send when you reconnect.');
+        resetForm();
+        window.dispatchEvent(new Event('svs:report-submitted'));
+        return;
+      }
       const { res, data: d } = await fetchJson('/api/report', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue, photo: photoData })
+        body: JSON.stringify(payload)
       });
       if (!res.ok || !d.success) {
-        toast('Submit failed', d.error || 'Could not submit. Please try again.','warn');
+        enqueuePending(payload);
+        toast('Stored to retry', d.error || 'Network issue. Will retry automatically.','warn');
         return;
       }
       document.getElementById('rptId').textContent = d.id;
       document.getElementById('successOverlay').classList.add('show');
       resetForm();
+      window.dispatchEvent(new Event('svs:report-submitted'));
+      flushPendingQueue();
+      updatePendingCount();
     } catch(e) {
-      toast('Network error', 'Could not submit. Please check your connection and try again.','warn');
+      enqueuePending({ name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue, photo: photoData, tags: selectedTags });
+      toast('Stored to retry', 'Network error. Will retry when back online.','warn');
+      updatePendingCount();
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;
@@ -2113,12 +2380,13 @@
     document.getElementById('iBarangay').value='';
     document.querySelectorAll('.etype-btn').forEach(b=>b.classList.remove('sel'));
     document.querySelectorAll('.sev-btn').forEach(b=>b.classList.remove('sel'));
-    selType_=''; selSev_=''; photoData=null;
+    selType_=''; selSev_=''; photoData=null; selectedTags=[]; syncTagUi();
     const g=document.getElementById('gpsBtn');
     g.classList.remove('got'); g.disabled=false;
     document.getElementById('gpsMapWrap').style.display='none';
     g.innerHTML=`<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round"><path d="M9.348 14.651a3.75 3.75 0 0 1 0-5.303m5.304-.001a3.75 3.75 0 0 1 0 5.304m-7.425 2.122a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79M12 12h.008v.007H12V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg> Auto-detect My Location (GPS)`;
     document.getElementById('uploadArea').innerHTML=`<input type="file" accept="image/*" onchange="handlePhoto(this)"><svg viewBox="0 0 24 24" style="width:34px;height:34px;stroke:var(--muted2);fill:none;stroke-width:1.5;margin-bottom:.2rem;transition:stroke .2s"><path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg><div class="upload-label">Click or drag to upload a photo</div><div class="upload-hint">JPG, PNG — up to 10 MB</div>`;
+    updatePendingCount();
   }
 
   function closeSuccess() { document.getElementById('successOverlay').classList.remove('show'); }
@@ -2143,6 +2411,22 @@
     try { localStorage.setItem('mdrrmo_panic', n); } catch(e) {}
     closePanicModal(); initPanicUI();
     toast('Panic Button Ready', 'Number saved. One tap = instant SOS.');
+  }
+  function savePanicNumber() {
+    const field = document.getElementById('iPanicContact');
+    if (!field) return;
+    const n = toIntlPhone(field.value) || '';
+    field.value = formatPhoneForDisplay(n);
+    if (!isValidPhMobile(n)) {
+      showInvalid(field);
+      toast('Invalid number', 'Use a valid PH mobile number (e.g. +63 917 123 4567).','warn');
+      return;
+    }
+    panicNum = n;
+    try { localStorage.setItem('mdrrmo_panic', n); } catch(_e) {}
+    const status = document.getElementById('panicSavedStatus');
+    if (status) { status.textContent = 'Saved'; status.style.color = 'var(--green)'; }
+    toast('SOS number saved', 'One-tap panic will use this number.');
   }
   function triggerPanic() {
     if (!panicNum) { openPanicSetup(); return; }
@@ -2227,21 +2511,92 @@
     return { lat, lng };
   }
 
-  function toEmbedUrl(lat, lng) {
-    return `https://maps.google.com/maps?q=${lat.toFixed(6)},${lng.toFixed(6)}&t=k&z=16&output=embed`;
+  function toEmbedUrl(lat, lng, view = 'map', zoom = 16) {
+    const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
+    return `https://maps.google.com/maps?q=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
   }
 
   function renderReporterMap(gps, label = 'Detected location') {
     const p = parseGps(gps);
     const wrap = document.getElementById('gpsMapWrap');
-    if (!p || !wrap) return;
-    const src = toEmbedUrl(p.lat, p.lng);
-    const openUrl = `https://www.google.com/maps?q=${p.lat.toFixed(6)},${p.lng.toFixed(6)}&t=k`;
-    document.getElementById('gpsMapFrame').src = src;
-    document.getElementById('gpsMapLink').href = openUrl;
-    document.getElementById('gpsMapLabel').textContent = `${label}: ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
+    const labelEl = document.getElementById('gpsMapLabel');
+    if (!p || !wrap || !labelEl) return;
+    mapState.lat = p.lat;
+    mapState.lng = p.lng;
     wrap.style.display = 'block';
+    labelEl.textContent = `${label}: ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
+    if (mapState.zoom < MAP_MIN_ZOOM) mapState.zoom = MAP_MIN_ZOOM;
+    if (mapState.zoom > MAP_MAX_ZOOM) mapState.zoom = MAP_MAX_ZOOM;
+    refreshMapFrame();
   }
+
+  function refreshMapLink() {
+    const link = document.getElementById('gpsMapLink');
+    if (!link || !mapState.lat) return;
+    const type = mapState.view === 'satellite' ? MAP_TYPE_CODES.satellite : MAP_TYPE_CODES.map;
+    link.href = `https://www.google.com/maps?q=${mapState.lat.toFixed(6)},${mapState.lng.toFixed(6)}&t=${type}`;
+  }
+
+  function refreshMapFrame() {
+    const frame = document.getElementById('gpsMapFrame');
+    if (!frame) return;
+    if (!mapState.lat) {
+      frame.removeAttribute('src');
+      updateZoomDisplay();
+      updateZoomButtons();
+      updateViewToggle();
+      refreshMapLink();
+      return;
+    }
+    const src = toEmbedUrl(mapState.lat, mapState.lng, mapState.view, mapState.zoom);
+    if (frame.src !== src) frame.src = src;
+    updateZoomDisplay();
+    updateZoomButtons();
+    updateViewToggle();
+    refreshMapLink();
+  }
+
+  function updateViewToggle() {
+    const toggle = document.getElementById('gpsMapViewToggle');
+    if (!toggle) return;
+    const showingSatellite = mapState.view === 'satellite';
+    toggle.textContent = showingSatellite ? 'Show standard map' : 'Show satellite image';
+    toggle.classList.toggle('active', showingSatellite);
+    toggle.disabled = !mapState.lat;
+  }
+
+  function updateZoomDisplay() {
+    const label = document.getElementById('gpsMapZoomValue');
+    if (label) label.textContent = `${mapState.zoom}x`;
+  }
+
+  function updateZoomButtons() {
+    const zoomOut = document.getElementById('gpsMapZoomOut');
+    const zoomIn = document.getElementById('gpsMapZoomIn');
+    if (zoomOut) zoomOut.disabled = !mapState.lat || mapState.zoom <= MAP_MIN_ZOOM;
+    if (zoomIn) zoomIn.disabled = !mapState.lat || mapState.zoom >= MAP_MAX_ZOOM;
+  }
+
+  function changeMapZoom(delta) {
+    if (!mapState.lat) return;
+    const nextZoom = Math.min(MAP_MAX_ZOOM, Math.max(MAP_MIN_ZOOM, mapState.zoom + delta));
+    if (nextZoom === mapState.zoom) return;
+    mapState.zoom = nextZoom;
+    refreshMapFrame();
+  }
+
+  function toggleMapView() {
+    if (!mapState.lat) return;
+    mapState.view = mapState.view === 'satellite' ? 'map' : 'satellite';
+    refreshMapFrame();
+  }
+
+  document.getElementById('gpsMapViewToggle')?.addEventListener('click', toggleMapView);
+  document.getElementById('gpsMapZoomIn')?.addEventListener('click', () => changeMapZoom(1));
+  document.getElementById('gpsMapZoomOut')?.addEventListener('click', () => changeMapZoom(-1));
+  updateZoomDisplay();
+  updateZoomButtons();
+  updateViewToggle();
 
   function normText(s) {
     return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -2477,29 +2832,23 @@
     return `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
   }
 
-  function updateDateTime() {
-    const el = document.getElementById('dateTimeText');
-    if (!el) return;
-    const now = new Date();
-    const pad = (n) => String(n).padStart(2, '0');
-    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-    const month = pad(now.getMonth() + 1);
-    const day = pad(now.getDate());
-    const year = now.getFullYear();
-    const h24 = now.getHours();
-    const hour12 = h24 % 12 || 12;
-    const minute = pad(now.getMinutes());
-    const second = pad(now.getSeconds());
-    const ampm = h24 >= 12 ? 'PM' : 'AM';
-    const dateText = `${days[now.getDay()]}  ${month}/${day}/${year}`;
-    const clockText = `${pad(hour12)}:${minute}:${second} ${ampm}`;
-    el.innerHTML = `<svg viewBox="0 0 24 24"><path d="M6.75 3v2.25m10.5-2.25v2.25M3.75 9.75h16.5M4.5 5.25h15A1.5 1.5 0 0 1 21 6.75v12A1.5 1.5 0 0 1 19.5 20.25h-15A1.5 1.5 0 0 1 3 18.75v-12A1.5 1.5 0 0 1 4.5 5.25Z"/></svg><div class="time-block"><span class="clock-text">${clockText}</span><span class="date-text">${dateText}</span></div>`;
+  function updateTime(elId){
+    const el=document.getElementById(elId);
+    if(!el) return;
+    const clock=el.querySelector('.clock-text');
+    const date=el.querySelector('.date-text');
+    const now=new Date();
+    const pad=n=>String(n).padStart(2,'0');
+    const h24=now.getHours(); const h=h24%12||12;
+    const ampm=h24>=12?'PM':'AM';
+    clock.textContent=`${pad(h)}:${pad(now.getMinutes())}:${pad(now.getSeconds())} ${ampm}`;
+    const days=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    date.textContent=`${days[now.getDay()]} ${pad(now.getMonth()+1)}/${pad(now.getDate())}/${now.getFullYear()}`;
   }
-
-  updateDateTime();
-  setInterval(updateDateTime, 1000);
+  updateTime('reportTime'); setInterval(()=>updateTime('reportTime'),1000);
 </script>
 </body>
 </html>
+
 
 

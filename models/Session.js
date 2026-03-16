@@ -7,6 +7,8 @@ const sessionSchema = new mongoose.Schema(
     userId: { type: String, required: true },
     username: { type: String, default: '' },
     fullName: { type: String, default: '' },
+    remember: { type: Boolean, default: false },
+    ttlMs: { type: Number, default: 0 },
     expiresAt: { type: Date, required: true, index: { expires: 0 } },
   },
   { versionKey: false, timestamps: true }

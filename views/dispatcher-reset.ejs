@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dispatcher Reset Password - SVS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --blue:#1d4ed8; --blue-dark:#1e3a8a; --blue-light:#dbeafe; --blue-border:#93c5fd;
+      --amber:#facc15; --amber-light:#fef3c7; --red:#dc2626; --red-light:#fef2f2;
+      --text:#0f172a; --muted:#475569; --surface:#ffffff; --border:#bfd6f5;
+      --shadow:0 24px 58px rgba(15,23,42,.14);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; padding:20px;
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Outfit',sans-serif; color:var(--text);
+      background:
+        radial-gradient(560px 320px at 100% 0,rgba(29,78,216,.24),transparent 64%),
+        radial-gradient(420px 240px at 8% 100%,rgba(250,204,21,.26),transparent 66%),
+        linear-gradient(180deg,#f5f9ff 0%,#e8f1ff 100%);
+      position:relative; overflow:hidden;
+    }
+    body::before,body::after{content:'';position:fixed;border-radius:50%;pointer-events:none}
+    body::before{width:280px;height:280px;left:-90px;top:-70px;background:rgba(250,204,21,.14);filter:blur(6px)}
+    body::after{width:360px;height:360px;right:-120px;bottom:-110px;background:rgba(29,78,216,.10);filter:blur(8px)}
+    .shell{width:min(1000px,100%);display:grid;grid-template-columns:minmax(320px,520px);justify-content:center;align-items:stretch}
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(244,248,255,.95));
+      border:1px solid var(--border); border-radius:26px; box-shadow:var(--shadow); backdrop-filter:blur(12px);
+      position:relative; overflow:hidden; padding:28px;
+    }
+    .card::before{content:'';position:absolute;inset:0 0 auto 0;height:5px;background:linear-gradient(90deg,var(--blue),var(--amber),var(--red));}
+    .logo-wrap{text-align:center;margin-bottom:12px}
+    .logo{width:186px;max-width:60vw;height:auto;object-fit:contain;display:inline-block;filter:drop-shadow(0 12px 22px rgba(29,78,216,.12))}
+    .role-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:#e0f2fe;color:#0c4a6e;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+    .role-badge::before{content:'Dispatcher';font-family:'JetBrains Mono',monospace}
+    h2{margin:14px 0 8px;font-size:30px;letter-spacing:-.9px}
+    .subtext{margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.7}
+    .err{background:var(--red-light);border:1px solid #fca5a5;color:#b91c1c;padding:12px 13px;border-radius:14px;margin-bottom:14px;font-size:13px;font-weight:700}
+    .success{background:#ecfdf3;border:1px solid #86efac;color:#15803d;padding:12px 13px;border-radius:14px;margin-bottom:14px;font-size:13px;font-weight:700}
+    .field-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    label{display:block;font-size:11px;font-weight:800;margin:14px 0 7px;text-transform:uppercase;color:var(--blue-dark);letter-spacing:1px;font-family:'JetBrains Mono',monospace}
+    .meta{font-size:12px;color:var(--muted)}
+    input{
+      width:100%;padding:14px 15px;border:1px solid var(--blue-border);border-radius:15px;font-size:14px;
+      background:rgba(255,255,255,.94);font-family:'Outfit',sans-serif;
+      transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+    }
+    input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(29,78,216,.12);transform:translateY(-1px)}
+    .actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;flex-wrap:wrap}
+    .tip{font-size:12px;color:var(--muted);line-height:1.5}
+    .btn{
+      margin-top:18px;width:100%;padding:14px 16px;border:0;border-radius:15px;background:linear-gradient(135deg,var(--blue),#2563eb);
+      color:#fff;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;letter-spacing:.2px;box-shadow:0 14px 30px rgba(29,78,216,.24);
+      transition:transform .2s ease,box-shadow .2s ease,filter .2s ease
+    }
+    .btn:hover{transform:translateY(-2px);box-shadow:0 18px 34px rgba(29,78,216,.28);filter:saturate(1.05)}
+    .link-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:var(--muted)}
+    .link-row a{color:var(--blue-dark);font-weight:700;text-decoration:none}
+    .link-row a:hover{text-decoration:underline}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .card{animation:fadeUp .4s ease both}
+    @media(max-width:520px){body{padding:14px}.card{padding:22px;border-radius:20px}h2{font-size:26px}.logo{width:160px}}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <form class="card" method="post" action="/dispatcher/reset">
+      <div class="logo-wrap"><img class="logo" src="/images/logo.png" alt="MDRRMO SVS Logo"></div>
+      <span class="role-badge" aria-hidden="true"></span>
+      <h2>Reset Dispatcher Password</h2>
+      <p class="subtext">Verify your username and registered phone number to set a new password.</p>
+      <% if (error) { %><div class="err"><%= error %></div><% } %>
+      <% if (success) { %><div class="success"><%= success %></div><% } %>
+
+      <label for="username">Username</label>
+      <input id="username" name="username" placeholder="Dispatcher username" required autocomplete="username">
+
+      <label for="phone">Phone (registered)</label>
+      <input id="phone" name="phone" placeholder="e.g. 09171234567" required autocomplete="tel">
+
+      <label for="newPassword">New Password</label>
+      <input id="newPassword" name="newPassword" type="password" minlength="6" placeholder="At least 6 characters" required autocomplete="new-password">
+
+      <label for="confirmPassword">Confirm Password</label>
+      <input id="confirmPassword" name="confirmPassword" type="password" minlength="6" placeholder="Re-type new password" required autocomplete="new-password">
+
+      <button class="btn" type="submit">Save New Password</button>
+      <div class="link-row">
+        <a href="/dispatcher/login">Back to login</a>
+        <span class="tip">Need help? Contact an admin to update your phone.</span>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
