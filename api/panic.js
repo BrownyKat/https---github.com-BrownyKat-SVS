@@ -1,6 +1,6 @@
+// Dedicated serverless entry for /api/panic on Vercel.
 const app = require('../server');
 
-// Generic handler for legacy rewrite, but dedicated route files now exist.
 module.exports = (req, res) => {
   return app(req, res);
 };

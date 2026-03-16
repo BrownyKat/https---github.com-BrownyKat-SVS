@@ -1,0 +1,29 @@
+# Node / pnpm / npm
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# Logs and coverage
+logs/
+*.log
+coverage/
+.nyc_output/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Build artifacts
+dist/
+out/
+.next/
+

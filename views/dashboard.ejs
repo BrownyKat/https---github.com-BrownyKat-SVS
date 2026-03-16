@@ -91,6 +91,7 @@
       cursor:pointer;text-decoration:none;transition:all .18s;
     }
     .nav-btn:hover{border-color:var(--muted2);color:var(--text2);background:var(--surface);}
+    .nav-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
     .nav-btn.danger{color:var(--red);border-color:var(--red-border);background:var(--red-light);}
     .nav-btn.danger:hover{border-color:var(--red);background:#FEE2E2;}
     .nav-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
@@ -228,18 +229,46 @@
       cursor:pointer;transition:all .18s;
     }
     .quick-filter-btn:hover{border-color:var(--amber-border);background:var(--amber-light);color:var(--amber-dark);}
-    .quick-filter-btn.active{background:var(--amber-light);border-color:var(--amber-border);color:var(--amber-deep);}
+    .quick-filter-btn.active{background:var(--amber-light);border-color:var(--amber-border);color:var(--amber-deep);box-shadow:0 6px 16px rgba(245,158,11,.22);}
     .quick-count{
       font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:800;line-height:1;
       padding:2px 6px;border-radius:999px;background:rgba(255,255,255,.7);border:1px solid var(--border);
     }
-    .main-head-tools{display:flex;flex:0 1 282px;flex-direction:column;align-items:flex-end;gap:.55rem;justify-content:flex-end;width:100%;max-width:282px;}
+    .main-head-tools{display:flex;flex:0 0 340px;flex-direction:column;align-items:flex-end;gap:.55rem;justify-content:flex-end;width:100%;max-width:360px;}
+    .search-bar{
+      width:100%;
+      display:flex;align-items:center;gap:8px;
+      background:#fff;
+      border:1.5px solid var(--border-mid);
+      border-radius:14px;
+      padding:.4rem .65rem;
+      box-shadow:var(--shadow-xs);
+    }
+    .search-bar svg{width:16px;height:16px;stroke:var(--muted);flex-shrink:0;}
+    .search-input{
+      flex:1;border:0;background:transparent;font-family:'Outfit',sans-serif;
+      font-size:.85rem;color:var(--text);
+      padding:.35rem 0;
+      outline:none;
+    }
+    .search-go{
+      border:0;border-radius:10px;padding:.36rem .7rem;
+      background:linear-gradient(135deg,var(--blue),#1d4ed8);
+      color:#fff;font-weight:800;font-size:.78rem;cursor:pointer;
+      box-shadow:0 8px 18px rgba(29,78,216,.16);
+      transition:transform .16s,box-shadow .16s,filter .16s;
+    }
+    .search-go:hover{transform:translateY(-1px);box-shadow:0 12px 22px rgba(29,78,216,.18);filter:saturate(1.05);}
+    .search-clear{
+      border:0;background:transparent;color:var(--muted2);font-weight:700;font-size:.78rem;cursor:pointer;padding:.2rem .3rem;
+    }
+    .search-clear:hover{color:var(--text2);}
     .main-datetime{
       display:flex;align-items:center;gap:10px;
       width:100%;padding:.62rem 1.05rem;min-height:66px;
       background:
         linear-gradient(180deg,rgba(255,255,255,.94),rgba(239,246,255,.96)) padding-box,
-        linear-gradient(135deg,rgba(220,38,38,.95),rgba(29,78,216,.95)) border-box;
+        linear-gradient(135deg,rgba(29,78,216,.95),rgba(59,130,246,.95)) border-box;
       border:1.5px solid transparent;border-radius:16px;
       color:var(--text2);white-space:nowrap;
       box-shadow:0 12px 24px rgba(15,23,42,.08), inset 0 1px 0 rgba(255,255,255,.75);
@@ -311,6 +340,11 @@
       color:var(--amber-deep);
       font-weight:800;
     }
+    .act-btn[disabled]{
+      opacity:.6;
+      cursor:not-allowed;
+      box-shadow:none;
+    }
     .user-greet:hover .user-greet-icon{
       background:rgba(255,255,255,.2);
       border-color:rgba(255,255,255,.45);
@@ -322,6 +356,28 @@
       50%{transform:translateY(-2px) scale(1.03);}
       100%{transform:translateY(-1px) scale(1.02);}
     }
+    /* Notifications */
+    .notif-stack{
+      position:fixed;top:14px;right:14px;z-index:300;
+      display:flex;flex-direction:column;gap:.6rem;max-width:340px;width:calc(100% - 28px);
+      pointer-events:none;
+    }
+    .notif-card{
+      pointer-events:auto;
+      background:#fff;
+      border:1.5px solid #dbe7ff;
+      border-left:6px solid #1D4ED8;
+      border-radius:14px;
+      padding:.85rem 1rem;
+      box-shadow:0 16px 34px rgba(15,23,42,.16);
+      display:grid;gap:.3rem;
+      transition:transform .15s ease, opacity .2s ease;
+    }
+    .notif-card.alert{border-left-color:#dc2626;}
+    .notif-card.warn{border-left-color:#f59e0b;}
+    .notif-title{font-weight:840;color:#0f1d3a;}
+    .notif-msg{color:#1f2937;line-height:1.5;font-size:.94rem;}
+    .notif-meta{font-size:.78rem;color:#6b7280;}
     .filter-label-bar{
       font-family:'JetBrains Mono',monospace;font-size:.6rem;font-weight:700;
       letter-spacing:2px;text-transform:uppercase;color:var(--muted);
@@ -385,6 +441,10 @@
       content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
       border-radius:var(--r-xl) 0 0 var(--r-xl);
     }
+    .rcard.search-hit{
+      box-shadow:0 0 0 3px rgba(37,99,235,.18), var(--shadow-md);
+      border-color:var(--blue-border);
+    }
     .rcard.sev-High::before   {background:var(--red);}
     .rcard.sev-Medium::before {background:var(--amber);}
     .rcard.sev-Low::before    {background:var(--green);}
@@ -439,6 +499,16 @@
     }
     .rcard-meta span{display:flex;align-items:center;gap:4px;}
     .rcard-meta svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+    .tag-list{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.45rem;}
+    .tag-pill{
+      display:inline-flex;align-items:center;gap:5px;
+      padding:.38rem .7rem;border-radius:999px;
+      border:1.2px solid var(--border-mid);
+      background:rgba(226,232,255,.7);
+      color:var(--blue);
+      font-family:'JetBrains Mono',monospace;
+      font-size:.68rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+    }
 
     .rcard-right{display:flex;align-items:center;gap:7px;flex-shrink:0;}
     .status-pill{
@@ -872,7 +942,36 @@
       .main-inner{padding:1rem 1rem 2rem}
       .header{height:78px}
     }
-  </style>
+  
+    /* Web call mini panel */
+    .webcall-panel{
+      position:fixed;bottom:18px;right:20px;z-index:400;
+      width:320px;max-width:90vw;
+      background:rgba(255,255,255,.96);border:1.5px solid var(--border);border-radius:16px;
+      box-shadow:0 18px 44px rgba(15,23,42,.18);
+      padding:14px 16px;backdrop-filter:blur(10px) saturate(140%);
+      display:flex;flex-direction:column;gap:10px;
+    }
+    .webcall-panel.hidden{display:none;}
+    .webcall-top{display:flex;align-items:center;gap:10px;}
+    .webcall-ico{
+      width:36px;height:36px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,rgba(29,78,216,.12),rgba(29,78,216,.2));
+      border:1px solid var(--blue-border);color:var(--blue);
+    }
+    .webcall-ico svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;}
+    .webcall-meta{flex:1;min-width:0;}
+    .webcall-title{font-weight:800;font-size:.92rem;color:var(--text);}
+    .webcall-sub{font-size:.78rem;color:var(--muted);}
+    .webcall-status{font-family:'JetBrains Mono',monospace;font-size:.74rem;color:var(--muted2);}
+    .webcall-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;}
+    .webcall-btn{padding:.45rem .9rem;border-radius:12px;border:1px solid var(--border-mid);font-weight:700;font-size:.82rem;cursor:pointer;}
+    .webcall-btn.primary{background:linear-gradient(135deg,var(--blue),var(--indigo));color:#fff;border-color:transparent;}
+    .webcall-btn.danger{background:var(--orange-light);color:var(--red);border-color:var(--orange-border);}
+    .webcall-btn:disabled{opacity:.6;cursor:not-allowed;}
+    @media(max-width:520px){.webcall-panel{left:10px;right:10px;width:auto;}}
+</style>
 </head>
 <body>
 
@@ -889,6 +988,7 @@
     <% if (currentUser && currentUser.role === 'admin') { %>
       <a class="nav-btn" href="/admin">Admin Panel</a>
     <% } %>
+    <a class="nav-btn" href="/dispatcher/reset" target="_blank" rel="noopener">Reset Password</a>
     <form method="post" action="/dispatcher/logout" style="margin:0" id="dispatcherLogoutForm">
       <button class="nav-btn" type="submit">Logout</button>
     </form>
@@ -979,6 +1079,8 @@
     </div>
   </aside>
 
+  <div id="notifStack" class="notif-stack" aria-live="polite" aria-atomic="true"></div>
+
   <!-- MAIN CONTENT -->
   <main class="main">
     <div class="main-inner">
@@ -999,6 +1101,12 @@
           </div>
         </div>
         <div class="main-head-tools">
+          <div class="search-bar" role="search">
+            <svg viewBox="0 0 24 24"><path d="m15.75 15.75 3.5 3.5M4.5 11.25a6.75 6.75 0 1 0 13.5 0 6.75 6.75 0 0 0-13.5 0Z"/></svg>
+            <input class="search-input" id="reportSearch" type="search" placeholder="Search ID, name, phone, barangay..." oninput="setSearch(this.value)">
+            <button class="search-go" type="button" onclick="jumpToFirst()">Jump</button>
+            <button class="search-clear" type="button" onclick="clearSearch()">Clear</button>
+          </div>
           <div class="main-datetime" id="dateTimeText">
             <svg viewBox="0 0 24 24"><path d="M6.75 3v2.25m10.5-2.25v2.25M3.75 9.75h16.5M4.5 5.25h15A1.5 1.5 0 0 1 21 6.75v12A1.5 1.5 0 0 1 19.5 20.25h-15A1.5 1.5 0 0 1 3 18.75v-12A1.5 1.5 0 0 1 4.5 5.25Z"/></svg>
             Loading time...
@@ -1131,6 +1239,22 @@
     </div>
   </div>
 </div>
+<div id="webCallPanel" class="webcall-panel hidden">
+  <div class="webcall-top">
+    <div class="webcall-ico">
+      <svg viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12Z"/></svg>
+    </div>
+    <div class="webcall-meta">
+      <div class="webcall-title">Web Call</div>
+      <div class="webcall-sub" id="webCallReportLabel">Idle</div>
+      <div class="webcall-status" id="webCallStatus">Not connected</div>
+    </div>
+    <div class="webcall-actions">
+      <button class="webcall-btn primary" id="webCallAcceptBtn">Accept</button>
+      <button class="webcall-btn danger" id="webCallHangBtn">Hang Up</button>
+    </div>
+  </div>
+</div>
 <script id="initialReports" type="application/json"><%- JSON.stringify(reports) %></script>
 <script id="activeDispatchersSeed" type="application/json"><%- JSON.stringify(activeDispatchers || []) %></script>
 <script id="currentUserSeed" type="application/json"><%- JSON.stringify(currentUser || {}) %></script>
@@ -1163,11 +1287,12 @@
     : null;
   const channel = pusher ? pusher.subscribe(realtimeCfg.channel || 'mdrrmo-reports') : null;
   let reports = [];
+  const pendingClaims = new Set();
   let activeDispatchers = [];
   let currentUser = {};
   try {
     const seed = JSON.parse(document.getElementById('initialReports').textContent || '[]');
-    reports = (Array.isArray(seed) ? seed : []).map(normalizeReport);
+    reports = dedupeReports((Array.isArray(seed) ? seed : []).map(normalizeReport));
   } catch (_e) {
     reports = [];
   }
@@ -1182,8 +1307,20 @@
   } catch (_e) {
     currentUser = {};
   }
+  const searchInputEl = document.getElementById('reportSearch');
+  if (searchInputEl) {
+    searchInputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        pendingScrollToFirst = true;
+        setSearch(searchInputEl.value);
+      }
+    });
+  }
   const currentUserId = String((currentUser && currentUser.userId) || '').trim();
   let curFilter = 'all';
+  let curSearch = '';
+  let pendingScrollToFirst = false;
   let editReportId = '';
   const callStartedIds = new Set();
   const geoCache = new Map();
@@ -1266,7 +1403,14 @@
       return;
     }
 
+    let settled = false;
+    const fallbackTimer = setTimeout(() => {
+      if (!settled) setWeatherText('Weather unavailable');
+    }, 12000);
+
     navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      settled = true;
+      clearTimeout(fallbackTimer);
       try {
         const lat = coords.latitude;
         const lon = coords.longitude;
@@ -1284,6 +1428,8 @@
         setWeatherText('Weather unavailable');
       }
     }, () => {
+      settled = true;
+      clearTimeout(fallbackTimer);
       setWeatherText('Location denied');
     }, { enableHighAccuracy: false, timeout: 10000 });
   }
@@ -1294,6 +1440,11 @@
 
   function isRegularReport(r) {
     return r && (r.severity === 'Medium' || r.severity === 'Low');
+  }
+
+  function isClosedStatus(status) {
+    const v = String(status || '').toLowerCase();
+    return v === 'resolved' || v === 'false-report';
   }
 
   function getFalseCountByContact(contact) {
@@ -1359,6 +1510,36 @@
     render();
   }
 
+  function normalizeId(raw) {
+    return String(raw || '').replace(/[^a-zA-Z0-9:_-]/g, '');
+  }
+
+  function matchesSearch(r, termLower) {
+    if (!termLower) return true;
+    const hay = [
+      r.name, r.contact, r.barangay, r.landmark, r.street, r.description,
+      r.emergencyType, displayReportRef(r), r.assignedToName, r.claimedByName
+    ].map(v => String(v || '').toLowerCase());
+    return hay.some(t => t.includes(termLower));
+  }
+
+  function setSearch(val) {
+    curSearch = String(val || '');
+    render();
+  }
+
+  function clearSearch() {
+    curSearch = '';
+    const input = document.getElementById('reportSearch');
+    if (input) input.value = '';
+    render();
+  }
+
+  function jumpToFirst() {
+    pendingScrollToFirst = true;
+    render();
+  }
+
   function esc(v) {
     return String(v == null ? '' : v)
       .replace(/&/g, '&amp;')
@@ -1397,12 +1578,13 @@
     }
   }
 
-  function cardHTML(r) {
-    const rid = String(r.id || r.reportId || r._id || '').replace(/[^a-zA-Z0-9:_-]/g, '');
+  function cardHTML(r, isHit = false) {
+    const rid = normalizeId(r.id || r.reportId || r._id || '');
     const reportRef = displayReportRef(r);
     const tc  = typeClass[r.emergencyType] || 'ti-other';
     const ico = typeIcons[r.emergencyType] || typeIcons.Other;
-    const sp  = r.status.replace('-','-');
+    const status = String(r.status || 'unknown');
+    const sp  = status.replace('-','-');
     const gpsMap = gpsMapHTML(r);
     const isPanic = r.emergencyType === 'PANIC SOS';
     const exactLocation = getReadableLocation(r);
@@ -1411,6 +1593,8 @@
     const isUnassigned = !String(r.assignedToId || '').trim();
     const isMine = String(r.assignedToId || '').trim() === currentUserId;
     const canManageAssignedReport = isMine;
+    const isClosed = isClosedStatus(status);
+    const isClaiming = pendingClaims.has(rid);
     const callStarted = callStartedIds.has(rid);
     const ownershipClass = isMine ? 'mine' : 'open';
     const ownershipTitle = isMine ? 'Assigned to you' : 'Unassigned report';
@@ -1418,8 +1602,10 @@
       ? 'You currently control verification, edits, dispatch, and closeout.'
       : 'Claim or call to take ownership before verification and sensitive actions unlock.';
     const ownershipTag = isMine ? 'Owned' : 'Open';
+    const tags = Array.isArray(r.tags) ? r.tags.filter(Boolean) : [];
+    const tagsHtml = tags.length ? `<div class="tag-list">${tags.map(t => `<span class="tag-pill">${esc(String(t).replace(/_/g,' '))}</span>`).join('')}</div>` : '';
     return `
-    <div class="rcard sev-${r.severity}" id="card-${rid}">
+    <div class="rcard sev-${r.severity}${isHit ? ' search-hit' : ''}" id="card-${rid}">
       <div class="rcard-top">
         <div class="rcard-left">
           <div class="rcard-type">
@@ -1454,7 +1640,7 @@
         </div>
         <div class="rcard-right">
           ${r.photo ? `<img src="${r.photo}" class="photo-thumb" alt="Photo">` : ''}
-          <span class="status-pill sp-${esc(r.status)}">${esc(r.status).replace('-',' ')}</span>
+          <span class="status-pill sp-${esc(sp)}">${esc(status.replace('-',' '))}</span>
         </div>
       </div>
       <div class="ownership-bar ${ownershipClass}">
@@ -1496,12 +1682,13 @@
       </div>
       ${gpsMap}
       <div class="rcard-desc">${esc(r.description)}</div>
+      ${tagsHtml}
       <div class="rcard-actions">
-        ${isUnassigned ? `<button class="act-btn primary" onclick="claimReport('${rid}')">
+        ${isUnassigned ? `<button class="act-btn primary" onclick="claimReport('${rid}')" ${isClaiming?'disabled':''}>
           <svg viewBox="0 0 24 24"><path d="M9 12.75 11.25 15 15 9.75M3.75 12a8.25 8.25 0 1 1 16.5 0 8.25 8.25 0 0 1-16.5 0Z"/></svg>
-          Claim
+          ${isClaiming ? 'Claiming…' : 'Claim'}
         </button>` : ''}
-        ${isMine ? `<button class="act-btn" onclick="passReportPrompt('${rid}')">
+        ${isMine && !isClosed ? `<button class="act-btn" onclick="passReportPrompt('${rid}')">
           <svg viewBox="0 0 24 24"><path d="M7.5 8.25h9m-9 3h6m-6 3h3M3 5.25A2.25 2.25 0 0 1 5.25 3h13.5A2.25 2.25 0 0 1 21 5.25v13.5A2.25 2.25 0 0 1 18.75 21H5.25A2.25 2.25 0 0 1 3 18.75V5.25Z"/></svg>
           Pass
         </button>` : ''}
@@ -1525,6 +1712,10 @@
           <svg viewBox="0 0 24 24"><path d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
           False Report
         </button>` : ''}
+        <button class="act-btn call-act" onclick="startWebCall('${rid}')">
+          <svg viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12Z"/></svg>
+          Web Call
+        </button>
         ${(canManageAssignedReport && r.status==='new' && callStarted) ? '' : `<button class="act-btn call-act" onclick="callReporterById('${rid}')">
           <svg viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12L2.25 6.338Z"/></svg>
           Call ${esc(r.contact)}
@@ -1627,9 +1818,11 @@
 
   function normalizeReport(r) {
     if (!r || typeof r !== 'object') return r;
+    const status = String(r.status || 'new');
     return {
       ...r,
       id: r.id || r.reportId || r._id || '',
+      status,
       assignedToId: String(r.assignedToId || '').trim(),
       assignedToName: String(r.assignedToName || '').trim(),
       assignedAt: r.assignedAt || null,
@@ -1645,6 +1838,66 @@
       .join('||');
   }
 
+  function dedupeReports(arr = []) {
+    const seen = new Set();
+    const clean = [];
+    for (const r of arr) {
+      const id = normalizeId(r.id || r.reportId || r._id || '');
+      if (!id) continue;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      clean.push(r);
+    }
+    return clean;
+  }
+
+  function upsertReport(incoming, options = {}) {
+    if (!incoming) return;
+    const id = normalizeId(incoming.id || incoming.reportId || incoming._id || '');
+    if (!id) return;
+    const idx = reports.findIndex(x => normalizeId(x.id || x.reportId || x._id || '') === id);
+    if (idx >= 0) reports[idx] = incoming;
+    else {
+      if (options.append) reports.push(incoming);
+      else reports.unshift(incoming);
+    }
+    reports = dedupeReports(reports);
+    lastReportsSig = reportsSignature(reports);
+  }
+
+  /* Notifications */
+  const hotspotAlerts = new Map(); // barangay -> timestamp ms
+  function addNotification(title, msg, type='info') {
+    const stack = document.getElementById('notifStack');
+    if (!stack) return;
+    const card = document.createElement('div');
+    card.className = `notif-card ${type === 'alert' ? 'alert' : (type === 'warn' ? 'warn' : '')}`;
+    card.innerHTML = `<div class="notif-title">${esc(title)}</div><div class="notif-msg">${esc(msg)}</div><div class="notif-meta">${new Date().toLocaleTimeString()}</div>`;
+    stack.prepend(card);
+    setTimeout(()=>{
+      card.style.opacity='0'; card.style.transform='translateY(-4px)';
+      setTimeout(()=>card.remove(),320);
+    }, 5200);
+    // limit stack size
+    while(stack.children.length>4){stack.lastChild.remove();}
+  }
+
+  function checkHotspot(report) {
+    const area = String(report.barangay || '').trim();
+    const ts = Number(new Date(report.timestamp || Date.now()));
+    if (!area || !Number.isFinite(ts)) return;
+    const windowMs = 15*60*1000;
+    const cutoff = Date.now() - windowMs;
+    const recent = reports.filter(r => String(r.barangay || '').trim() === area && Number(new Date(r.timestamp || 0)) >= cutoff);
+    if (recent.length >= 3) {
+      const last = hotspotAlerts.get(area) || 0;
+      if (Date.now() - last > windowMs/2) {
+        hotspotAlerts.set(area, Date.now());
+        addNotification('Cluster detected', `${area}: ${recent.length} reports in the last 15 minutes. Coordinate response.`, 'warn');
+      }
+    }
+  }
+
   let lastReportsSig = reportsSignature(reports);
 
   async function syncReportsFromServer(forceRender = false) {
@@ -1657,7 +1910,7 @@
       }
       if (!res.ok) return;
       const data = await res.json();
-      const fresh = (Array.isArray(data) ? data : []).map(normalizeReport);
+      const fresh = dedupeReports((Array.isArray(data) ? data : []).map(normalizeReport));
       const sig = reportsSignature(fresh);
       if (!forceRender && sig === lastReportsSig) return;
       reports = fresh;
@@ -1682,22 +1935,26 @@
     });
 
     const visibleReports = reports.filter(canSeeReport);
-    const filtered = curFilter === 'all'
+    const baseFiltered = curFilter === 'all'
       ? visibleReports
       : curFilter === 'sos'
         ? visibleReports.filter(isSosReport)
         : curFilter === 'report'
           ? visibleReports.filter(isRegularReport)
           : visibleReports.filter(r=>r.status===curFilter);
+    const searchTerm = curSearch.trim().toLowerCase();
+    const filtered = searchTerm
+      ? baseFiltered.filter(r => matchesSearch(r, searchTerm))
+      : baseFiltered;
     if (!filtered.length) {
       list.innerHTML = `<div class="empty">
         <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"/></svg></div>
-        <h3>No reports here</h3>
-        <p>Citizen reports appear instantly when submitted.</p>
+        <h3>${searchTerm ? 'No reports match your search' : 'No reports here'}</h3>
+        <p>${searchTerm ? 'Try another keyword or clear the search filter.' : 'Citizen reports appear instantly when submitted.'}</p>
       </div>`;
       return;
     }
-    list.innerHTML = filtered.map(cardHTML).join('');
+    list.innerHTML = filtered.map(r => cardHTML(r, searchTerm && matchesSearch(r, searchTerm))).join('');
 
     // Reuse already-loaded map nodes so map iframes do not reload on data refresh.
     existingMaps.forEach((oldMapNode, cardId) => {
@@ -1707,6 +1964,15 @@
       if (!freshMapNode) return;
       freshMapNode.replaceWith(oldMapNode);
     });
+
+    if (pendingScrollToFirst && filtered.length) {
+      const firstId = normalizeId(filtered[0].id || filtered[0].reportId || filtered[0]._id || '');
+      if (firstId) {
+        const target = document.getElementById(`card-${firstId}`);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+    pendingScrollToFirst = false;
 
     resolveGpsTexts(filtered).then(changed => { if (changed) render(); });
   }
@@ -1775,7 +2041,10 @@
 
   async function claimReport(id, options = {}) {
     if (!id) return null;
+    if (pendingClaims.has(id)) return null;
     const silent = !!options.silent;
+    pendingClaims.add(id);
+    render();
     try {
       const res = await fetch(`/api/report/${encodeURIComponent(id)}/claim`, {
         method: 'POST',
@@ -1787,12 +2056,14 @@
         handleUnauthorized(data);
         return null;
       }
+      if (res.status === 409) {
+        toast_('Already claimed', data.error || 'Another dispatcher claimed this first.', 'warn');
+        syncReportsFromServer(true);
+        return null;
+      }
       if (!res.ok || !data.success) throw new Error(data.error || 'Could not claim report');
       const incoming = normalizeReport(data.report || {});
-      const idx = reports.findIndex(x => x.id === incoming.id);
-      if (idx >= 0) reports[idx] = incoming;
-      else reports.unshift(incoming);
-      lastReportsSig = reportsSignature(reports);
+      upsertReport(incoming);
       render();
       if (!silent) {
         toast_('Report claimed', `${incoming.id || id} is now assigned to you.`);
@@ -1801,6 +2072,9 @@
     } catch (e) {
       toast_('Error', e && e.message ? e.message : 'Could not claim report.', 'warn');
       return null;
+    } finally {
+      pendingClaims.delete(id);
+      render();
     }
   }
 
@@ -1819,13 +2093,8 @@
     if (!res.ok || !data.success) throw new Error(data.error || 'Could not pass report');
 
     const incoming = normalizeReport(data.report || {});
-    const idx = reports.findIndex(x => x.id === incoming.id);
-    if (canSeeReport(incoming)) {
-      if (idx >= 0) reports[idx] = incoming;
-      else reports.unshift(incoming);
-    } else if (idx >= 0) {
-      reports.splice(idx, 1);
-    }
+    if (canSeeReport(incoming)) upsertReport(incoming);
+    else reports = dedupeReports(reports.filter(r => r.id !== incoming.id));
     lastReportsSig = reportsSignature(reports);
     render();
     toast_('Report passed', `${incoming.id || id} was passed to ${incoming.assignedToName || 'dispatcher'}.`);
@@ -1833,6 +2102,11 @@
   }
 
   async function passReportPrompt(id) {
+    const r = reports.find(x => x.id === id);
+    if (r && isClosedStatus(r.status)) {
+      toast_('Action unavailable', 'Closed reports cannot be passed.', 'warn');
+      return;
+    }
     const choices = (activeDispatchers || []).filter(u => !u.isSelf && String(u.id || '').trim());
     if (!choices.length) {
       toast_('No active dispatcher', 'No other active dispatcher is currently available.', 'warn');
@@ -2075,15 +2349,195 @@
     t._t=setTimeout(()=>t.classList.remove('show'),3600);
   }
 
-  // â”€â”€ Realtime events â”€â”€
+    const WEB_CALL_POLL_MS = 1500;
+  let webCallPc = null;
+  let webCallLocalStream = null;
+  let webCallReportId = "";
+  let webCallRole = "";
+  let webCallAppliedOffer = 0;
+  let webCallAppliedAnswer = 0;
+  let webCallPollTimer = null;
+  const webCallRemoteAudio = new Audio();
+  webCallRemoteAudio.autoplay = true;
+  const webCallPanel = document.getElementById("webCallPanel");
+  const webCallStatusEl = document.getElementById("webCallStatus");
+  const webCallLabelEl = document.getElementById("webCallReportLabel");
+  const webCallAcceptBtn = document.getElementById("webCallAcceptBtn");
+  const webCallHangBtn = document.getElementById("webCallHangBtn");
+
+  function setWebCallUI(label, status, opts = {}) {
+    const show = opts.show !== false;
+    if (webCallPanel) webCallPanel.classList.toggle("hidden", !show);
+    if (webCallLabelEl) webCallLabelEl.textContent = label || "Idle";
+    if (webCallStatusEl) webCallStatusEl.textContent = status || "";
+    if (webCallAcceptBtn) webCallAcceptBtn.disabled = !opts.enableAccept;
+    if (webCallHangBtn) webCallHangBtn.disabled = !opts.enableHang;
+  }
+
+  async function clearWebCall(notifyServer = false) {
+    try {
+      if (webCallPollTimer) clearTimeout(webCallPollTimer);
+      webCallPollTimer = null;
+      if (webCallPc) {
+        webCallPc.onicecandidate = null;
+        webCallPc.ontrack = null;
+        webCallPc.onconnectionstatechange = null;
+        webCallPc.close();
+      }
+      if (webCallLocalStream) webCallLocalStream.getTracks().forEach(t => t.stop());
+      if (notifyServer && webCallReportId) {
+        try { await fetch(`/api/call/${encodeURIComponent(webCallReportId)}`, { method: "DELETE", credentials: "same-origin" }); } catch (_e) {}
+      }
+    } finally {
+      webCallPc = null;
+      webCallLocalStream = null;
+      webCallRole = "";
+      webCallReportId = "";
+      webCallAppliedOffer = 0;
+      webCallAppliedAnswer = 0;
+      setWebCallUI("Idle", "Not connected", { show: false, enableAccept: false, enableHang: false });
+    }
+  }
+
+  async function ensureLocalAudio() {
+    if (webCallLocalStream) return webCallLocalStream;
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    webCallLocalStream = stream;
+    return stream;
+  }
+
+  async function sendCandidate(reportId, role, candidate) {
+    try {
+      await fetch(`/api/call/${encodeURIComponent(reportId)}/candidate`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role, candidate }),
+      });
+    } catch (_e) {}
+  }
+
+  async function fetchSignal(reportId) {
+    const res = await fetch(`/api/call/${encodeURIComponent(reportId)}/signal`, { credentials: "same-origin" });
+    if (!res.ok) return null;
+    return res.json().catch(() => null);
+  }
+
+  async function pollWebCallSignals() {
+    if (!webCallReportId || !webCallPc) return;
+    try {
+      const sig = await fetchSignal(webCallReportId);
+      if (!sig) return;
+      if (webCallRole === "offer" && sig.answer && sig.answer.sdp && !webCallPc.currentRemoteDescription) {
+        await webCallPc.setRemoteDescription({ type: sig.answer.type || "answer", sdp: sig.answer.sdp });
+        setWebCallUI("Report " + webCallReportId, "Connected", { show: true, enableHang: true });
+      }
+      const list = webCallRole === "offer" ? (sig.answerCandidates || []) : (sig.offerCandidates || []);
+      const applied = webCallRole === "offer" ? webCallAppliedAnswer : webCallAppliedOffer;
+      const newOnes = list.slice(applied);
+      for (const c of newOnes) {
+        try { await webCallPc.addIceCandidate(new RTCIceCandidate(c)); } catch (_e) {}
+      }
+      if (webCallRole === "offer") webCallAppliedAnswer = list.length; else webCallAppliedOffer = list.length;
+    } finally {
+      if (webCallReportId) webCallPollTimer = setTimeout(pollWebCallSignals, WEB_CALL_POLL_MS);
+    }
+  }
+
+  async function setupPeer(reportId, role, remoteOffer = null) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast_("Web call unsupported", "This browser cannot start a web call.", "warn");
+      return false;
+    }
+    await clearWebCall(false);
+    webCallReportId = reportId;
+    webCallRole = role;
+    setWebCallUI("Report " + reportId, role === "offer" ? "Calling�" : "Joining call�", { show: true, enableHang: true, enableAccept: false });
+
+    const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+    webCallPc = pc;
+    pc.onconnectionstatechange = () => {
+      const st = pc.connectionState;
+      if (st === "failed" || st === "disconnected" || st === "closed") {
+        setWebCallUI("Report " + reportId, "Call ended", { show: true, enableHang: false });
+        clearWebCall(false);
+      }
+    };
+    pc.ontrack = (event) => {
+      const stream = event.streams && event.streams[0];
+      if (stream) webCallRemoteAudio.srcObject = stream;
+    };
+    pc.onicecandidate = (event) => {
+      if (event.candidate) void sendCandidate(reportId, role, event.candidate);
+    };
+
+    const stream = await ensureLocalAudio();
+    stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+    if (role === "offer") {
+      const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: false });
+      await pc.setLocalDescription(offer);
+      await fetch(`/api/call/${encodeURIComponent(reportId)}/offer`, {
+        method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sdp: offer.sdp, type: offer.type }),
+      });
+      webCallAppliedOffer = 0; webCallAppliedAnswer = 0;
+      pollWebCallSignals();
+    } else {
+      if (!remoteOffer || !remoteOffer.sdp) {
+        toast_("Web call", "Offer is missing or expired.", "warn");
+        return false;
+      }
+      await pc.setRemoteDescription({ type: remoteOffer.type || "offer", sdp: remoteOffer.sdp });
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await fetch(`/api/call/${encodeURIComponent(reportId)}/answer`, {
+        method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sdp: answer.sdp, type: answer.type }),
+      });
+      pollWebCallSignals();
+    }
+    return true;
+  }
+
+  async function startWebCall(reportId) {
+    if (!reportId) return;
+    if (webCallReportId && webCallReportId !== reportId) await clearWebCall(false);
+    try {
+      const sig = await fetchSignal(reportId);
+      const existingOffer = sig && sig.offer && sig.offer.sdp ? sig.offer : null;
+      const alreadyAnswered = sig && sig.answer && sig.answer.sdp;
+      if (existingOffer && !alreadyAnswered && String(existingOffer.fromId || "") !== currentUserId) {
+        setWebCallUI("Report " + reportId, "Incoming web call � connecting�", { show: true, enableHang: true });
+        await setupPeer(reportId, "answer", existingOffer);
+        return;
+      }
+      await setupPeer(reportId, "offer", null);
+    } catch (e) {
+      toast_("Web call", e && e.message ? e.message : "Could not start web call.", "warn");
+      await clearWebCall(false);
+    }
+  }
+
+  if (webCallHangBtn) webCallHangBtn.addEventListener("click", () => { void clearWebCall(true); });
+  if (webCallAcceptBtn) webCallAcceptBtn.addEventListener("click", async () => {
+    if (!webCallReportId) return;
+    const sig = await fetchSignal(webCallReportId);
+    if (sig && sig.offer && sig.offer.sdp) {
+      await setupPeer(webCallReportId, "answer", sig.offer);
+    }
+  });
+
+  // Realtime events
   if (channel) channel.bind('new-report', r => {
     const nr = normalizeReport(r);
     if (!canSeeReport(nr)) return;
-    reports.unshift(nr);
-    lastReportsSig = reportsSignature(reports);
+    upsertReport(nr);
     render();
     void hydrateLegacyPanicLocations();
-    toast_(nr.isPanic?'PANIC SOS':'New Report', `${nr.emergencyType} â€” ${nr.barangay}`);
+    if (nr.isPanic || nr.emergencyType === 'PANIC SOS') addNotification('PANIC SOS', `${nr.barangay || 'Unknown area'} - panic received`, 'alert');
+    checkHotspot(nr);
+    toast_(nr.isPanic?'PANIC SOS':'New Report', `${nr.emergencyType} — ${nr.barangay}`);
     requestAnimationFrame(()=>{
       const el=document.getElementById(`card-${nr.id}`);
       if (el){el.classList.add('card-flash');setTimeout(()=>el.classList.remove('card-flash'),1800);}
@@ -2107,29 +2561,21 @@
   });
   if (channel) channel.bind('report-details-updated', updated => {
     const u = normalizeReport(updated);
-    const idx = reports.findIndex(x => x.id === u.id);
-    if (idx >= 0 && canSeeReport(u)) {
-      reports[idx] = u;
-      render();
-    } else if (idx >= 0 && !canSeeReport(u)) {
-      reports.splice(idx, 1);
-      render();
-    } else if (idx < 0 && canSeeReport(u)) {
-      reports.unshift(u);
-      render();
-    }
+    if (canSeeReport(u)) upsertReport(u);
+    else reports = reports.filter(x => x.id !== u.id);
+    lastReportsSig = reportsSignature(reports);
+    render();
+    pendingClaims.delete(u.id || (updated && updated.id) || '');
   });
   if (channel) channel.bind('report-assignment-updated', updated => {
     const u = normalizeReport(updated);
-    const idx = reports.findIndex(x => x.id === u.id);
-    if (canSeeReport(u)) {
-      if (idx >= 0) reports[idx] = u;
-      else reports.unshift(u);
-    } else if (idx >= 0) {
-      reports.splice(idx, 1);
-    }
+    if (canSeeReport(u)) upsertReport(u);
+    else reports = reports.filter(x => x.id !== u.id);
     lastReportsSig = reportsSignature(reports);
     render();
+    if (updated && updated.lastPassedByName) {
+      addNotification('Report passed', `${updated.lastPassedByName} passed ${updated.id || 'a report'} to ${updated.assignedToName || 'dispatcher'}.`, 'info');
+    }
   });
   if (channel) channel.bind('reports-cleared', ()=>{ reports=[]; lastReportsSig = reportsSignature(reports); render(); });
 

@@ -1,4 +1,4 @@
-﻿require('dotenv').config();
+require('dotenv').config();
 
 const express    = require('express');
 const http       = require('http');
@@ -20,7 +20,17 @@ const app    = express();
 const STATIC_CACHE_OPTIONS = { maxAge: '1d' };
 const server = http.createServer(app);
 app.use(compression());
+// Basic CORS so Flutter web/other origins can call the API.
+const ALLOW_ORIGIN = process.env.CORS_ORIGIN || '*';
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', ALLOW_ORIGIN);
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PATCH,PUT,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  return next();
+});
 const SESSION_TTL_MS = 1000 * 60 * 60 * 8; // 8 hours
+const SESSION_REMEMBER_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
 const ADMIN_REPORTS_PAGE_SIZE = 20;
 const ADMIN_AUDIT_PAGE_SIZE = 20;
 const COOKIE_NAME_LEGACY = 'auth_token';
@@ -32,8 +42,29 @@ const REALTIME_CHANNEL = process.env.PUSHER_CHANNEL || 'mdrrmo-reports';
 const VALID_REPORT_STATUSES = new Set(['new', 'verifying', 'dispatched', 'resolved', 'false-report']);
 const VALID_EMERGENCY_TYPES = new Set(['Fire', 'Flood', 'Medical', 'Accident', 'Landslide', 'Other', 'PANIC SOS']);
 const VALID_SEVERITIES = new Set(['High', 'Medium', 'Low']);
+const VALID_REPORT_TAGS = [
+  'people_trapped',
+  'injured',
+  'road_blocked',
+  'power_out',
+  'rising_water',
+  'fire_spreading',
+  'hazmat',
+  'structure_damage',
+  'blocked_access',
+  'missing_persons',
+  'medical_needed',
+  'evac_needed',
+];
 const SIGNED_SESSION_PREFIX = 'v1.';
 let dbInitPromise = null;
+const LOGIN_ATTEMPT_LIMIT = 7;
+const LOGIN_ATTEMPT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+const loginAttemptStore = new Map(); // key => [timestamps]
+const WEB_CALL_TTL_MS = 10 * 60 * 1000; // 10 minutes
+// In-memory signal store for ad-hoc WebRTC calls keyed by reportId.
+const webCallSignals = new Map();
+mongoose.set('strictQuery', true);
 const pusher = process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.env.PUSHER_SECRET && process.env.PUSHER_CLUSTER
   ? new Pusher({
     appId: process.env.PUSHER_APP_ID,
@@ -44,7 +75,7 @@ const pusher = process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.en
   })
   : null;
 
-// â”€â”€ Database connection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Database connection ──────────────────────────────────────────────────────
 async function initDatabase() {
   if (dbInitPromise) return dbInitPromise;
   dbInitPromise = (async () => {
@@ -65,13 +96,20 @@ async function initDatabase() {
       if (!mongoUri) {
         throw new Error('Mongo URI is not configured (set MONGODB_URI or DATABASE_URL)');
       }
-      const connectOptions = {};
-      if (mongoDb) connectOptions.dbName = mongoDb;
+      const connectOptions = {
+        dbName: mongoDb || undefined,
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+        retryWrites: true,
+        w: 'majority',
+        ssl: true,
+        tlsAllowInvalidCertificates: false,
+      };
       await mongoose.connect(mongoUri, connectOptions);
-      console.log(`  âœ”  MongoDB connected${mongoDb ? ` (db: ${mongoDb})` : ''}`);
+      console.log(`  ✔  MongoDB connected${mongoDb ? ` (db: ${mongoDb})` : ''}`);
       await ensureDefaultAdmin();
     } catch (err) {
-      console.error('  âœ˜  MongoDB connection error:', err.message);
+      console.error('  ✘  MongoDB connection error:', err.message);
       dbInitPromise = null;
       if (require.main === module) process.exit(1);
       throw err;
@@ -102,7 +140,46 @@ function extractDbNameFromMongoUri(uriRaw) {
   }
 }
 
-// â”€â”€ Middleware â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function cleanLoginAttempts(key) {
+  const now = Date.now();
+  const attempts = (loginAttemptStore.get(key) || []).filter(ts => now - ts < LOGIN_ATTEMPT_WINDOW_MS);
+  if (attempts.length) {
+    loginAttemptStore.set(key, attempts);
+  } else {
+    loginAttemptStore.delete(key);
+  }
+  return attempts;
+}
+
+function guardDispatcherLoginRate(req, res, next) {
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.ip || req.connection.remoteAddress || 'unknown';
+  const key = `dispatcher:${ip}`;
+  const attempts = cleanLoginAttempts(key);
+  if (attempts.length >= LOGIN_ATTEMPT_LIMIT) {
+    const oldest = attempts[0];
+    const retryMs = Math.max(0, LOGIN_ATTEMPT_WINDOW_MS - (Date.now() - oldest));
+    const retryMin = Math.max(1, Math.ceil(retryMs / 60000));
+    return res.status(429).render('dispatcher-login', { error: `Too many attempts. Please try again in about ${retryMin} minute(s).` });
+  }
+  res.locals.loginRateKey = key;
+  next();
+}
+
+function guardAdminLoginRate(req, res, next) {
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.ip || req.connection.remoteAddress || 'unknown';
+  const key = `admin:${ip}`;
+  const attempts = cleanLoginAttempts(key);
+  if (attempts.length >= LOGIN_ATTEMPT_LIMIT) {
+    const oldest = attempts[0];
+    const retryMs = Math.max(0, LOGIN_ATTEMPT_WINDOW_MS - (Date.now() - oldest));
+    const retryMin = Math.max(1, Math.ceil(retryMs / 60000));
+    return res.status(429).render('login', { error: `Too many attempts. Please try again in about ${retryMin} minute(s).` });
+  }
+  res.locals.loginRateKey = key;
+  next();
+}
+
+// ── Middleware ───────────────────────────────────────────────────────────────
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 app.use(express.json({ limit: '10mb' }));
@@ -156,8 +233,14 @@ app.use(async (req, res, next) => {
         continue;
       }
 
-      const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
-      await Session.updateOne({ token: candidate.token }, { $set: { expiresAt } });
+      const ttlMs = Number(session.ttlMs) > 0
+        ? Number(session.ttlMs)
+        : (session.remember ? SESSION_REMEMBER_TTL_MS : SESSION_TTL_MS);
+      const expiresAt = new Date(Date.now() + ttlMs);
+      await Session.updateOne(
+        { token: candidate.token },
+        { $set: { expiresAt, ttlMs, remember: !!session.remember } }
+      );
       req.auth = {
         role: session.role,
         userId: session.userId,
@@ -215,7 +298,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// â”€â”€ Pages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Pages ────────────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
   if (!req.auth) return res.redirect('/report');
   if (req.auth.role === 'admin') return res.redirect('/admin');
@@ -229,16 +312,26 @@ app.get('/login', (req, res) => {
   res.render('login', { error: '' });
 });
 
-app.post('/login', async (req, res) => {
+app.post('/login', guardAdminLoginRate, async (req, res) => {
   try {
     await ensureDbReady();
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '');
     if (!username || !password) {
+      if (res.locals.loginRateKey) {
+        const list = cleanLoginAttempts(res.locals.loginRateKey);
+        list.push(Date.now());
+        loginAttemptStore.set(res.locals.loginRateKey, list);
+      }
       return res.status(400).render('login', { error: 'Invalid login details.' });
     }
     const admin = await Admin.findOne({ username });
     if (!admin || !verifyPassword(password, admin.passwordHash)) {
+      if (res.locals.loginRateKey) {
+        const list = cleanLoginAttempts(res.locals.loginRateKey);
+        list.push(Date.now());
+        loginAttemptStore.set(res.locals.loginRateKey, list);
+      }
       return res.status(401).render('login', { error: 'Invalid admin credentials.' });
     }
     await createSession(req, res, {
@@ -247,6 +340,9 @@ app.post('/login', async (req, res) => {
       username: admin.username,
       fullName: admin.fullName || admin.username,
     });
+    if (res.locals.loginRateKey) {
+      loginAttemptStore.delete(res.locals.loginRateKey);
+    }
     return res.redirect('/admin');
   } catch (err) {
     console.error('[login] admin login failed:', err && err.message ? err.message : err);
@@ -261,17 +357,29 @@ app.get('/dispatcher/login', (req, res) => {
   res.render('dispatcher-login', { error: '' });
 });
 
-app.post('/dispatcher/login', async (req, res) => {
+app.post('/dispatcher/login', guardDispatcherLoginRate, async (req, res) => {
   try {
     await ensureDbReady();
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '');
+    const remember = String(req.body.remember || '').toLowerCase() === 'on'
+      || String(req.body.remember || '').toLowerCase() === 'true';
     if (!username || !password) {
+      if (res.locals.loginRateKey) {
+        const list = cleanLoginAttempts(res.locals.loginRateKey);
+        list.push(Date.now());
+        loginAttemptStore.set(res.locals.loginRateKey, list);
+      }
       return res.status(400).render('dispatcher-login', { error: 'Invalid login details.' });
     }
 
     const dispatcher = await Dispatcher.findOne({ username });
     if (!dispatcher || !dispatcher.isActive || !verifyPassword(password, dispatcher.passwordHash)) {
+      if (res.locals.loginRateKey) {
+        const list = cleanLoginAttempts(res.locals.loginRateKey);
+        list.push(Date.now());
+        loginAttemptStore.set(res.locals.loginRateKey, list);
+      }
       return res.status(401).render('dispatcher-login', { error: 'Invalid dispatcher credentials.' });
     }
 
@@ -280,7 +388,10 @@ app.post('/dispatcher/login', async (req, res) => {
       userId: String(dispatcher._id),
       username: dispatcher.username,
       fullName: dispatcher.fullName || dispatcher.username,
-    });
+    }, { remember });
+    if (res.locals.loginRateKey) {
+      loginAttemptStore.delete(res.locals.loginRateKey);
+    }
     await logAudit({
       actorRole: 'dispatcher',
       actorId: String(dispatcher._id),
@@ -294,6 +405,57 @@ app.post('/dispatcher/login', async (req, res) => {
   } catch (err) {
     console.error('[login] dispatcher login failed:', err && err.message ? err.message : err);
     res.status(500).render('dispatcher-login', { error: 'Login failed. Please try again.' });
+  }
+});
+
+app.get('/dispatcher/reset', (_req, res) => {
+  res.render('dispatcher-reset', { error: '', success: '' });
+});
+
+app.post('/dispatcher/reset', async (req, res) => {
+  try {
+    await ensureDbReady();
+    const username = String(req.body.username || '').trim();
+    const phone = String(req.body.phone || '').trim();
+    const newPassword = String(req.body.newPassword || '');
+    const confirmPassword = String(req.body.confirmPassword || '');
+
+    if (!username || !phone || !newPassword || !confirmPassword) {
+      return res.status(400).render('dispatcher-reset', { error: 'All fields are required.', success: '' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).render('dispatcher-reset', { error: 'New password must be at least 6 characters.', success: '' });
+    }
+    if (newPassword !== confirmPassword) {
+      return res.status(400).render('dispatcher-reset', { error: 'Passwords do not match.', success: '' });
+    }
+
+    const normalizePhone = (val) => String(val || '').replace(/[\s-]/g, '');
+    const dispatcher = await Dispatcher.findOne({ username, isActive: true });
+
+    if (!dispatcher || normalizePhone(dispatcher.phone) !== normalizePhone(phone)) {
+      return res.status(404).render('dispatcher-reset', { error: 'Account not found or phone does not match.', success: '' });
+    }
+
+    dispatcher.passwordHash = hashPassword(newPassword);
+    await dispatcher.save();
+
+    await Session.deleteMany({ role: 'dispatcher', userId: String(dispatcher._id) });
+
+    await logAudit({
+      actorRole: 'dispatcher',
+      actorId: String(dispatcher._id),
+      actorName: dispatcher.fullName || dispatcher.username,
+      action: 'PASSWORD_RESET',
+      targetType: 'DISPATCHER',
+      targetId: String(dispatcher._id),
+      details: 'Dispatcher reset password via username + phone',
+    });
+
+    res.render('dispatcher-reset', { error: '', success: 'Password updated. You can sign in with your new password.' });
+  } catch (err) {
+    console.error('[reset] dispatcher password reset failed:', err && err.message ? err.message : err);
+    res.status(500).render('dispatcher-reset', { error: 'Could not reset password. Please try again.', success: '' });
   }
 });
 
@@ -353,6 +515,10 @@ app.get('/logout', async (req, res) => {
   res.redirect('/login');
 });
 
+app.get('/', (_req, res) => res.render('about'));
+app.get('/about', (_req, res) => res.render('about'));
+app.get('/sos', (_req, res) => res.render('sos'));
+app.get('/faq', (_req, res) => res.render('faq'));
 app.get('/report', (_req, res) => res.render('report'));
 
 app.get('/dashboard', requireRolesPage(['dispatcher'], '/dispatcher/login'), async (req, res) => {
@@ -662,7 +828,22 @@ app.post('/admin/reports/clear', requireRolesPage(['admin'], '/login'), async (r
   }
 });
 
-// â”€â”€ API: submit a normal report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Simple health checks
+app.get('/api/ping', (_req, res) => res.json({ ok: true, now: Date.now() }));
+app.get('/api/health', async (_req, res) => {
+  try {
+    await ensureDbReady();
+    return res.json({ ok: true, db: 'connected' });
+  } catch (e) {
+    return res.status(503).json({ ok: false, error: e && e.message ? e.message : 'unavailable' });
+  }
+});
+
+// ── API: submit a normal report ──────────────────────────────────────────────
+app.all('/api/report', (req, res, next) => {
+  if (req.method === 'POST') return next();
+  return res.status(405).json({ error: 'Method not allowed' });
+});
 app.post('/api/report', async (req, res) => {
   try {
     const clean = sanitizeNormalReportInput(req.body || {});
@@ -691,7 +872,11 @@ app.post('/api/report', async (req, res) => {
   }
 });
 
-// â”€â”€ API: Panic SOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── API: Panic SOS ──────────────────────────────────────────────────────────
+app.all('/api/panic', (req, res, next) => {
+  if (req.method === 'POST') return next();
+  return res.status(405).json({ error: 'Method not allowed' });
+});
 app.post('/api/panic', async (req, res) => {
   try {
     const panicInput = sanitizePanicInput(req.body || {});
@@ -753,7 +938,7 @@ app.post('/api/panic', async (req, res) => {
   }
 });
 
-// â”€â”€ API: update status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── API: update status ───────────────────────────────────────────────────────
 app.patch('/api/report/:id/status', requireRolesApi(['dispatcher', 'admin']), async (req, res) => {
   try {
     const nextStatus = String(req.body.status || '').trim().toLowerCase();
@@ -874,7 +1059,69 @@ app.patch('/api/report/:id/details', requireRolesApi(['dispatcher', 'admin']), a
   }
 });
 
-// â”€â”€ API: delete all reports â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// WebRTC signaling for browser-to-browser calls between dispatchers.
+app.get('/api/call/:id/signal', requireRolesApi(['dispatcher', 'admin']), (req, res) => {
+  const slot = getWebCallSlot(req.params.id);
+  if (!slot) return res.json({});
+  return res.json({
+    offer: slot.offer,
+    answer: slot.answer,
+    offerCandidates: slot.offerCandidates,
+    answerCandidates: slot.answerCandidates,
+    updatedAt: slot.updatedAt,
+  });
+});
+
+app.post('/api/call/:id/offer', requireRolesApi(['dispatcher', 'admin']), (req, res) => {
+  const sdp = req.body && req.body.sdp;
+  const type = req.body && req.body.type;
+  if (!sdp) return res.status(400).json({ error: 'Missing offer SDP' });
+  const slot = touchWebCallSlot(req.params.id);
+  slot.offer = {
+    sdp,
+    type: type || 'offer',
+    fromId: String(req.auth.userId || ''),
+    fromName: String(req.auth.fullName || req.auth.username || 'Dispatcher'),
+  };
+  slot.answer = slot.answer || null;
+  slot.offerCandidates = [];
+  slot.answerCandidates = [];
+  return res.json({ success: true });
+});
+
+app.post('/api/call/:id/answer', requireRolesApi(['dispatcher', 'admin']), (req, res) => {
+  const sdp = req.body && req.body.sdp;
+  const type = req.body && req.body.type;
+  if (!sdp) return res.status(400).json({ error: 'Missing answer SDP' });
+  const slot = touchWebCallSlot(req.params.id);
+  slot.answer = {
+    sdp,
+    type: type || 'answer',
+    fromId: String(req.auth.userId || ''),
+    fromName: String(req.auth.fullName || req.auth.username || 'Dispatcher'),
+  };
+  slot.answerCandidates = slot.answerCandidates || [];
+  return res.json({ success: true });
+});
+
+app.post('/api/call/:id/candidate', requireRolesApi(['dispatcher', 'admin']), (req, res) => {
+  const role = req.body && req.body.role === 'answer' ? 'answer' : 'offer';
+  const candidate = req.body && req.body.candidate;
+  if (!candidate || typeof candidate !== 'object' || !candidate.candidate) {
+    return res.status(400).json({ error: 'Invalid ICE candidate' });
+  }
+  const slot = touchWebCallSlot(req.params.id);
+  const listKey = role === 'answer' ? 'answerCandidates' : 'offerCandidates';
+  if (!Array.isArray(slot[listKey])) slot[listKey] = [];
+  slot[listKey].push(candidate);
+  return res.json({ success: true });
+});
+
+app.delete('/api/call/:id', requireRolesApi(['dispatcher', 'admin']), (_req, res) => {
+  clearWebCallSlot(_req.params.id);
+  return res.json({ success: true });
+});
+// ── API: delete all reports ──────────────────────────────────────────────────
 app.delete('/api/reports', requireRolesApi(['dispatcher', 'admin']), async (_req, res) => {
   try {
     const beforeCount = await Report.countDocuments({});
@@ -897,7 +1144,7 @@ app.delete('/api/reports', requireRolesApi(['dispatcher', 'admin']), async (_req
   }
 });
 
-// â”€â”€ API: list all reports (JSON) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── API: list all reports (JSON) ─────────────────────────────────────────────
 app.get('/api/reports', requireRolesApi(['dispatcher', 'admin']), async (_req, res) => {
   try {
     const reports = await Report.find(buildReportVisibilityQuery(_req.auth)).sort({ timestamp: -1 }).lean({ virtuals: true });
@@ -929,6 +1176,11 @@ app.post('/api/report/:id/claim', requireRolesApi(['dispatcher', 'admin']), asyn
     const where = reportLookupQuery(req.params.id);
     const current = await Report.findOne(where);
     if (!current) return res.status(404).json({ error: 'Not found' });
+    const existingOwner = String(current.assignedToId || '').trim();
+    const requesterId = String(req.auth.userId || '').trim();
+    if (existingOwner && existingOwner !== requesterId) {
+      return res.status(409).json({ error: 'This report was already claimed by another dispatcher' });
+    }
 
     const assignment = await resolveDispatcherAssignmentPatch(req, current, { requireClaimWhenUnassigned: true });
     if (!assignment.ok) return res.status(assignment.status).json({ error: assignment.error });
@@ -980,6 +1232,8 @@ app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async
     const where = reportLookupQuery(req.params.id);
     const current = await Report.findOne(where);
     if (!current) return res.status(404).json({ error: 'Not found' });
+    const isClosed = ['resolved', 'false-report'].includes(String(current.status || '').toLowerCase());
+    if (isClosed) return res.status(400).json({ error: 'Closed reports cannot be passed' });
 
     const assignment = await resolveDispatcherAssignmentPatch(req, current, { requireClaimWhenUnassigned: false });
     if (!assignment.ok) return res.status(assignment.status).json({ error: assignment.error });
@@ -1024,7 +1278,7 @@ app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async
   }
 });
 
-// â”€â”€ API: reverse geocode GPS to location labels â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── API: reverse geocode GPS to location labels ──────────────────────────────
 app.get('/api/reverse-geocode', async (req, res) => {
   try {
     const lat = Number(req.query.lat);
@@ -1044,7 +1298,7 @@ app.get('/api/reverse-geocode', async (req, res) => {
   }
 });
 
-// â”€â”€ Helper: credibility score â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helper: credibility score ─────────────────────────────────────────────────
 function computeCredibility({ name, contact, landmark, description, photo, gps }) {
   let score = 0;
   if (name        && name.trim().split(' ').length >= 2) score += 25;
@@ -1193,23 +1447,29 @@ function getCookie(req, name) {
   return '';
 }
 
-async function createSession(req, res, payload) {
+async function createSession(req, res, payload, opts = {}) {
   const role = payload.role;
   const cookieName = cookieNameForRole(role);
   const currentToken = req.authToken || getCookie(req, cookieName);
   if (currentToken) await Session.deleteOne({ token: currentToken });
   const secureCookie = shouldUseSecureCookie(req);
   const token = crypto.randomBytes(24).toString('hex');
+  const remember = !!opts.remember;
+  const ttlMs = Number(opts.ttlMs) > 0
+    ? Number(opts.ttlMs)
+    : (remember ? SESSION_REMEMBER_TTL_MS : SESSION_TTL_MS);
   await Session.create({
     token,
     role: payload.role,
     userId: payload.userId,
     username: payload.username,
     fullName: payload.fullName,
-    expiresAt: new Date(Date.now() + SESSION_TTL_MS),
+    remember,
+    ttlMs,
+    expiresAt: new Date(Date.now() + ttlMs),
   });
   res.cookie(cookieName, token, {
-    maxAge: SESSION_TTL_MS,
+    maxAge: ttlMs,
     httpOnly: true,
     sameSite: 'lax',
     secure: secureCookie,
@@ -1350,6 +1610,49 @@ function requireRolesApi(roles) {
   };
 }
 
+function cleanupStaleWebCalls() {
+  const now = Date.now();
+  for (const [key, entry] of webCallSignals.entries()) {
+    if (!entry || entry.expiresAt < now) webCallSignals.delete(key);
+  }
+}
+setInterval(cleanupStaleWebCalls, 60 * 1000).unref();
+
+function touchWebCallSlot(reportId) {
+  const id = String(reportId || '').trim();
+  if (!id) return null;
+  const now = Date.now();
+  const slot = webCallSignals.get(id) || {
+    offer: null,
+    answer: null,
+    offerCandidates: [],
+    answerCandidates: [],
+    updatedAt: now,
+    expiresAt: now + WEB_CALL_TTL_MS,
+  };
+  slot.updatedAt = now;
+  slot.expiresAt = now + WEB_CALL_TTL_MS;
+  webCallSignals.set(id, slot);
+  return slot;
+}
+
+function getWebCallSlot(reportId) {
+  const id = String(reportId || '').trim();
+  if (!id) return null;
+  const slot = webCallSignals.get(id);
+  if (!slot) return null;
+  if (slot.expiresAt < Date.now()) {
+    webCallSignals.delete(id);
+    return null;
+  }
+  return slot;
+}
+
+function clearWebCallSlot(reportId) {
+  const id = String(reportId || '').trim();
+  if (id) webCallSignals.delete(id);
+}
+
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
   const digest = crypto.scryptSync(String(password), salt, 64).toString('hex');
@@ -1382,7 +1685,7 @@ async function ensureDefaultAdmin() {
 
   if (adminCount === 0) {
     await Admin.create({ username, fullName, passwordHash: hashPassword(password) });
-    console.log(`  âœ”  Default admin created (${username})`);
+    console.log(`  ✔  Default admin created (${username})`);
   }
 
   const secondaryAdmin = await Admin.findOne({ username: 'admin1' }).lean();
@@ -1392,7 +1695,7 @@ async function ensureDefaultAdmin() {
       fullName: 'Admin One',
       passwordHash: hashPassword('123456'),
     });
-    console.log('  âœ”  Secondary admin created (admin1)');
+    console.log('  ✔  Secondary admin created (admin1)');
   }
 }
 
@@ -1579,9 +1882,12 @@ function sanitizeNormalReportInput(body) {
     description: cleanInputText(body.description, 1200),
     gps: cleanInputText(body.gps, 64),
     photo: sanitizeDataImage(body.photo),
+    tags: Array.isArray(body.tags)
+      ? Array.from(new Set(body.tags.map(t => String(t || '').trim().toLowerCase()))).filter(t => VALID_REPORT_TAGS.includes(t)).slice(0, 6)
+      : [],
   };
 
-  if (!clean.name || !clean.contact || !clean.emergencyType || !clean.severity || !clean.barangay || !clean.landmark || !clean.street || !clean.description) {
+  if (!clean.name || !clean.contact || !clean.emergencyType || !clean.severity || !clean.barangay || !clean.landmark || !clean.street) {
     throw new Error('Missing required report fields');
   }
   if (!VALID_EMERGENCY_TYPES.has(clean.emergencyType)) {
@@ -1875,9 +2181,9 @@ process.on('uncaughtException', err => {
   console.error('[process] uncaughtException:', msg);
 });
 
-// â”€â”€ Realtime (Pusher) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Realtime (Pusher) ────────────────────────────────────────────────────────
 
-// â”€â”€ Start â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Start ─────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 if (require.main === module) {
   server.listen(PORT, () => {
