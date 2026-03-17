@@ -4,12 +4,13 @@ const app = require('../server');
 // so that the Express app sees the original route (/, /admin, /dashboard, etc).
 module.exports = (req, res) => {
   const headerPath = req.headers['x-original-path'] || req.headers['x-vercel-original-path'] || '';
+  const headerUrl = req.headers['x-original-url'] || req.headers['x-rewrite-path'] || '';
   const originalUrl = req.url || '/';
 
   // If the rewrite forwarded the original path as ?path=..., restore it.
   const urlObj = new URL(`http://localhost${originalUrl}`);
   const pathParam = urlObj.searchParams.get('path');
-  const restoredRaw = pathParam || headerPath.replace(/^\/+/, '');
+  const restoredRaw = pathParam || headerPath.replace(/^\/+/, '') || headerUrl.replace(/^\/+/, '');
   const restored = restoredRaw ? decodeURIComponent(restoredRaw) : '';
   if (restored) {
     req.url = `/${restored}`.replace(/\/+/g, '/');
