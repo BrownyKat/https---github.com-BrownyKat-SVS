@@ -336,10 +336,9 @@ app.get('/api/dispatcher/login', (_req, res) => res.redirect('/dispatcher/login'
 app.get('/api/dashboard', (_req, res) => res.redirect('/dashboard'));
 app.get('/api/admin', (_req, res) => res.redirect('/admin'));
 
-app.get('/login', (req, res) => {
-  if (String(req.query.force || '') !== '1') {
-    if (req.auth?.role === 'admin') return res.redirect('/admin');
-  }
+app.get('/login', async (req, res) => {
+  // Clear any existing admin session to force fresh login
+  await destroySession(req, res, 'admin');
   res.render('login', { error: '' });
 });
 
@@ -371,10 +370,9 @@ app.post('/login', guardAdminLoginRate, async (req, res) => {
   }
 });
 
-app.get('/dispatcher/login', (req, res) => {
-  if (String(req.query.force || '') !== '1') {
-    if (req.auth?.role === 'dispatcher') return res.redirect('/dashboard');
-  }
+app.get('/dispatcher/login', async (req, res) => {
+  // Clear dispatcher session cookie to avoid auto-login on cached tokens
+  await destroySession(req, res, 'dispatcher');
   res.render('dispatcher-login', { error: '' });
 });
 
@@ -523,7 +521,7 @@ app.all('/dispatcher/logout', handleDispatcherLogout);
 
 app.get('/logout', async (req, res) => {
   await destroyAllSessions(req, res);
-  res.redirect('/login');
+  res.redirect('/dispatcher/login');
 });
 
 app.get('/', (_req, res) => res.render('about'));
