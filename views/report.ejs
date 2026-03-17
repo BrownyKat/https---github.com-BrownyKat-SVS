@@ -240,8 +240,12 @@
       cursor:pointer;user-select:none;
     }
     .attest-check input{
-      width:18px;height:18px;accent-color:var(--red);
+      width:18px;height:18px;min-width:18px;
+      accent-color:var(--red);
       cursor:pointer;flex-shrink:0;
+      appearance:checkbox;
+      padding:0;margin:0;
+      box-shadow:none;border:none;background:transparent;
     }
     .attest-check span{line-height:1.4;}
     input,select,textarea{
@@ -473,6 +477,18 @@
     .upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;}
     .upload-label{font-weight:600;}
     .upload-hint{font-size:.74rem;color:var(--muted2);}
+    .upload-grid{display:flex;flex-wrap:wrap;gap:.75rem;justify-content:flex-start;}
+    .upload-thumb{position:relative;width:110px;height:110px;border:1.5px solid var(--border-mid);border-radius:12px;overflow:hidden;background:#fff;box-shadow:var(--shadow-sm);}
+    .upload-thumb img{width:100%;height:100%;object-fit:cover;}
+    .thumb-remove{position:absolute;top:6px;right:6px;border:none;border-radius:50%;width:26px;height:26px;background:rgba(15,23,42,.8);color:#fff;font-weight:900;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;}
+    .upload-actions{display:flex;gap:.65rem;justify-content:flex-start;margin-top:.75rem;flex-wrap:wrap;}
+    .upload-link{
+      padding:.45rem .8rem;border-radius:10px;border:1px solid var(--border-mid);
+      background:#fff;font-weight:800;font-size:.85rem;color:var(--text2);cursor:pointer;
+      transition:.15s;
+    }
+    .upload-link:hover{border-color:var(--blue);color:var(--blue);}
+    .upload-link.danger{border-color:var(--red);color:var(--red);}
 
     /* submit */
     .submit-btn{
@@ -1831,7 +1847,7 @@
     <div class="field">
       <label>Upload Photo (Optional)</label>
       <div class="upload-area" id="uploadArea">
-        <input type="file" accept="image/*" onchange="handlePhoto(this)">
+        <input id="uploadFile" type="file" accept="image/*" onchange="handlePhoto(this)">
         <!-- Heroicon: camera -->
         <svg viewBox="0 0 24 24"><path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg>
         <div class="upload-label">Click or drag to upload a photo</div>
@@ -1981,8 +1997,9 @@
   <div><strong id="toastTitle"></strong><span id="toastMsg"></span></div>
 </div>
 
+<%- include('supa') %>
 <script>
-  let selType_ = '', selSev_ = '', photoData = null;
+  let selType_ = '', selSev_ = '', photoDataList = [];
   let selectedTags = [];
   const TAG_OPTIONS = ['people_trapped','injured','road_blocked','power_out','rising_water','fire_spreading','hazmat','structure_damage'];
   let panicNum = '';
@@ -1992,6 +2009,20 @@
   const MAP_TYPE_CODES = { map: 'm', satellite: 'k' };
   const API_TIMEOUT_MS = 15000;
   const PENDING_KEY = 'svs_pending_reports_v1';
+  const PENDING_RETRY_MS = 8000;
+  const MAX_PENDING_ATTEMPTS = 3;
+  const SUPA_RAW = window.supaConfig || {};
+  const SUPA = {
+    url: String(SUPA_RAW.url || '').trim().replace(/\/+$/, ''),
+    anonKey: String(SUPA_RAW.anonKey || '').trim(),
+    bucket: String(SUPA_RAW.bucket || 'svs_photo').trim(),
+  };
+  const SUPABASE_URL = SUPA.url;
+  const SUPABASE_ANON_KEY = SUPA.anonKey;
+  const SUPABASE_BUCKET = SUPA.bucket;
+  const HAS_SUPABASE = !!(SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_BUCKET);
+  let pendingRetryTimer = null;
+  let isFlushingPending = false;
   const fy = document.getElementById('footerYear');
   if (fy) fy.textContent = String(new Date().getFullYear());
   try { panicNum = localStorage.getItem('mdrrmo_panic') || ''; } catch(e) {}
@@ -2001,6 +2032,8 @@
   flushPendingQueue();
   updatePendingCount();
   window.addEventListener('online', flushPendingQueue);
+  window.addEventListener('focus', flushPendingQueue);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) flushPendingQueue(); });
   if (panicNum) {
     initPanicUI();
     const sosField = document.getElementById('iPanicContact');
@@ -2075,6 +2108,58 @@
     };
   }
 
+  function isDataUri(img) {
+    return /^data:image\/(png|jpe?g|webp);base64,/i.test(String(img || '').trim());
+  }
+
+  function dataUriToBlob(dataUri) {
+    const parts = String(dataUri).split(',');
+    const mime = parts[0].match(/data:(.*);base64/i)[1] || 'image/jpeg';
+    const bin = atob(parts[1]);
+    const len = bin.length;
+    const arr = new Uint8Array(len);
+    for (let i = 0; i < len; i++) arr[i] = bin.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+  }
+
+  async function uploadPhotoToSupabase(dataUri, index = 0) {
+    if (!HAS_SUPABASE || !isDataUri(dataUri)) return null;
+    try {
+      const blob = dataUriToBlob(dataUri);
+      const fileName = `reports/${Date.now()}-${index}-${Math.random().toString(36).slice(2)}.jpg`;
+      const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${encodeURIComponent(SUPABASE_BUCKET)}/${fileName}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY,
+          'Content-Type': blob.type || 'image/jpeg',
+          'x-upsert': 'true',
+        },
+        body: blob,
+      });
+      if (!res.ok) throw new Error('Upload failed');
+      // public URL
+      return `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${fileName}`;
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  async function ensurePhotosToSupabase(payload) {
+    if (!HAS_SUPABASE || !Array.isArray(payload.photos) || !payload.photos.length) return payload;
+    const uploaded = [];
+    for (let i = 0; i < payload.photos.length; i++) {
+      const p = payload.photos[i];
+      if (isDataUri(p)) {
+        const url = await uploadPhotoToSupabase(p, i);
+        uploaded.push(url || p);
+      } else {
+        uploaded.push(p);
+      }
+    }
+    return { ...payload, photos: uploaded, photo: uploaded[0] || null };
+  }
+
   function getPendingQueue() {
     try {
       const raw = localStorage.getItem(PENDING_KEY);
@@ -2083,38 +2168,74 @@
     } catch (_e) { return []; }
   }
 
-  function enqueuePending(payload) {
+  function enqueuePending(payload, attempts = 0, createdAt = Date.now()) {
     try {
       const arr = getPendingQueue();
-      arr.push({ payload, createdAt: Date.now() });
+      arr.push({ payload, createdAt, attempts });
       localStorage.setItem(PENDING_KEY, JSON.stringify(arr.slice(-50)));
       updatePendingCount();
     } catch (_e) {}
   }
 
+  function schedulePendingFlush(delay = PENDING_RETRY_MS) {
+    if (pendingRetryTimer) return;
+    pendingRetryTimer = setTimeout(() => {
+      pendingRetryTimer = null;
+      void flushPendingQueue();
+    }, delay);
+  }
+
   async function flushPendingQueue() {
-    if (!navigator.onLine) return;
+    if (isFlushingPending) return;
+    if (!navigator.onLine) {
+      schedulePendingFlush();
+      return;
+    }
+    isFlushingPending = true;
+    clearTimeout(pendingRetryTimer);
+    pendingRetryTimer = null;
     let queue = getPendingQueue();
     while (queue.length) {
       const next = queue.shift();
+      const attempts = Number(next.attempts || 0);
+      localStorage.setItem(PENDING_KEY, JSON.stringify(queue));
       try {
-        localStorage.setItem(PENDING_KEY, JSON.stringify(queue));
+        const supaPayload = await ensurePhotosToSupabase(next.payload || {});
         const { res, data: d } = await fetchJson('/api/report', {
           method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify(next.payload || {})
+          body: JSON.stringify(supaPayload)
         }, 12000);
-        if (!res.ok || !d || !d.success) {
-          enqueuePending(next.payload || {});
+        const ok = res && res.ok && d && d.success;
+        if (!ok) {
+          const retryable = res ? res.status >= 500 || res.status === 0 : true;
+          const errMsg = (d && d.error) || (res && res.statusText) || 'Send failed';
+          if (!retryable || attempts + 1 >= MAX_PENDING_ATTEMPTS) {
+            toast('Skipped queued report', `${errMsg || 'Invalid data.'} (dropped after retries)`);
+          } else {
+            queue.unshift({ payload: next.payload || {}, createdAt: next.createdAt || Date.now(), attempts: attempts + 1 });
+            localStorage.setItem(PENDING_KEY, JSON.stringify(queue));
+            schedulePendingFlush();
+            break;
+          }
+        } else {
+          toast('Sent pending report', `Queued report delivered${d.id ? ` (ID ${d.id})` : ''}.`);
+        }
+      } catch (_e) {
+        if (attempts + 1 >= MAX_PENDING_ATTEMPTS) {
+          toast('Skipped queued report', 'Dropped after multiple failed retries.');
+        } else {
+          queue.unshift({ payload: next.payload || {}, createdAt: next.createdAt || Date.now(), attempts: attempts + 1 });
+          localStorage.setItem(PENDING_KEY, JSON.stringify(queue));
+          schedulePendingFlush();
           break;
         }
-        toast('Sent pending report', `Queued report delivered${d.id ? ` (ID ${d.id})` : ''}.`);
-      } catch (_e) {
-        enqueuePending(next.payload || {});
-        break;
+        localStorage.setItem(PENDING_KEY, JSON.stringify(queue));
       }
       queue = getPendingQueue();
       updatePendingCount();
     }
+    updatePendingCount();
+    isFlushingPending = false;
   }
 
   function updatePendingCount() {
@@ -2242,45 +2363,93 @@ function selType(el, t) {
     );
   }
 
-  function handlePhoto(input) {
-    if (!input.files[0]) return;
-    const file = input.files[0];
-    if (!/^image\/(png|jpe?g|webp)$/i.test(file.type || '')) {
-      toast('Invalid image', 'Please upload PNG, JPG, or WEBP only.', 'warn');
-      input.value = '';
+  const PHOTO_LIMIT = 10;
+
+  async function handlePhoto(input) {
+    const files = Array.from((input && input.files) || []);
+    if (!files.length) return;
+    let added = 0;
+    for (const file of files) {
+      if (photoDataList.length >= PHOTO_LIMIT) { toast('Limit reached', 'You can attach up to 10 photos.', 'warn'); break; }
+      if (!/^image\/(png|jpe?g|webp)$/i.test(file.type || '')) { toast('Invalid image', 'Use PNG, JPG, or WEBP only.', 'warn'); continue; }
+      if (file.size > 10 * 1024 * 1024) { toast('Image too large', 'Each image must be under 10 MB.', 'warn'); continue; }
+      const result = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = e => resolve(String((e && e.target && e.target.result) || '').trim());
+        r.onerror = () => reject(new Error('Could not read file'));
+        r.readAsDataURL(file);
+      }).catch(() => null);
+      if (!result || !isSafeImageDataUrl(result)) { toast('Invalid image', 'Could not process this photo safely.', 'warn'); continue; }
+      photoDataList.push(result);
+      added++;
+    }
+    if (input) input.value = '';
+    if (added) renderPhotoArea();
+  }
+
+  function renderPhotoArea() {
+    const area = document.getElementById('uploadArea');
+    if (!area) return;
+    if (!photoDataList.length) {
+      area.innerHTML = `<input id="uploadFile" type="file" accept="image/*" multiple onchange="handlePhoto(this)"><svg viewBox="0 0 24 24" style="width:34px;height:34px;stroke:var(--muted2);fill:none;stroke-width:1.5;margin-bottom:.2rem;transition:stroke .2s"><path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg><div class="upload-label">Click or drag to upload a photo</div><div class="upload-hint">Up to 10 images, 10 MB each (PNG/JPG/WEBP)</div>`;
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      toast('Image too large', 'Please upload an image up to 10 MB only.', 'warn');
-      input.value = '';
-      return;
-    }
-    const r = new FileReader();
-    r.onload = e => {
-      const result = String((e && e.target && e.target.result) || '').trim();
-      if (!isSafeImageDataUrl(result)) {
-        toast('Invalid image', 'Could not process this photo safely.', 'warn');
-        input.value = '';
-        return;
-      }
-      photoData = result;
-      const area = document.getElementById('uploadArea');
-      area.innerHTML = '';
+    area.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'upload-grid';
+    photoDataList.forEach((src, idx) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'upload-thumb';
       const img = document.createElement('img');
-      img.src = result;
-      img.style.maxHeight = '120px';
-      img.style.borderRadius = '9px';
-      img.style.maxWidth = '100%';
-      const note = document.createElement('p');
-      note.style.marginTop = '8px';
-      note.style.fontSize = '.82rem';
-      note.style.color = 'var(--green)';
-      note.style.fontWeight = '700';
-      note.textContent = 'Photo attached';
-      area.appendChild(img);
-      area.appendChild(note);
-    };
-    r.readAsDataURL(file);
+      img.src = src;
+      img.alt = `Photo ${idx+1}`;
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'thumb-remove';
+      rm.textContent = '×';
+      rm.onclick = () => { photoDataList.splice(idx,1); renderPhotoArea(); };
+      wrap.appendChild(img);
+      wrap.appendChild(rm);
+      grid.appendChild(wrap);
+    });
+    area.appendChild(grid);
+    const actions = document.createElement('div');
+    actions.className = 'upload-actions';
+    if (photoDataList.length < PHOTO_LIMIT) {
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'upload-link';
+      addBtn.textContent = `Add photo (${PHOTO_LIMIT - photoDataList.length} left)`;
+      addBtn.onclick = triggerChangePhoto;
+      actions.appendChild(addBtn);
+    }
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'upload-link danger';
+    clearBtn.textContent = 'Remove all';
+    clearBtn.onclick = clearPhoto;
+    actions.appendChild(clearBtn);
+    area.appendChild(actions);
+    const hiddenInput = document.createElement('input');
+    hiddenInput.type = 'file';
+    hiddenInput.id = 'uploadFile';
+    hiddenInput.accept = 'image/*';
+    hiddenInput.multiple = true;
+    hiddenInput.style.display = 'none';
+    hiddenInput.onchange = (e)=>handlePhoto(e.target);
+    area.appendChild(hiddenInput);
+  }
+
+  function triggerChangePhoto() {
+    const file = document.getElementById('uploadFile');
+    if (!file) return;
+    file.value = '';
+    file.click();
+  }
+
+  function clearPhoto() {
+    photoDataList = [];
+    renderPhotoArea();
   }
 
   async function submitReport() {
@@ -2340,7 +2509,7 @@ function selType(el, t) {
         submitBtn.disabled = true;
         submitBtn.style.opacity = '.7';
       }
-      const payload = { name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue, photo: photoData, tags: selectedTags };
+      const payload = { name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue, photo: photoDataList[0] || null, photos: photoDataList, tags: selectedTags };
       if (!navigator.onLine) {
         enqueuePending(payload);
         toast('Saved offline', 'Will auto-send when you reconnect.');
@@ -2348,9 +2517,10 @@ function selType(el, t) {
         window.dispatchEvent(new Event('svs:report-submitted'));
         return;
       }
+      const supaPayload = await ensurePhotosToSupabase(payload);
       const { res, data: d } = await fetchJson('/api/report', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(payload)
+        body: JSON.stringify(supaPayload)
       });
       if (!res.ok || !d.success) {
         enqueuePending(payload);
@@ -2364,7 +2534,7 @@ function selType(el, t) {
       flushPendingQueue();
       updatePendingCount();
     } catch(e) {
-      enqueuePending({ name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue, photo: photoData, tags: selectedTags });
+      enqueuePending({ name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue, photo: photoDataList[0] || null, photos: photoDataList, tags: selectedTags });
       toast('Stored to retry', 'Network error. Will retry when back online.','warn');
       updatePendingCount();
     } finally {
@@ -2380,12 +2550,12 @@ function selType(el, t) {
     document.getElementById('iBarangay').value='';
     document.querySelectorAll('.etype-btn').forEach(b=>b.classList.remove('sel'));
     document.querySelectorAll('.sev-btn').forEach(b=>b.classList.remove('sel'));
-    selType_=''; selSev_=''; photoData=null; selectedTags=[]; syncTagUi();
+    selType_=''; selSev_=''; photoDataList=[]; selectedTags=[]; syncTagUi(); renderPhotoArea();
     const g=document.getElementById('gpsBtn');
     g.classList.remove('got'); g.disabled=false;
     document.getElementById('gpsMapWrap').style.display='none';
     g.innerHTML=`<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round"><path d="M9.348 14.651a3.75 3.75 0 0 1 0-5.303m5.304-.001a3.75 3.75 0 0 1 0 5.304m-7.425 2.122a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79M12 12h.008v.007H12V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg> Auto-detect My Location (GPS)`;
-    document.getElementById('uploadArea').innerHTML=`<input type="file" accept="image/*" onchange="handlePhoto(this)"><svg viewBox="0 0 24 24" style="width:34px;height:34px;stroke:var(--muted2);fill:none;stroke-width:1.5;margin-bottom:.2rem;transition:stroke .2s"><path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg><div class="upload-label">Click or drag to upload a photo</div><div class="upload-hint">JPG, PNG — up to 10 MB</div>`;
+    clearPhoto();
     updatePendingCount();
   }
 
@@ -2845,6 +3015,7 @@ function selType(el, t) {
     const days=['SUN','MON','TUE','WED','THU','FRI','SAT'];
     date.textContent=`${days[now.getDay()]} ${pad(now.getMonth()+1)}/${pad(now.getDate())}/${now.getFullYear()}`;
   }
+  renderPhotoArea();
   updateTime('reportTime'); setInterval(()=>updateTime('reportTime'),1000);
 </script>
 </body>

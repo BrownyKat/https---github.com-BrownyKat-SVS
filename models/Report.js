@@ -13,6 +13,7 @@ const reportSchema = new mongoose.Schema(
     description:   { type: String, default: '' },
     gps:           { type: String, default: '' },
     photo:         { type: String, default: null },  // base64 data-URL
+    photos:        { type: [String], default: [] },  // up to 10 base64 data-URLs
     tags:          { type: [String], default: [] },
     status:        { type: String, default: 'new', enum: ['new','verifying','dispatched','resolved','false-report'] },
     dispatcherId:  { type: String, default: '' },

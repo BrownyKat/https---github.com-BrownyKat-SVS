@@ -9,6 +9,7 @@ package-lock.json
 .env
 .env.local
 .env.*.local
+views/supa.ejs
 
 # Logs and coverage
 logs/
@@ -26,4 +27,3 @@ Thumbs.db
 dist/
 out/
 .next/
-

@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SVS â€” Dispatcher Dashboard</title>
+  <title>SVS - Dispatcher Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -20,49 +20,45 @@
       --red-light:    #FEF2F2;
       --red-border:   #FCA5A5;
       --green:        #2563EB;
-      --green-light:  #DBEAFE;
-      --green-border: #93C5FD;
+      --green-light:  #E8F0FF;
+      --green-border: #C4DAFF;
       --blue:         #1D4ED8;
-      --blue-light:   #EFF6FF;
-      --blue-border:  #BFDBFE;
+      --blue-light:   #EEF2F6;
+      --blue-border:  #CBD5E1;
       --indigo:       #1E3A8A;
-      --bg:           #E6F0FF;
-      --surface:      #F4F8FF;
-      --surface2:     #E7F0FF;
-      --border:       #BDD3F2;
-      --border-mid:   #9ABCE8;
-      --text:         #0F172A;
-      --text2:        #1E3A8A;
-      --muted:        #334155;
-      --muted2:       #64748B;
-      --shadow-xs: 0 1px 2px rgba(15,23,42,.06);
-      --shadow-sm: 0 1px 3px rgba(15,23,42,.08),0 1px 2px rgba(15,23,42,.05);
-      --shadow-md: 0 4px 14px rgba(15,23,42,.10),0 2px 6px rgba(15,23,42,.06);
-      --shadow-lg: 0 12px 36px rgba(15,23,42,.12),0 4px 14px rgba(15,23,42,.07);
-      --shadow-xl: 0 24px 56px rgba(15,23,42,.14),0 8px 20px rgba(15,23,42,.08);
+      --bg:           #f5f7fb;
+      --surface:      #ffffff;
+      --surface2:     #f8fafc;
+      --border:       #e5e7eb;
+      --border-mid:   #d4d7dd;
+      --text:         #0f172a;
+      --text2:        #0f172a;
+      --muted:        #4b5563;
+      --muted2:       #6b7280;
+      --shadow-xs: 0 1px 2px rgba(15,23,42,.04);
+      --shadow-sm: 0 2px 6px rgba(15,23,42,.06);
+      --shadow-md: 0 8px 18px rgba(15,23,42,.08);
+      --shadow-lg: 0 16px 34px rgba(15,23,42,.1);
+      --shadow-xl: 0 28px 48px rgba(15,23,42,.12);
       --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;
     }
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
     body{
       font-family:'Outfit',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;
       min-height:100vh;display:flex;flex-direction:column;overflow:hidden;
-      background:
-        radial-gradient(760px 460px at 110% -10%, rgba(29,78,216,.26), transparent 62%),
-        radial-gradient(620px 360px at -8% 108%, rgba(250,204,21,.24), transparent 64%),
-        radial-gradient(420px 260px at 70% 85%, rgba(59,130,246,.16), transparent 68%),
-        var(--bg);
+      background:linear-gradient(180deg,#f8fafc 0%,#f5f7fb 100%);
     }
     ::-webkit-scrollbar{width:5px;height:5px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:99px;}
 
-    /* â”€â”€ HEADER â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ HEADER Ã¢â€â‚¬Ã¢â€â‚¬ */
     .header{
-      height:84px;flex-shrink:0;
+      height:82px;flex-shrink:0;
       display:flex;align-items:center;justify-content:space-between;
       padding:0 1.5rem;
-      background:rgba(232,242,255,.92);
-      backdrop-filter:blur(20px) saturate(160%);
+      background:var(--surface);
+      backdrop-filter:blur(12px);
       border-bottom:1px solid var(--border);
-      box-shadow:var(--shadow-xs);
+      box-shadow:var(--shadow-sm);
       position:sticky;top:0;
       z-index:220;
     }
@@ -84,13 +80,14 @@
     }
     .header-weather svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
     .nav-btn{
-      display:inline-flex;align-items:center;gap:5px;
-      padding:.36rem .82rem;border:1px solid var(--border-mid);border-radius:99px;
-      background:transparent;color:var(--muted);
-      font-family:'Outfit',sans-serif;font-size:.77rem;font-weight:600;
+      display:inline-flex;align-items:center;gap:6px;
+      padding:.44rem .95rem;border:1.5px solid var(--border-mid);border-radius:999px;
+      background:rgba(255,255,255,.9);color:var(--muted);
+      font-family:'Outfit',sans-serif;font-size:.8rem;font-weight:700;
       cursor:pointer;text-decoration:none;transition:all .18s;
+      box-shadow:var(--shadow-xs);
     }
-    .nav-btn:hover{border-color:var(--muted2);color:var(--text2);background:var(--surface);}
+    .nav-btn:hover{border-color:var(--blue-border);color:var(--text2);background:var(--surface);}
     .nav-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
     .nav-btn.danger{color:var(--red);border-color:var(--red-border);background:var(--red-light);}
     .nav-btn.danger:hover{border-color:var(--red);background:#FEE2E2;}
@@ -104,7 +101,7 @@
     .online-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s ease-in-out infinite;}
     @keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
 
-    /* â”€â”€ BODY LAYOUT â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ BODY LAYOUT Ã¢â€â‚¬Ã¢â€â‚¬ */
     .body{display:flex;flex:1;min-height:0;height:calc(100vh - 84px);overflow:hidden;}
     .header,.sidebar,.main-inner{animation:uiFade .45s ease both;}
     .sidebar{animation-delay:.08s;}
@@ -117,16 +114,17 @@
       .header,.sidebar,.main-inner,.rcard,.filter-item,.user-greet{animation:none!important;transition:none!important;}
     }
 
-    /* â”€â”€ SIDEBAR â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ SIDEBAR Ã¢â€â‚¬Ã¢â€â‚¬ */
     .sidebar{
-      width:312px;flex-shrink:0;
-      background:#DCEBFF;
+      width:300px;flex-shrink:0;
+      background:var(--surface);
       border-right:1px solid var(--border);
       display:flex;flex-direction:column;
-      position:sticky;top:84px;align-self:flex-start;
-      height:calc(100vh - 84px);
-      min-height:calc(100vh - 84px);
+      position:sticky;top:82px;align-self:flex-start;
+      height:calc(100vh - 82px);
+      min-height:calc(100vh - 82px);
       overflow:hidden;
+      box-shadow:inset -1px 0 0 rgba(0,0,0,.02);
     }
     .sidebar-top{
       padding:1.25rem 1.1rem .9rem;
@@ -136,14 +134,15 @@
     .sidebar-heading{font-weight:800;font-size:.88rem;color:var(--text);margin-bottom:2px;}
     .sidebar-sub{font-size:.72rem;color:var(--muted);}
 
-    .filter-list{padding:.75rem .75rem;display:flex;flex-direction:column;gap:.35rem;flex:1;overflow-y:auto;}
+    .filter-list{padding:.9rem .9rem;display:flex;flex-direction:column;gap:.4rem;flex:1;overflow-y:auto;}
 
     .filter-item{
       display:flex;align-items:center;gap:10px;
-      padding:.72rem .9rem;border-radius:var(--r-md);
-      border:1.5px solid var(--border);
-      cursor:pointer;transition:all .2s ease;
-      background:rgba(255,255,255,.55);
+      padding:.75rem .95rem;border-radius:var(--r-md);
+      border:1px solid var(--border);
+      cursor:pointer;transition:all .18s ease;
+      background:var(--surface2);
+      box-shadow:none;
     }
     .filter-item:hover{
       background:var(--surface2);
@@ -151,9 +150,10 @@
       transform:translateX(2px);
     }
     .filter-item.active{
-      background:linear-gradient(135deg,rgba(250,204,21,.34),rgba(255,255,255,.62));
-      border-color:#FDE047;
-      box-shadow:0 6px 14px rgba(15,23,42,.10);
+      background:#f1f5f9;
+      border-color:var(--blue-border);
+      box-shadow:var(--shadow-xs);
+      transform:translateX(1px);
     }
 
     .fi-icon{
@@ -204,7 +204,7 @@
     }
     .rf-text{font-size:.7rem;color:var(--muted2);line-height:1.55;margin:0;}
 
-    /* â”€â”€ MAIN â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ MAIN Ã¢â€â‚¬Ã¢â€â‚¬ */
     .main{flex:1;min-width:0;height:calc(100vh - 84px);overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;}
     .main-inner{padding:1.5rem 1.75rem 3rem;display:flex;flex-direction:column;gap:1.25rem;flex:1;}
 
@@ -414,19 +414,19 @@
     .ops-label{margin-top:.45rem;font-size:.8rem;font-weight:700;color:var(--text2);}
     .ops-meta{margin-top:.2rem;font-size:.72rem;color:var(--muted);line-height:1.45;}
 
-    /* â”€â”€ REPORT CARDS â”€â”€ */
+    /* Ã¢â€â‚¬Ã¢â€â‚¬ REPORT CARDS Ã¢â€â‚¬Ã¢â€â‚¬ */
     .report-list{display:flex;flex-direction:column;gap:1rem;}
 
     .rcard{
       background:var(--surface);
-      border:1.5px solid var(--border);
-      border-radius:var(--r-xl);
-      padding:1.4rem 1.5rem;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:1.4rem 1.45rem;
       box-shadow:var(--shadow-sm);
-      transition:box-shadow .2s,border-color .2s,transform .2s;
+      transition:box-shadow .18s,border-color .18s,transform .18s;
       position:relative;overflow:hidden;
     }
-    .rcard:hover{box-shadow:var(--shadow-md);border-color:var(--border-mid);transform:translateY(-1px);}
+    .rcard:hover{box-shadow:var(--shadow-md);border-color:var(--border-mid);transform:translateY(-2px);}
     .rcard::after{
       content:'';
       position:absolute;left:0;right:0;top:0;height:3px;
@@ -438,8 +438,8 @@
 
     /* left severity bar */
     .rcard::before{
-      content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
-      border-radius:var(--r-xl) 0 0 var(--r-xl);
+      content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+      border-radius:var(--r-lg) 0 0 var(--r-lg);
     }
     .rcard.search-hit{
       box-shadow:0 0 0 3px rgba(37,99,235,.18), var(--shadow-md);
@@ -452,12 +452,16 @@
     .rcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.85rem;margin-bottom:.9rem;}
     .rcard-left{flex:1;min-width:0;}
 
-    .rcard-type{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+    .rcard-type{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+    .type-stack{display:flex;flex-direction:column;gap:6px;min-width:0;}
+    .pill-row{display:flex;gap:6px;flex-wrap:wrap;}
     .type-icon{
-      width:30px;height:30px;border-radius:8px;flex-shrink:0;
+      width:32px;height:32px;border-radius:10px;flex-shrink:0;
       display:flex;align-items:center;justify-content:center;
+      background:var(--surface2);border:1.2px solid var(--border);
+      box-shadow:var(--shadow-xs);
     }
-    .type-icon svg{width:15px;height:15px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+    .type-icon svg{width:16px;height:16px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
     .ti-fire     {background:var(--red-light);}    .ti-fire svg{stroke:var(--red);}
     .ti-flood    {background:var(--blue-light);}   .ti-flood svg{stroke:var(--blue);}
     .ti-medical  {background:var(--green-light);}  .ti-medical svg{stroke:var(--green);}
@@ -466,7 +470,7 @@
     .ti-panic    {background:var(--red-light);}    .ti-panic svg{stroke:var(--red);}
     .ti-other    {background:#F5F0E8;}             .ti-other svg{stroke:var(--muted);}
 
-    .type-name{font-weight:800;font-size:.97rem;color:var(--text);}
+    .type-name{font-weight:800;font-size:1rem;color:var(--text);}
     .cred-pill{
       display:inline-flex;align-items:center;gap:3px;
       font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:700;
@@ -497,8 +501,8 @@
       display:flex;gap:1rem;flex-wrap:wrap;
       font-family:'JetBrains Mono',monospace;font-size:.71rem;color:var(--muted);
     }
-    .rcard-meta span{display:flex;align-items:center;gap:4px;}
-    .rcard-meta svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+    .rcard-meta span{display:flex;align-items:center;gap:5px;}
+    .rcard-meta svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
     .tag-list{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.45rem;}
     .tag-pill{
       display:inline-flex;align-items:center;gap:5px;
@@ -509,12 +513,96 @@
       font-family:'JetBrains Mono',monospace;
       font-size:.68rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
     }
+    /* image modal */
+    .img-modal{
+      position:fixed;inset:0;z-index:400;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(15,23,42,.55);
+      backdrop-filter:blur(6px);
+      padding:1.2rem;
+      opacity:0;pointer-events:none;
+      transition:opacity .18s ease;
+    }
+    .img-modal.show{opacity:1;pointer-events:auto;}
+    .img-modal-card{
+      width:min(900px,96vw);
+      background:#fff;
+      border-radius:16px;
+      box-shadow:0 24px 48px rgba(0,0,0,.24);
+      overflow:hidden;
+      display:grid;
+      grid-template-columns:1.2fr 1fr;
+      gap:0;
+      position:relative;
+    }
+    @media(max-width:900px){.img-modal-card{grid-template-columns:1fr;}}
+    .img-preview-wrap{
+      background:#0b1224;
+      display:flex;align-items:center;justify-content:center;
+      min-height:340px;
+      position:relative;
+    }
+    .img-preview-wrap img{max-width:100%;max-height:80vh;object-fit:contain;}
+    .img-nav-btn{
+      position:absolute;top:50%;transform:translateY(-50%);
+      width:42px;height:42px;border-radius:50%;
+      border:none;background:rgba(15,23,42,.65);color:#fff;
+      cursor:pointer;font-weight:900;font-size:1.1rem;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .img-nav-btn.prev{left:12px;} .img-nav-btn.next{right:12px;}
+    .img-nav-btn:disabled{opacity:.35;cursor:not-allowed;}
+    .img-meta{
+      padding:1.05rem 1.2rem;
+      display:grid;gap:.65rem;align-content:start;
+    }
+    .img-meta h4{margin:0;font-size:1.05rem;font-weight:820;letter-spacing:-.2px;color:#0f172a;}
+    .img-meta p{margin:0;color:#1f2937;font-size:.92rem;line-height:1.5;}
+    .img-meta label{font-size:.78rem;font-weight:800;color:#475569;letter-spacing:.3px;text-transform:uppercase;}
+    .img-meta textarea{
+      width:100%;min-height:110px;border:1.5px solid #cbd5e1;border-radius:12px;
+      padding:.75rem;font-family:'Outfit',sans-serif;font-size:.92rem;color:#0f172a;resize:vertical;
+      background:#f8fafc;
+    }
+    .img-actions{display:flex;flex-wrap:wrap;gap:.55rem;}
+    .img-btn{
+      padding:.65rem .95rem;border-radius:12px;border:1.5px solid #cbd5e1;
+      background:#fff;font-weight:800;font-size:.9rem;cursor:pointer;transition:.15s;
+      display:inline-flex;align-items:center;gap:8px;color:#0f172a;
+    }
+  .img-btn:hover{transform:translateY(-1px);}
+  .img-close{position:absolute;top:12px;right:12px;border:none;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:34px;height:34px;cursor:pointer;font-weight:900;}
 
-    .rcard-right{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+    /* mic permission modal */
+    .perm-modal{
+      position:fixed;inset:0;z-index:390;
+      background:rgba(15,23,42,.45);
+      backdrop-filter:blur(6px);
+      display:flex;align-items:center;justify-content:center;
+      opacity:0;pointer-events:none;transition:opacity .18s ease;
+      padding:1rem;
+    }
+    .perm-modal.show{opacity:1;pointer-events:auto;}
+    .perm-card{
+      background:#fff;border-radius:16px;box-shadow:0 18px 42px rgba(0,0,0,.24);
+      max-width:420px;width:95%;padding:1.35rem 1.45rem;display:grid;gap:.65rem;
+    }
+    .perm-card h3{margin:0;font-size:1.1rem;font-weight:840;color:#0f172a;}
+    .perm-card p{margin:0;color:#1f2937;line-height:1.6;font-size:.95rem;}
+    .perm-actions{display:flex;gap:.6rem;justify-content:flex-end;flex-wrap:wrap;}
+    .perm-btn{
+      padding:.55rem .95rem;border-radius:12px;border:1.5px solid #cbd5e1;
+      background:#fff;font-weight:800;font-size:.9rem;cursor:pointer;transition:.15s;
+    }
+    .perm-btn.primary{background:linear-gradient(135deg,#2563EB,#1D4ED8);color:#fff;border-color:transparent;box-shadow:0 8px 18px rgba(37,99,235,.22);}
+    .perm-btn:hover{transform:translateY(-1px);}
+
+    .rcard-right{display:flex;align-items:center;gap:9px;flex-shrink:0;}
     .status-pill{
-      padding:.27rem .82rem;border-radius:99px;
-      font-family:'JetBrains Mono',monospace;font-size:.6rem;font-weight:700;
-      letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;
+      padding:.35rem 1rem;border-radius:999px;
+      font-family:'JetBrains Mono',monospace;font-size:.64rem;font-weight:800;
+      letter-spacing:.6px;text-transform:uppercase;white-space:nowrap;
+      box-shadow:var(--shadow-xs);
     }
     .sp-new        {background:var(--red-light);color:var(--red);border:1px solid var(--red-border);}
     .sp-verifying  {background:var(--amber-light);color:var(--amber-dark);border:1px solid var(--amber-border);}
@@ -522,35 +610,44 @@
     .sp-resolved   {background:var(--green-light);color:var(--green);border:1px solid var(--green-border);}
     .sp-false-report{background:#F5F0E8;color:var(--muted);border:1px solid var(--border-mid);}
 
-    .photo-thumb{width:46px;height:46px;border-radius:9px;object-fit:cover;border:1.5px solid var(--border);}
+    .photo-stack{display:flex;gap:6px;align-items:center;}
+    .photo-thumb{width:48px;height:48px;border-radius:10px;object-fit:cover;border:1.5px solid var(--border);box-shadow:var(--shadow-sm);cursor:pointer;}
+    .photo-more{padding:.4rem .6rem;border:1.5px dashed var(--border);border-radius:10px;font-weight:800;color:var(--muted2);background:#fff;}
+    .photo-count{font-size:.78rem;font-weight:700;color:var(--muted2);}
 
     .rcard-loc{
       display:flex;gap:.9rem;flex-wrap:wrap;margin-bottom:.8rem;
-      font-family:'JetBrains Mono',monospace;font-size:.69rem;color:var(--muted2);
+      font-family:'Outfit',sans-serif;font-size:.9rem;color:var(--muted);
     }
     .rcard-loc span{display:flex;align-items:center;gap:4px;}
     .rcard-loc svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
     .rcard-map{
+      position:relative;
       margin-bottom:.9rem;
-      border:1.5px solid var(--border);
+      border:1px solid var(--border);
       border-radius:12px;
       overflow:hidden;
       background:var(--surface2);
     }
     .rcard-map-head{
-      display:flex;align-items:center;justify-content:space-between;gap:.6rem;
-      padding:.5rem .75rem;
+      display:flex;align-items:center;justify-content:flex-start;gap:.6rem;
+      padding:.5rem .75rem .9rem;
       border-bottom:1px solid var(--border);
       font-family:'JetBrains Mono',monospace;
       font-size:.62rem;font-weight:700;color:var(--muted);
       letter-spacing:.6px;text-transform:uppercase;
       background:var(--surface);
     }
-    .rcard-map-head a{
-      color:var(--blue);
+    .map-open{
+      position:absolute;top:10px;right:10px;
+      padding:.5rem .9rem;border-radius:10px;
+      background:linear-gradient(135deg,#2563EB,#1D4ED8);
+      color:#fff;border:none;font-family:'Outfit',sans-serif;font-weight:800;font-size:.8rem;
+      cursor:pointer;box-shadow:0 6px 16px rgba(29,78,216,.18);
+      transition:transform .12s,box-shadow .12s;
       text-decoration:none;
     }
-    .rcard-map-head a:hover{text-decoration:underline;}
+    .map-open:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(29,78,216,.22);}
     .rcard-map-canvas{
       width:100%;
       height:clamp(210px, 33vw, 320px);
@@ -560,16 +657,16 @@
     }
 
     .rcard-desc{
-      font-size:.86rem;color:var(--text2);line-height:1.62;
-      background:var(--surface2);padding:.8rem .95rem;
+      font-size:.93rem;color:var(--text);line-height:1.6;
+      background:var(--surface2);padding:.85rem 1rem;
       border-radius:var(--r-md);border:1px solid var(--border);
       margin-bottom:.95rem;
     }
     .ownership-bar{
-      display:flex;align-items:center;justify-content:space-between;gap:.75rem;
-      padding:.72rem .85rem;margin-bottom:.9rem;border-radius:14px;
-      border:1px solid var(--border);background:rgba(255,255,255,.72);
-    }
+      display:flex;align-items:center;justify-content:space-between;gap:.85rem;
+      padding:.85rem 1rem;margin-bottom:1rem;border-radius:16px;
+      border:1px solid var(--border);background:rgba(255,255,255,.85);
+      }
     .ownership-main{display:flex;align-items:flex-start;gap:.65rem;min-width:0;}
     .ownership-icon{
       width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;
@@ -608,14 +705,14 @@
       color:var(--amber-deep);background:var(--amber-light);border-color:var(--amber-border);
     }
 
-    .rcard-actions{display:flex;gap:.45rem;flex-wrap:wrap;}
+    .rcard-actions{display:flex;gap:.55rem;flex-wrap:wrap;}
     .act-btn{
       display:inline-flex;align-items:center;gap:5px;
-      padding:.42rem .95rem;border-radius:var(--r-sm);
+      padding:.5rem 1.05rem;border-radius:12px;
       border:1.5px solid var(--border-mid);background:var(--surface);
-      color:var(--text2);font-family:'Outfit',sans-serif;font-weight:600;font-size:.77rem;
+      color:var(--text2);font-family:'Outfit',sans-serif;font-weight:700;font-size:.8rem;
       cursor:pointer;transition:all .18s;
-    }
+      }
     .act-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
     .act-btn:hover{border-color:var(--amber-border);color:var(--amber-dark);background:var(--amber-light);}
     .act-btn.primary{
@@ -1029,6 +1126,15 @@
         <span class="fi-count" id="cNew">0</span>
       </div>
 
+      <div class="filter-item fi-disp" onclick="setFilter('assigned',this)">
+        <div class="fi-icon">
+          <!-- Heroicon: rectangle stack -->
+          <svg viewBox="0 0 24 24"><path d="M4.5 8.25h15m-15 4.5h15M5.25 6A1.5 1.5 0 0 1 6.75 4.5h10.5A1.5 1.5 0 0 1 18.75 6v12a1.5 1.5 0 0 1-1.5 1.5H6.75a1.5 1.5 0 0 1-1.5-1.5V6Z"/></svg>
+        </div>
+        <span class="fi-label">Assigned to me</span>
+        <span class="fi-count" id="cAssigned">0</span>
+      </div>
+
       <div class="filter-item fi-verify" onclick="setFilter('verifying',this)">
         <div class="fi-icon">
           <!-- Heroicon: phone -->
@@ -1160,10 +1266,50 @@
 
 <!-- TOAST -->
 
-<div class="toast" id="toast">
-  <svg viewBox="0 0 24 24"><path d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
-  <div><strong id="toastTitle"></strong><span id="toastMsg"></span></div>
-</div>
+  <div class="toast" id="toast">
+    <svg viewBox="0 0 24 24"><path d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+    <div><strong id="toastTitle"></strong><span id="toastMsg"></span></div>
+  </div>
+
+  <div class="img-modal" id="imgModal">
+    <div class="img-modal-card">
+      <button class="img-close" type="button" onclick="closeImgModal()">×</button>
+      <div class="img-preview-wrap">
+        <img id="imgModalPreview" src="" alt="Evidence preview">
+        <button class="img-nav-btn prev" type="button" id="imgPrevBtn" onclick="stepImg(-1)">‹</button>
+        <button class="img-nav-btn next" type="button" id="imgNextBtn" onclick="stepImg(1)">›</button>
+      </div>
+      <div class="img-meta">
+        <div>
+          <label>Report</label>
+          <h4 id="imgModalReport">Report</h4>
+        </div>
+        <div>
+          <label>Reporter</label>
+          <p id="imgModalName">-</p>
+        </div>
+        <div>
+          <label>Notes (for your reference)</label>
+          <textarea id="imgModalNotes" placeholder=" jot authenticity checks (e.g., timestamps, shadows, GPS match)"></textarea>
+        </div>
+        <div class="img-actions">
+          <button class="img-btn" type="button" onclick="closeImgModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="perm-modal" id="permModal">
+    <div class="perm-card">
+      <h3>Allow microphone to start call</h3>
+      <p>Tap “Allow mic” — your browser will show a permission prompt. We keep this panel open until you decide.</p>
+      <div id="permStatus" style="color:#b91c1c;font-weight:700;font-size:.9rem;"></div>
+      <div class="perm-actions">
+        <button class="perm-btn" type="button" onclick="closePermModal()">Cancel</button>
+        <button class="perm-btn primary" type="button" onclick="requestMicPermission()">Allow mic</button>
+      </div>
+    </div>
+  </div>
 
 <!-- PROFILE MODAL -->
 <div class="profile-backdrop" id="profileBackdrop" onclick="if(event.target===this) closeProfileModal()">
@@ -1215,6 +1361,31 @@
       <div class="edit-field">
         <label for="editName">Reporter Name</label>
         <input id="editName" name="name" type="text" maxlength="120">
+        <small class="edit-hint" id="editNameHint"></small>
+      </div>
+      <div class="edit-field">
+        <label for="editContact">Phone Number</label>
+        <input id="editContact" name="contact" type="tel" maxlength="32" placeholder="+63 9XX XXX XXXX">
+      </div>
+      <div class="edit-field">
+        <label for="editType">Emergency Type</label>
+        <select id="editType" name="emergencyType">
+          <option value="Fire">Fire</option>
+          <option value="Flood">Flood</option>
+          <option value="Medical">Medical</option>
+          <option value="Accident">Accident</option>
+          <option value="Landslide">Landslide</option>
+          <option value="Other">Other</option>
+          <option value="PANIC SOS">PANIC SOS</option>
+        </select>
+      </div>
+      <div class="edit-field">
+        <label for="editSeverity">Severity / Incident Level</label>
+        <select id="editSeverity" name="severity">
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
       </div>
       <div class="edit-field">
         <label for="editBarangay">Barangay</label>
@@ -1322,13 +1493,14 @@
   let curSearch = '';
   let pendingScrollToFirst = false;
   let editReportId = '';
+  let editIsPanic = false;
   const callStartedIds = new Set();
   const geoCache = new Map();
   const geoInFlight = new Set();
   const REPORTS_POLL_MS = 2000;
   const ACTIVE_DISPATCHERS_POLL_MS = 5000;
 
-  // â”€â”€ Icon SVGs per type â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Icon SVGs per type Ã¢â€â‚¬Ã¢â€â‚¬
   const typeIcons = {
     Fire: `<svg viewBox="0 0 24 24"><path d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/><path d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z"/></svg>`,
     Flood: `<svg viewBox="0 0 24 24"><path d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/></svg>`,
@@ -1435,11 +1607,14 @@
   }
 
   function isSosReport(r) {
-    return r && (r.emergencyType === 'PANIC SOS' || r.severity === 'High');
+    if (!r) return false;
+    const type = String(r.emergencyType || '').toUpperCase();
+    const id = String(r.reportId || r.id || '').toUpperCase();
+    return type === 'PANIC SOS' || String(r.isPanic || '').toLowerCase() === 'true' || id.startsWith('SOS-');
   }
 
   function isRegularReport(r) {
-    return r && (r.severity === 'Medium' || r.severity === 'Low');
+    return !!r && !isSosReport(r);
   }
 
   function isClosedStatus(status) {
@@ -1478,7 +1653,8 @@
     const visible = reports.filter(canSeeReport);
     const mine = visible.filter(r => String(r.assignedToId || '').trim() === currentUserId);
     document.getElementById('cAll').textContent   = visible.length;
-    document.getElementById('cNew').textContent    = visible.filter(r=>r.status==='new').length;
+    document.getElementById('cNew').textContent    = visible.filter(r=>r.status==='new' && !String(r.assignedToId||'').trim()).length;
+    document.getElementById('cAssigned').textContent = mine.length;
     document.getElementById('cSos').textContent    = visible.filter(isSosReport).length;
     document.getElementById('cReport').textContent = visible.filter(isRegularReport).length;
     document.getElementById('cVerify').textContent = visible.filter(r=>r.status==='verifying').length;
@@ -1498,7 +1674,8 @@
     if (el && el.classList) el.classList.add('active');
     const labels = {
       all:'All Reports',
-      new:'New Reports',
+      new:'New (Unassigned)',
+      assigned:'Assigned to Me',
       sos:'SOS / High Severity',
       report:'Medium + Low Reports',
       verifying:'Verifying',
@@ -1602,6 +1779,9 @@
       ? 'You currently control verification, edits, dispatch, and closeout.'
       : 'Claim or call to take ownership before verification and sensitive actions unlock.';
     const ownershipTag = isMine ? 'Owned' : 'Open';
+    const photos = Array.isArray(r.photos) && r.photos.length ? r.photos : (r.photo ? [r.photo] : []);
+    const photosJson = photos.length ? JSON.stringify(photos).replace(/&/g,'&amp;').replace(/"/g,'&quot;') : '';
+    const photoHtml = photos.length ? `<div class="photo-stack" data-photos="${photosJson}" data-report="${esc(rid)}" data-name="${esc(r.name)}">${photos.slice(0,3).map((p,i)=>`<img src="${p}" class="photo-thumb" alt="Photo ${i+1}" data-index="${i}">`).join('')}${photos.length>3 ? `<span class="photo-more" data-index="0">+${photos.length-3}</span>` : ''}</div><span class="photo-count">${photos.length} photo${photos.length>1?'s':''}</span>` : '';
     const tags = Array.isArray(r.tags) ? r.tags.filter(Boolean) : [];
     const tagsHtml = tags.length ? `<div class="tag-list">${tags.map(t => `<span class="tag-pill">${esc(String(t).replace(/_/g,' '))}</span>`).join('')}</div>` : '';
     return `
@@ -1610,10 +1790,14 @@
         <div class="rcard-left">
           <div class="rcard-type">
             <div class="type-icon ${tc}">${ico}</div>
-            <span class="type-name">${esc(r.emergencyType)}</span>
-            <span class="cred-pill cred-${r.credibility}">${r.credibility === 'high' ? 'High Cred' : r.credibility === 'medium' ? 'Med Cred' : 'Low Cred'}</span>
-            <span class="trust-pill ${meter.className}">${meter.label} (${prankCount})</span>
-            ${prankCount > 0 ? `<span class="prank-warning">Warning: This number has committed ${prankCount} prank call/report${prankCount > 1 ? 's' : ''}.</span>` : ''}
+            <div class="type-stack">
+              <span class="type-name">${esc(r.emergencyType)}</span>
+              <div class="pill-row">
+                <span class="cred-pill cred-${r.credibility}">${r.credibility === 'high' ? 'High Cred' : r.credibility === 'medium' ? 'Med Cred' : 'Low Cred'}</span>
+                <span class="trust-pill ${meter.className}">${meter.label} (${prankCount})</span>
+              </div>
+              ${prankCount > 0 ? `<span class="prank-warning">Warning: This number has committed ${prankCount} prank call/report${prankCount > 1 ? 's' : ''}.</span>` : ''}
+            </div>
           </div>
           <div class="rcard-meta">
             <span>
@@ -1639,7 +1823,7 @@
           </div>
         </div>
         <div class="rcard-right">
-          ${r.photo ? `<img src="${r.photo}" class="photo-thumb" alt="Photo">` : ''}
+          ${photoHtml}
           <span class="status-pill sp-${esc(sp)}">${esc(status.replace('-',' '))}</span>
         </div>
       </div>
@@ -1686,7 +1870,7 @@
       <div class="rcard-actions">
         ${isUnassigned ? `<button class="act-btn primary" onclick="claimReport('${rid}')" ${isClaiming?'disabled':''}>
           <svg viewBox="0 0 24 24"><path d="M9 12.75 11.25 15 15 9.75M3.75 12a8.25 8.25 0 1 1 16.5 0 8.25 8.25 0 0 1-16.5 0Z"/></svg>
-          ${isClaiming ? 'Claiming…' : 'Claim'}
+          ${isClaiming ? 'Claiming...' : 'Claim'}
         </button>` : ''}
         ${isMine && !isClosed ? `<button class="act-btn" onclick="passReportPrompt('${rid}')">
           <svg viewBox="0 0 24 24"><path d="M7.5 8.25h9m-9 3h6m-6 3h3M3 5.25A2.25 2.25 0 0 1 5.25 3h13.5A2.25 2.25 0 0 1 21 5.25v13.5A2.25 2.25 0 0 1 18.75 21H5.25A2.25 2.25 0 0 1 3 18.75V5.25Z"/></svg>
@@ -1765,12 +1949,12 @@
     const lat = p.lat.toFixed(6);
     const lng = p.lng.toFixed(6);
     const open = `https://www.google.com/maps?q=${lat},${lng}`;
-    const embed = `https://maps.google.com/maps?q=${lat},${lng}&t=k&z=20&output=embed`;
+    const embed = `https://maps.google.com/maps?q=${lat},${lng}&t=m&z=20&output=embed`;
     return `
       <div class="rcard-map">
         <div class="rcard-map-head">
           <span>GPS: ${lat}, ${lng}</span>
-          <a href="${open}" target="_blank" rel="noopener noreferrer">Open map</a>
+          <a class="map-open" href="${open}" target="_blank" rel="noopener noreferrer">Open map</a>
         </div>
         <iframe class="rcard-map-canvas" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${embed}"></iframe>
       </div>
@@ -1901,6 +2085,7 @@
   let lastReportsSig = reportsSignature(reports);
 
   async function syncReportsFromServer(forceRender = false) {
+    if (webCallReportId || (permModal && permModal.classList.contains('show'))) return; // pause while in call or permission dialog
     try {
       const res = await fetch(`/api/reports?_=${Date.now()}`, { cache: 'no-store' });
       if (res.status === 401) {
@@ -1941,7 +2126,11 @@
         ? visibleReports.filter(isSosReport)
         : curFilter === 'report'
           ? visibleReports.filter(isRegularReport)
-          : visibleReports.filter(r=>r.status===curFilter);
+          : curFilter === 'new'
+            ? visibleReports.filter(r=>r.status==='new' && !String(r.assignedToId||'').trim())
+            : curFilter === 'assigned'
+              ? visibleReports.filter(r=>String(r.assignedToId||'').trim() === currentUserId)
+              : visibleReports.filter(r=>r.status===curFilter);
     const searchTerm = curSearch.trim().toLowerCase();
     const filtered = searchTerm
       ? baseFiltered.filter(r => matchesSearch(r, searchTerm))
@@ -2065,6 +2254,8 @@
       const incoming = normalizeReport(data.report || {});
       upsertReport(incoming);
       render();
+      // Ensure latest state for everyone; if realtime is delayed, force a refresh.
+      await syncReportsFromServer(true);
       if (!silent) {
         toast_('Report claimed', `${incoming.id || id} is now assigned to you.`);
       }
@@ -2161,7 +2352,7 @@
       if (!res.ok) throw new Error(data.error || 'Could not update status');
       const r = reports.find(x=>x.id===id);
       if (r) { r.status=status; lastReportsSig = reportsSignature(reports); render(); }
-      const msgs = {verifying:'Calling reporter to verifyâ€¦',dispatched:'Response team dispatched!',resolved:'Incident resolved.',['false-report']:'Flagged as false report.'};
+      const msgs = {verifying:'Calling reporter to verifyÃ¢â‚¬Â¦',dispatched:'Response team dispatched!',resolved:'Incident resolved.',['false-report']:'Flagged as false report.'};
       callStartedIds.delete(id);
       const msg = status === 'verifying' ? 'Verification stage started.' : (msgs[status] || '');
       toast_(id, msg);
@@ -2175,17 +2366,27 @@
       return;
     }
     editReportId = id;
-    document.getElementById('editName').value = report.name || '';
+    editIsPanic = String(report.emergencyType || '').toUpperCase() === 'PANIC SOS';
+    const nameInput = document.getElementById('editName');
+    const nameHint = document.getElementById('editNameHint');
+    nameInput.value = editIsPanic ? '' : (report.name || '');
+    nameInput.disabled = editIsPanic;
+    if (nameHint) nameHint.textContent = editIsPanic ? 'Reporter name not shown for SOS. (Will keep existing value internally.)' : '';
+
+    document.getElementById('editContact').value = report.contact || '';
+    document.getElementById('editType').value = report.emergencyType || 'Other';
+    document.getElementById('editSeverity').value = report.severity || 'Medium';
     document.getElementById('editBarangay').value = report.barangay || '';
     document.getElementById('editLandmark').value = report.landmark || '';
     document.getElementById('editStreet').value = report.street || '';
     document.getElementById('editGps').value = report.gps || '';
     document.getElementById('editBackdrop').classList.add('show');
-    document.getElementById('editName').focus();
+    (editIsPanic ? document.getElementById('editContact') : nameInput).focus();
   }
 
   function closeEditModal() {
     editReportId = '';
+    editIsPanic = false;
     document.getElementById('editBackdrop').classList.remove('show');
   }
 
@@ -2273,7 +2474,10 @@
     }
 
     const payload = {
-      name: document.getElementById('editName').value.trim(),
+      name: editIsPanic ? (report.name || 'PANIC ALERT') : document.getElementById('editName').value.trim(),
+      contact: document.getElementById('editContact').value.trim(),
+      emergencyType: document.getElementById('editType').value.trim(),
+      severity: document.getElementById('editSeverity').value.trim(),
       barangay: document.getElementById('editBarangay').value.trim(),
       landmark: document.getElementById('editLandmark').value.trim(),
       street: document.getElementById('editStreet').value.trim(),
@@ -2349,6 +2553,107 @@
     t._t=setTimeout(()=>t.classList.remove('show'),3600);
   }
 
+  // Image verification modal
+  const imgModal = document.getElementById('imgModal');
+  const imgPrev = document.getElementById('imgModalPreview');
+  const imgReport = document.getElementById('imgModalReport');
+  const imgName = document.getElementById('imgModalName');
+  const imgNotes = document.getElementById('imgModalNotes');
+  const imgPrevBtn = document.getElementById('imgPrevBtn');
+  const imgNextBtn = document.getElementById('imgNextBtn');
+  let imgModalState = { reportId: '', name: '', photos: [], index: 0 };
+
+  // mic permission
+  const permModal = document.getElementById('permModal');
+  const permStatus = document.getElementById('permStatus');
+  let micPermissionGranted = false;
+  let micPermissionPromise = null;
+  let pendingCallAction = null;
+
+  function openImgModal(photos, index = 0, reportId, name) {
+    if (!Array.isArray(photos) || !photos.length) return;
+    const idx = Math.max(0, Math.min(index, photos.length - 1));
+    imgPrev.src = photos[idx];
+    imgReport.textContent = reportId || 'Report';
+    imgName.textContent = name || '-';
+    imgNotes.value = '';
+    imgModalState = { reportId, name, photos, index: idx };
+    updateImgNav();
+    imgModal.classList.add('show');
+  }
+  function closeImgModal() {
+    imgModal.classList.remove('show');
+    imgPrev.src = '';
+    imgNotes.value = '';
+    imgModalState = { reportId: '', name: '', photos: [], index: 0 };
+  }
+  function updateImgNav() {
+    const total = imgModalState.photos.length;
+    imgPrevBtn.disabled = imgModalState.index <= 0;
+    imgNextBtn.disabled = imgModalState.index >= total - 1;
+  }
+  function stepImg(delta) {
+    const total = imgModalState.photos.length;
+    if (!total) return;
+    const next = Math.max(0, Math.min(total - 1, imgModalState.index + delta));
+    imgModalState.index = next;
+    imgPrev.src = imgModalState.photos[next];
+    updateImgNav();
+  }
+  function openPermModal(message = '') {
+    if (permStatus) permStatus.textContent = message || '';
+    permModal.classList.add('show');
+  }
+  function closePermModal() { permModal.classList.remove('show'); }
+
+  async function requestMicPermission() {
+    if (micPermissionPromise) return micPermissionPromise;
+    micPermissionPromise = (async () => {
+      try {
+        if (permStatus) permStatus.textContent = '';
+        const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        if (!isSecure) {
+          if (permStatus) permStatus.textContent = 'Microphone access requires HTTPS (or localhost). Please open the secure version of this site.';
+          throw new Error('Insecure context');
+        }
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        micPermissionGranted = true;
+        if (permStatus) permStatus.textContent = 'Mic allowed. Connecting…';
+        closePermModal();
+        const action = pendingCallAction;
+        pendingCallAction = null;
+        if (typeof action === 'function') action();
+        return stream;
+      } catch (e) {
+        micPermissionGranted = false;
+        const code = (e && e.name) || '';
+        if (permStatus) {
+          permStatus.textContent = code === 'NotAllowedError'
+            ? 'Permission denied. Click "Allow mic" again and accept the browser prompt (or unblock mic in your address bar).'
+            : 'Could not access mic. Check browser permission and try again.';
+        }
+        throw e;
+      } finally {
+        micPermissionPromise = null;
+      }
+    })();
+    return micPermissionPromise;
+  }
+
+  document.addEventListener('click', (e)=>{
+    const stack = e.target.closest('.photo-stack');
+    if (stack) {
+      let photos = [];
+      try{ photos = JSON.parse(stack.dataset.photos || '[]'); }catch(_e){}
+      if (!Array.isArray(photos) || !photos.length) return;
+      const idx = Number(e.target.dataset.index || 0);
+      openImgModal(photos, isNaN(idx)?0:idx, stack.dataset.report, stack.dataset.name);
+    }
+  });
+  document.addEventListener('keydown', (e)=>{
+    if (e.key === 'Escape' && imgModal.classList.contains('show')) closeImgModal();
+  });
+
     const WEB_CALL_POLL_MS = 1500;
   let webCallPc = null;
   let webCallLocalStream = null;
@@ -2375,6 +2680,7 @@
   }
 
   async function clearWebCall(notifyServer = false) {
+    const prevId = webCallReportId;
     try {
       if (webCallPollTimer) clearTimeout(webCallPollTimer);
       webCallPollTimer = null;
@@ -2396,11 +2702,22 @@
       webCallAppliedOffer = 0;
       webCallAppliedAnswer = 0;
       setWebCallUI("Idle", "Not connected", { show: false, enableAccept: false, enableHang: false });
+      if (prevId) callStartedIds.delete(prevId);
+      render();
     }
   }
 
-  async function ensureLocalAudio() {
+  async function ensureLocalAudio(userInitiated = false) {
     if (webCallLocalStream) return webCallLocalStream;
+    if (!micPermissionGranted) {
+      if (!userInitiated) {
+        openPermModal('Click "Allow mic" to proceed.');
+        pendingCallAction = null;
+        throw new Error('awaiting user mic permission');
+      }
+      openPermModal();
+      await requestMicPermission();
+    }
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
     webCallLocalStream = stream;
     return stream;
@@ -2452,7 +2769,7 @@
     await clearWebCall(false);
     webCallReportId = reportId;
     webCallRole = role;
-    setWebCallUI("Report " + reportId, role === "offer" ? "Calling�" : "Joining call�", { show: true, enableHang: true, enableAccept: false });
+    setWebCallUI("Report " + reportId, role === "offer" ? "Calling…" : "Joining call…", { show: true, enableHang: true, enableAccept: false });
 
     const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
     webCallPc = pc;
@@ -2471,7 +2788,7 @@
       if (event.candidate) void sendCandidate(reportId, role, event.candidate);
     };
 
-    const stream = await ensureLocalAudio();
+    const stream = await ensureLocalAudio(true);
     stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
     if (role === "offer") {
@@ -2504,15 +2821,30 @@
     if (!reportId) return;
     if (webCallReportId && webCallReportId !== reportId) await clearWebCall(false);
     try {
+      if (!micPermissionGranted) {
+        pendingCallAction = () => { startWebCall(reportId); };
+        openPermModal('Click "Allow mic" to start the call.');
+        return;
+      }
       const sig = await fetchSignal(reportId);
       const existingOffer = sig && sig.offer && sig.offer.sdp ? sig.offer : null;
       const alreadyAnswered = sig && sig.answer && sig.answer.sdp;
       if (existingOffer && !alreadyAnswered && String(existingOffer.fromId || "") !== currentUserId) {
-        setWebCallUI("Report " + reportId, "Incoming web call � connecting�", { show: true, enableHang: true });
+        setWebCallUI("Report " + reportId, "Incoming web call – connecting…", { show: true, enableHang: true });
         await setupPeer(reportId, "answer", existingOffer);
+        const rep = reports.find(r => normalizeId(r.id || r.reportId || r._id || '') === reportId);
+        if (rep && String(rep.assignedToId || '') === currentUserId && String(rep.status || '') === 'new') {
+          callStartedIds.add(reportId);
+          render();
+        }
         return;
       }
       await setupPeer(reportId, "offer", null);
+      const rep = reports.find(r => normalizeId(r.id || r.reportId || r._id || '') === reportId);
+      if (rep && String(rep.assignedToId || '') === currentUserId && String(rep.status || '') === 'new') {
+        callStartedIds.add(reportId);
+        render();
+      }
     } catch (e) {
       toast_("Web call", e && e.message ? e.message : "Could not start web call.", "warn");
       await clearWebCall(false);
@@ -2524,7 +2856,15 @@
     if (!webCallReportId) return;
     const sig = await fetchSignal(webCallReportId);
     if (sig && sig.offer && sig.offer.sdp) {
-      await setupPeer(webCallReportId, "answer", sig.offer);
+      if (!micPermissionGranted) {
+        pendingCallAction = () => { void webCallAcceptBtn.click(); };
+        openPermModal('Click "Allow mic" to join the call.');
+        return;
+      }
+      try{
+        await ensureLocalAudio(true);
+        await setupPeer(webCallReportId, "answer", sig.offer);
+      }catch(_e){}
     }
   });
 
@@ -2537,7 +2877,7 @@
     void hydrateLegacyPanicLocations();
     if (nr.isPanic || nr.emergencyType === 'PANIC SOS') addNotification('PANIC SOS', `${nr.barangay || 'Unknown area'} - panic received`, 'alert');
     checkHotspot(nr);
-    toast_(nr.isPanic?'PANIC SOS':'New Report', `${nr.emergencyType} — ${nr.barangay}`);
+    toast_(nr.isPanic?'PANIC SOS':'New Report', `${nr.emergencyType} â€” ${nr.barangay}`);
     requestAnimationFrame(()=>{
       const el=document.getElementById(`card-${nr.id}`);
       if (el){el.classList.add('card-flash');setTimeout(()=>el.classList.remove('card-flash'),1800);}
@@ -2603,6 +2943,7 @@
 
   // initial render
   render();
+  // kick an immediate sync to avoid any stale first view
   void refreshDashboardNow(true);
   setInterval(() => { void syncReportsFromServer(); }, REPORTS_POLL_MS);
   setInterval(() => { void syncActiveDispatchers(); }, ACTIVE_DISPATCHERS_POLL_MS);
@@ -2613,4 +2954,5 @@
 </script>
 </body>
 </html>
+
 
