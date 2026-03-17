@@ -75,6 +75,12 @@ const pusher = process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.en
   })
   : null;
 
+const SUPABASE_CONFIG = {
+  url: String(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim().replace(/\/+$/, ''),
+  anonKey: String(process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim(),
+  bucket: String(process.env.SUPABASE_BUCKET || 'svs_photo').trim(),
+};
+
 // ── Database connection ──────────────────────────────────────────────────────
 async function initDatabase() {
   if (dbInitPromise) return dbInitPromise;
@@ -269,6 +275,10 @@ app.use((req, res, next) => {
     cluster: process.env.PUSHER_CLUSTER || '',
     channel: REALTIME_CHANNEL,
   };
+  next();
+});
+app.use((req, res, next) => {
+  res.locals.supaConfig = SUPABASE_CONFIG;
   next();
 });
 app.use('/api', (req, res, next) => {

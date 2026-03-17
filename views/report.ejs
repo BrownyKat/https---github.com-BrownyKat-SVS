@@ -1997,7 +1997,9 @@
   <div><strong id="toastTitle"></strong><span id="toastMsg"></span></div>
 </div>
 
-<%- include('supa') %>
+<script>
+  window.supaConfig = <%- JSON.stringify(supaConfig || { url: '', anonKey: '', bucket: 'svs_photo' }) %>;
+</script>
 <script>
   let selType_ = '', selSev_ = '', photoDataList = [];
   let selectedTags = [];
