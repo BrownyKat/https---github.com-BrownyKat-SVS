@@ -9,7 +9,8 @@ module.exports = (req, res) => {
   // If the rewrite forwarded the original path as ?path=..., restore it.
   const urlObj = new URL(`http://localhost${originalUrl}`);
   const pathParam = urlObj.searchParams.get('path');
-  const restored = pathParam || headerPath.replace(/^\/+/, '');
+  const restoredRaw = pathParam || headerPath.replace(/^\/+/, '');
+  const restored = restoredRaw ? decodeURIComponent(restoredRaw) : '';
   if (restored) {
     req.url = `/${restored}`.replace(/\/+/g, '/');
   } else if (originalUrl === '/api/index.js' || originalUrl === '/api/index') {

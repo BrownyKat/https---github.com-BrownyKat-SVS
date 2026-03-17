@@ -327,11 +327,10 @@ app.use((req, res, next) => {
 });
 
 // ── Pages ────────────────────────────────────────────────────────────────────
-app.get('/', (req, res) => {
-  if (!req.auth) return res.redirect('/report');
-  if (req.auth.role === 'admin') return res.redirect('/admin');
-  return res.redirect('/dashboard');
-});
+// Landing page -> SOS screen for everyone
+app.get('/', (_req, res) => res.render('sos'));
+// Friendly shortcut: /dispatcher -> dispatcher login
+app.get('/dispatcher', (_req, res) => res.redirect('/dispatcher/login'));
 
 app.get('/login', (req, res) => {
   if (String(req.query.force || '') !== '1') {
