@@ -332,9 +332,9 @@ app.get('/', (_req, res) => res.render('sos'));
 // Friendly shortcut: /dispatcher -> dispatcher login
 app.get('/dispatcher', (_req, res) => res.redirect('/dispatcher/login'));
 // Vercel safety: if /api-prefixed page paths slip through, normalize them.
-app.get('/api/dispatcher/login', (_req, res) => res.redirect('/dispatcher/login'));
-app.get('/api/dashboard', (_req, res) => res.redirect('/dashboard'));
-app.get('/api/admin', (_req, res) => res.redirect('/admin'));
+app.all('/api/dispatcher/login', (_req, res) => res.redirect(308, '/dispatcher/login'));
+app.all('/api/dashboard', (_req, res) => res.redirect(308, '/dashboard'));
+app.all('/api/admin', (_req, res) => res.redirect(308, '/admin'));
 
 app.get('/login', async (req, res) => {
   // Clear any existing admin session to force fresh login
@@ -524,13 +524,13 @@ app.get('/logout', async (req, res) => {
   res.redirect('/dispatcher/login');
 });
 
-app.get('/', (_req, res) => res.render('about'));
 app.get('/about', (_req, res) => res.render('about'));
 app.get('/sos', (_req, res) => res.render('sos'));
 app.get('/faq', (_req, res) => res.render('faq'));
 app.get('/report', (_req, res) => res.render('report'));
 
-app.get('/dashboard', requireRolesPage(['dispatcher'], '/dispatcher/login'), async (req, res) => {
+app.all('/dashboard', requireRolesPage(['dispatcher'], '/dispatcher/login'), async (req, res) => {
+  if (req.method !== 'GET') return res.redirect(303, '/dashboard');
   try {
     const reports = await Report.find(buildReportVisibilityQuery(req.auth)).sort({ timestamp: -1 }).lean({ virtuals: true });
     const dispatcher = await Dispatcher.findById(req.auth.userId).lean();
@@ -678,7 +678,8 @@ app.post('/api/dispatcher/profile', requireRolesApi(['dispatcher']), async (req,
   }
 });
 
-app.get('/admin', requireRolesPage(['admin'], '/login'), async (req, res) => {
+app.all('/admin', requireRolesPage(['admin'], '/login'), async (req, res) => {
+  if (req.method !== 'GET') return res.redirect(303, '/admin');
   try {
     return renderAdminPage(req, res, {
       error: String(req.query.err || ''),
