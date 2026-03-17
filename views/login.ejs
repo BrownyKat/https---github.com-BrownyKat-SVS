@@ -34,8 +34,7 @@
     .card{padding:30px 28px}
     .logo-wrap{text-align:center;margin-bottom:8px}
     .logo{width:186px;max-width:60vw;height:auto;object-fit:contain;display:inline-block;filter:drop-shadow(0 12px 22px rgba(29,78,216,.12))}
-    .role-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:linear-gradient(135deg,#fff3e0,#e8edff);color:#7a2e0c;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
-    .role-badge::before{content:'Admin';font-family:'JetBrains Mono',monospace}
+    .role-badge{display:none}
     h2{margin:12px 0 4px;font-size:29px;letter-spacing:-.8px;color:var(--blue-dark);text-align:center}
     .subtext{margin:0 0 16px;color:var(--muted-2);font-size:15px;line-height:1.55;text-align:center}
     .err{background:var(--red-light);border:1px solid #fca5a5;color:#b91c1c;padding:12px 13px;border-radius:14px;margin-bottom:14px;font-size:13px;font-weight:700}
@@ -49,10 +48,11 @@
     .password-wrap{position:relative}
     .password-toggle{
       position:absolute;right:10px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--blue-dark);
-      font-size:12px;font-weight:800;cursor:pointer;padding:8px 10px;border-radius:10px;
+      font-size:0;cursor:pointer;padding:8px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;
     }
+    .password-toggle svg{width:18px;height:18px;stroke-width:2;stroke:currentColor;fill:none;}
     .password-toggle:hover{background:rgba(219,234,254,.7)}
-    .password-wrap input{padding-right:86px;}
+    .password-wrap input{padding-right:54px;}
     .btn{
       margin-top:18px;width:100%;padding:14px 16px;border:0;border-radius:15px;background:linear-gradient(135deg,var(--blue),#1d4ed8);
       color:#fff;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;letter-spacing:.2px;box-shadow:0 12px 24px rgba(29,78,216,.2);
@@ -79,7 +79,9 @@
       <label for="password">Password</label>
       <div class="password-wrap">
         <input id="password" name="password" type="password" placeholder="Enter your password" required autocomplete="current-password">
-        <button class="password-toggle" type="button" data-toggle-password="password">Show</button>
+        <button class="password-toggle" type="button" data-toggle-password="password" aria-label="Show password">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.25 12s3.75-7.5 9.75-7.5S21.75 12 21.75 12s-3.75 7.5-9.75 7.5S2.25 12 2.25 12Z"/><path d="M12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"/></svg>
+        </button>
       </div>
 
       <button class="btn" type="submit">Sign In</button>
@@ -105,7 +107,13 @@
           if (!input) return;
           const isHidden = input.type === 'password';
           input.type = isHidden ? 'text' : 'password';
-          button.textContent = isHidden ? 'Hide' : 'Show';
+          button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+          const svg = button.querySelector('svg');
+          if (svg) {
+            svg.innerHTML = isHidden
+              ? '<path d=\"M3 3l18 18\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M10.477 10.482a3 3 0 0 1 4.043 4.04\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M9.88 14.12A3 3 0 0 1 9.88 9.88M6.1 6.105A10.65 10.65 0 0 1 12 4.5c6 0 9.75 7.5 9.75 7.5a17.1 17.1 0 0 1-2.703 3.64m-3.022 2.312A10.4 10.4 0 0 1 12 19.5c-6 0-9.75-7.5-9.75-7.5a16.7 16.7 0 0 1 2.759-3.678\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>'
+              : '<path d=\"M2.25 12s3.75-7.5 9.75-7.5S21.75 12 21.75 12s-3.75 7.5-9.75 7.5S2.25 12 2.25 12Z\"/><path d=\"M12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z\"/>';
+          }
         });
       });
     } catch (_e) {}
