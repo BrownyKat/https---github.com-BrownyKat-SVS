@@ -15,6 +15,7 @@ const Admin       = require('./models/Admin');
 const Dispatcher  = require('./models/Dispatcher');
 const AuditLog    = require('./models/AuditLog');
 const Session     = require('./models/Session');
+const LoginAttempt = require('./models/LoginAttempt');
 
 const app    = express();
 const STATIC_CACHE_OPTIONS = { maxAge: '1d' };
@@ -60,7 +61,7 @@ const SIGNED_SESSION_PREFIX = 'v1.';
 let dbInitPromise = null;
 const LOGIN_ATTEMPT_LIMIT = 7;
 const LOGIN_ATTEMPT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
-const loginAttemptStore = new Map(); // key => [timestamps]
+const loginAttemptStore = new Map(); // in-memory cache (best effort; persisted via Mongo below)
 const WEB_CALL_TTL_MS = 10 * 60 * 1000; // 10 minutes
 // In-memory signal store for ad-hoc WebRTC calls keyed by reportId.
 const webCallSignals = new Map();
@@ -150,39 +151,52 @@ function extractDbNameFromMongoUri(uriRaw) {
   }
 }
 
-function cleanLoginAttempts(key) {
-  const now = Date.now();
-  const attempts = (loginAttemptStore.get(key) || []).filter(ts => now - ts < LOGIN_ATTEMPT_WINDOW_MS);
-  if (attempts.length) {
-    loginAttemptStore.set(key, attempts);
-  } else {
-    loginAttemptStore.delete(key);
-  }
-  return attempts;
+async function recordLoginAttempt(key) {
+  loginAttemptStore.set(key, [...(loginAttemptStore.get(key) || []), Date.now()]);
+  try {
+    await LoginAttempt.create({ key });
+  } catch (_e) {}
 }
 
-function guardDispatcherLoginRate(req, res, next) {
+async function resetLoginAttempts(key) {
+  loginAttemptStore.delete(key);
+  try {
+    await LoginAttempt.deleteMany({ key });
+  } catch (_e) {}
+}
+
+async function countRecentAttempts(key) {
+  const now = Date.now();
+  const recentMemory = (loginAttemptStore.get(key) || []).filter(ts => now - ts < LOGIN_ATTEMPT_WINDOW_MS);
+  if (recentMemory.length) loginAttemptStore.set(key, recentMemory);
+  let recentDb = 0;
+  try {
+    recentDb = await LoginAttempt.countDocuments({
+      key,
+      createdAt: { $gte: new Date(now - LOGIN_ATTEMPT_WINDOW_MS) },
+    });
+  } catch (_e) { recentDb = 0; }
+  return Math.max(recentMemory.length, recentDb);
+}
+
+async function guardDispatcherLoginRate(req, res, next) {
   const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.ip || req.connection.remoteAddress || 'unknown';
   const key = `dispatcher:${ip}`;
-  const attempts = cleanLoginAttempts(key);
-  if (attempts.length >= LOGIN_ATTEMPT_LIMIT) {
-    const oldest = attempts[0];
-    const retryMs = Math.max(0, LOGIN_ATTEMPT_WINDOW_MS - (Date.now() - oldest));
-    const retryMin = Math.max(1, Math.ceil(retryMs / 60000));
+  const attempts = await countRecentAttempts(key);
+  if (attempts >= LOGIN_ATTEMPT_LIMIT) {
+    const retryMin = Math.ceil(LOGIN_ATTEMPT_WINDOW_MS / 60000);
     return res.status(429).render('dispatcher-login', { error: `Too many attempts. Please try again in about ${retryMin} minute(s).` });
   }
   res.locals.loginRateKey = key;
   next();
 }
 
-function guardAdminLoginRate(req, res, next) {
+async function guardAdminLoginRate(req, res, next) {
   const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.ip || req.connection.remoteAddress || 'unknown';
   const key = `admin:${ip}`;
-  const attempts = cleanLoginAttempts(key);
-  if (attempts.length >= LOGIN_ATTEMPT_LIMIT) {
-    const oldest = attempts[0];
-    const retryMs = Math.max(0, LOGIN_ATTEMPT_WINDOW_MS - (Date.now() - oldest));
-    const retryMin = Math.max(1, Math.ceil(retryMs / 60000));
+  const attempts = await countRecentAttempts(key);
+  if (attempts >= LOGIN_ATTEMPT_LIMIT) {
+    const retryMin = Math.ceil(LOGIN_ATTEMPT_WINDOW_MS / 60000);
     return res.status(429).render('login', { error: `Too many attempts. Please try again in about ${retryMin} minute(s).` });
   }
   res.locals.loginRateKey = key;
@@ -192,8 +206,8 @@ function guardAdminLoginRate(req, res, next) {
 // ── Middleware ───────────────────────────────────────────────────────────────
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.use((err, req, res, next) => {
   if (!err) return next();
   if (err.type === 'entity.too.large') {
@@ -332,20 +346,12 @@ app.post('/login', guardAdminLoginRate, async (req, res) => {
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '');
     if (!username || !password) {
-      if (res.locals.loginRateKey) {
-        const list = cleanLoginAttempts(res.locals.loginRateKey);
-        list.push(Date.now());
-        loginAttemptStore.set(res.locals.loginRateKey, list);
-      }
+      if (res.locals.loginRateKey) await recordLoginAttempt(res.locals.loginRateKey);
       return res.status(400).render('login', { error: 'Invalid login details.' });
     }
     const admin = await Admin.findOne({ username });
     if (!admin || !verifyPassword(password, admin.passwordHash)) {
-      if (res.locals.loginRateKey) {
-        const list = cleanLoginAttempts(res.locals.loginRateKey);
-        list.push(Date.now());
-        loginAttemptStore.set(res.locals.loginRateKey, list);
-      }
+      if (res.locals.loginRateKey) await recordLoginAttempt(res.locals.loginRateKey);
       return res.status(401).render('login', { error: 'Invalid admin credentials.' });
     }
     await createSession(req, res, {
@@ -354,9 +360,7 @@ app.post('/login', guardAdminLoginRate, async (req, res) => {
       username: admin.username,
       fullName: admin.fullName || admin.username,
     });
-    if (res.locals.loginRateKey) {
-      loginAttemptStore.delete(res.locals.loginRateKey);
-    }
+    if (res.locals.loginRateKey) await resetLoginAttempts(res.locals.loginRateKey);
     return res.redirect('/admin');
   } catch (err) {
     console.error('[login] admin login failed:', err && err.message ? err.message : err);
@@ -376,24 +380,16 @@ app.post('/dispatcher/login', guardDispatcherLoginRate, async (req, res) => {
     await ensureDbReady();
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '');
-    const remember = String(req.body.remember || '').toLowerCase() === 'on'
+      const remember = String(req.body.remember || '').toLowerCase() === 'on'
       || String(req.body.remember || '').toLowerCase() === 'true';
     if (!username || !password) {
-      if (res.locals.loginRateKey) {
-        const list = cleanLoginAttempts(res.locals.loginRateKey);
-        list.push(Date.now());
-        loginAttemptStore.set(res.locals.loginRateKey, list);
-      }
+      if (res.locals.loginRateKey) await recordLoginAttempt(res.locals.loginRateKey);
       return res.status(400).render('dispatcher-login', { error: 'Invalid login details.' });
     }
 
     const dispatcher = await Dispatcher.findOne({ username });
     if (!dispatcher || !dispatcher.isActive || !verifyPassword(password, dispatcher.passwordHash)) {
-      if (res.locals.loginRateKey) {
-        const list = cleanLoginAttempts(res.locals.loginRateKey);
-        list.push(Date.now());
-        loginAttemptStore.set(res.locals.loginRateKey, list);
-      }
+      if (res.locals.loginRateKey) await recordLoginAttempt(res.locals.loginRateKey);
       return res.status(401).render('dispatcher-login', { error: 'Invalid dispatcher credentials.' });
     }
 
@@ -403,9 +399,7 @@ app.post('/dispatcher/login', guardDispatcherLoginRate, async (req, res) => {
       username: dispatcher.username,
       fullName: dispatcher.fullName || dispatcher.username,
     }, { remember });
-    if (res.locals.loginRateKey) {
-      loginAttemptStore.delete(res.locals.loginRateKey);
-    }
+    if (res.locals.loginRateKey) await resetLoginAttempts(res.locals.loginRateKey);
     await logAudit({
       actorRole: 'dispatcher',
       actorId: String(dispatcher._id),
@@ -1883,7 +1877,7 @@ function sanitizeDataImage(photoRaw) {
   if (!photo) return '';
   const isDataUri = /^data:image\/(png|jpe?g|webp);base64,[a-z0-9+/=]+$/i.test(photo);
   if (isDataUri) {
-    if (photo.length > 10 * 1024 * 1024) {
+    if (photo.length > 15 * 1024 * 1024) {
       throw new Error('Photo is too large');
     }
     return photo;
