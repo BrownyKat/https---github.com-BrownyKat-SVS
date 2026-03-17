@@ -331,6 +331,10 @@ app.use((req, res, next) => {
 app.get('/', (_req, res) => res.render('sos'));
 // Friendly shortcut: /dispatcher -> dispatcher login
 app.get('/dispatcher', (_req, res) => res.redirect('/dispatcher/login'));
+// Vercel safety: if /api-prefixed page paths slip through, normalize them.
+app.get('/api/dispatcher/login', (_req, res) => res.redirect('/dispatcher/login'));
+app.get('/api/dashboard', (_req, res) => res.redirect('/dashboard'));
+app.get('/api/admin', (_req, res) => res.redirect('/admin'));
 
 app.get('/login', (req, res) => {
   if (String(req.query.force || '') !== '1') {
