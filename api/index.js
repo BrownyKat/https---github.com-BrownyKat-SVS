@@ -10,6 +10,8 @@ module.exports = (req, res) => {
     req.headers['x-vercel-original-path'] ||
     req.headers['x-original-path'] ||
     req.headers['x-vercel-original-url'] ||
+    req.headers['x-forwarded-uri'] ||
+    req.headers['x-path-info'] ||
     req.headers['x-rewrite-path'] ||
     req.headers['x-original-url'] ||
     '';
@@ -22,6 +24,17 @@ module.exports = (req, res) => {
   if (restored.startsWith('/api/index.js')) restored = '/';
   if (restored.startsWith('/api/')) restored = restored.slice(4) || '/';
   req.url = restored.replace(/\/{2,}/g, '/');
+
+  if (process.env.DEBUG_ROUTING === '1') {
+    console.log('[vercel-route]', {
+      originalUrl: req.originalUrl || '',
+      incomingUrl: req.url,
+      rawUrl: urlObj.toString(),
+      pathParam,
+      headerPath,
+      method: req.method,
+    });
+  }
 
   return app(req, res);
 };
