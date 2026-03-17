@@ -96,14 +96,18 @@ async function initDatabase() {
       if (!mongoUri) {
         throw new Error('Mongo URI is not configured (set MONGODB_URI or DATABASE_URL)');
       }
+      const envTls = String(process.env.MONGODB_SSL || process.env.MONGO_SSL || '').toLowerCase();
+      let wantTls = /^mongodb\+srv:/i.test(mongoUri) || /ssl=true/i.test(mongoUri);
+      if (envTls === 'true') wantTls = true;
+      if (envTls === 'false') wantTls = false;
       const connectOptions = {
         dbName: mongoDb || undefined,
         serverSelectionTimeoutMS: 10000,
         socketTimeoutMS: 45000,
         retryWrites: true,
         w: 'majority',
-        ssl: true,
-        tlsAllowInvalidCertificates: false,
+        ssl: wantTls,
+        tlsAllowInvalidCertificates: wantTls ? false : undefined,
       };
       await mongoose.connect(mongoUri, connectOptions);
       console.log(`  ✔  MongoDB connected${mongoDb ? ` (db: ${mongoDb})` : ''}`);
@@ -543,8 +547,14 @@ app.get('/dashboard', requireRolesPage(['dispatcher'], '/dispatcher/login'), asy
       },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Database error loading dashboard');
+    console.error('Dashboard load error:', err && err.message ? err.message : err);
+    res.status(200).render('dashboard', {
+      reports: [],
+      currentUser: req.auth || {},
+      activeDispatchers: [],
+      dispatcherProfile: { username: '', fullName: '', phone: '' },
+      error: 'Unable to load reports right now. Please check your connection or try again later.',
+    });
   }
 });
 
@@ -1861,13 +1871,37 @@ function normalizeSeverity(value) {
 function sanitizeDataImage(photoRaw) {
   const photo = String(photoRaw || '').trim();
   if (!photo) return '';
-  if (!/^data:image\/(png|jpe?g|webp);base64,[a-z0-9+/=]+$/i.test(photo)) {
+  const isDataUri = /^data:image\/(png|jpe?g|webp);base64,[a-z0-9+/=]+$/i.test(photo);
+  if (isDataUri) {
+    if (photo.length > 10 * 1024 * 1024) {
+      throw new Error('Photo is too large');
+    }
+    return photo;
+  }
+  try {
+    const u = new URL(photo);
+    if (!/^https?:$/i.test(u.protocol)) throw new Error('Invalid photo URL');
+    // Allow supabase/public object urls only to avoid arbitrary fetches
+    if (!/supabase\.co\/storage\/v1\/object/i.test(u.href)) {
+      throw new Error('Photo URL must be a Supabase storage link');
+    }
+    if (photo.length > 2048) throw new Error('Photo URL too long');
+    return photo;
+  } catch (e) {
     throw new Error('Invalid photo format');
   }
-  if (photo.length > 10 * 1024 * 1024) {
-    throw new Error('Photo is too large');
+}
+
+function sanitizePhotoList(input) {
+  if (!input) return [];
+  const list = Array.isArray(input) ? input : [input];
+  const clean = [];
+  for (const item of list) {
+    if (clean.length >= 10) break;
+    const normalized = sanitizeDataImage(item);
+    if (normalized) clean.push(normalized);
   }
-  return photo;
+  return clean;
 }
 
 function sanitizeNormalReportInput(body) {
@@ -1881,11 +1915,13 @@ function sanitizeNormalReportInput(body) {
     street: cleanInputText(body.street, 180),
     description: cleanInputText(body.description, 1200),
     gps: cleanInputText(body.gps, 64),
-    photo: sanitizeDataImage(body.photo),
+    photos: sanitizePhotoList(body.photos || body.photo),
+    photo: '', // filled below for compatibility
     tags: Array.isArray(body.tags)
       ? Array.from(new Set(body.tags.map(t => String(t || '').trim().toLowerCase()))).filter(t => VALID_REPORT_TAGS.includes(t)).slice(0, 6)
       : [],
   };
+  clean.photo = clean.photos[0] || sanitizeDataImage(body.photo);
 
   if (!clean.name || !clean.contact || !clean.emergencyType || !clean.severity || !clean.barangay || !clean.landmark || !clean.street) {
     throw new Error('Missing required report fields');
