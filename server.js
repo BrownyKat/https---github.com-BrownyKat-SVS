@@ -962,7 +962,7 @@ app.patch('/api/report/:id/status', requireRolesApi(['dispatcher', 'admin']), as
       return res.status(400).json({ error: 'Invalid status value' });
     }
     const where = reportLookupQuery(req.params.id);
-    const updates = { status: req.body.status };
+    const updates = { status: nextStatus };
     if (req.auth && req.auth.role === 'dispatcher') {
       updates.dispatcherId = String(req.auth.userId || '');
       updates.dispatcherName = String(req.auth.fullName || req.auth.username || '').trim();
@@ -972,6 +972,7 @@ app.patch('/api/report/:id/status', requireRolesApi(['dispatcher', 'admin']), as
       updates,
       { new: true }
     );
+    if (!report) return res.status(404).json({ error: 'Report not found' });
     await logAudit({
       actorRole: req.auth.role,
       actorId: req.auth.userId,
@@ -989,10 +990,10 @@ app.patch('/api/report/:id/status', requireRolesApi(['dispatcher', 'admin']), as
       assignedToName: report.assignedToName || '',
       assignedAt: report.assignedAt || null,
     });
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Could not update report' });
+    return res.status(500).json({ error: 'Could not update report' });
   }
 });
 
@@ -1276,6 +1277,7 @@ app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async
       },
       { new: true }
     );
+    if (!report) return res.status(404).json({ error: 'Report not found' });
     await logAudit({
       actorRole: req.auth.role,
       actorId: req.auth.userId,

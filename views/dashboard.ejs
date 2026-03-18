@@ -1651,12 +1651,12 @@
 
   function counts() {
     const visible = reports.filter(canSeeReport);
-    const mine = visible.filter(r => String(r.assignedToId || '').trim() === currentUserId);
-    document.getElementById('cAll').textContent   = visible.length;
+    const mine = visible.filter(r => String(r.assignedToId || '').trim() === currentUserId && !isClosedStatus(r.status));
+    document.getElementById('cAll').textContent   = visible.filter(r => !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId)).length;
     document.getElementById('cNew').textContent    = visible.filter(r=>r.status==='new' && !String(r.assignedToId||'').trim()).length;
     document.getElementById('cAssigned').textContent = mine.length;
-    document.getElementById('cSos').textContent    = visible.filter(isSosReport).length;
-    document.getElementById('cReport').textContent = visible.filter(isRegularReport).length;
+    document.getElementById('cSos').textContent    = visible.filter(r => isSosReport(r) && !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId)).length;
+    document.getElementById('cReport').textContent = visible.filter(r => isRegularReport(r) && !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId)).length;
     document.getElementById('cVerify').textContent = visible.filter(r=>r.status==='verifying').length;
     document.getElementById('cDisp').textContent   = visible.filter(r=>r.status==='dispatched').length;
     document.getElementById('cRes').textContent    = visible.filter(r=>r.status==='resolved').length;
@@ -2121,15 +2121,15 @@
 
     const visibleReports = reports.filter(canSeeReport);
     const baseFiltered = curFilter === 'all'
-      ? visibleReports
+      ? visibleReports.filter(r => !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId))
       : curFilter === 'sos'
-        ? visibleReports.filter(isSosReport)
+        ? visibleReports.filter(r => isSosReport(r) && !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId))
         : curFilter === 'report'
-          ? visibleReports.filter(isRegularReport)
+          ? visibleReports.filter(r => isRegularReport(r) && !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId))
           : curFilter === 'new'
             ? visibleReports.filter(r=>r.status==='new' && !String(r.assignedToId||'').trim())
             : curFilter === 'assigned'
-              ? visibleReports.filter(r=>String(r.assignedToId||'').trim() === currentUserId)
+              ? visibleReports.filter(r=>String(r.assignedToId||'').trim() === currentUserId && !isClosedStatus(r.status))
               : visibleReports.filter(r=>r.status===curFilter);
     const searchTerm = curSearch.trim().toLowerCase();
     const filtered = searchTerm
@@ -2243,53 +2243,109 @@
       const data = await res.json().catch(() => ({}));
       if (res.status === 401) {
         handleUnauthorized(data);
+        pendingClaims.delete(id);
+        render();
         return null;
       }
       if (res.status === 409) {
         toast_('Already claimed', data.error || 'Another dispatcher claimed this first.', 'warn');
+        pendingClaims.delete(id);
+        render();
         syncReportsFromServer(true);
         return null;
       }
       if (!res.ok || !data.success) throw new Error(data.error || 'Could not claim report');
       const incoming = normalizeReport(data.report || {});
       upsertReport(incoming);
-      render();
-      // Ensure latest state for everyone; if realtime is delayed, force a refresh.
-      await syncReportsFromServer(true);
       if (!silent) {
         toast_('Report claimed', `${incoming.id || id} is now assigned to you.`);
       }
+      // Clear pending and render immediately
+      pendingClaims.delete(id);
+      render();
+      // Sync in background without blocking UI
+      syncReportsFromServer(true);
       return incoming;
     } catch (e) {
       toast_('Error', e && e.message ? e.message : 'Could not claim report.', 'warn');
-      return null;
-    } finally {
       pendingClaims.delete(id);
       render();
+      return null;
     }
   }
 
   async function passReport(id, targetDispatcherId) {
-    const res = await fetch(`/api/report/${encodeURIComponent(id)}/pass`, {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ targetDispatcherId }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.status === 401) {
-      handleUnauthorized(data);
+    if (!id || !targetDispatcherId) {
+      toast_('Error', 'Missing report or target dispatcher', 'warn');
       return false;
     }
-    if (!res.ok || !data.success) throw new Error(data.error || 'Could not pass report');
-
-    const incoming = normalizeReport(data.report || {});
-    if (canSeeReport(incoming)) upsertReport(incoming);
-    else reports = dedupeReports(reports.filter(r => r.id !== incoming.id));
+    
+    // Find the target dispatcher info for instant feedback
+    const targetDisp = activeDispatchers.find(u => String(u.id || '').trim() === String(targetDispatcherId || '').trim());
+    const targetName = String(targetDisp ? (targetDisp.fullName || targetDisp.username) : 'dispatcher').trim();
+    
+    // Update UI immediately for instant feedback
+    const r = reports.find(x => x.id === id);
+    if (!r) {
+      toast_('Error', 'Report not found', 'warn');
+      return false;
+    }
+    
+    const originalAssignment = { assignedToId: r.assignedToId, assignedToName: r.assignedToName, passCount: r.passCount };
+    
+    // Optimistic update
+    r.assignedToId = targetDispatcherId;
+    r.assignedToName = targetName;
+    r.passCount = (Number(r.passCount) || 0) + 1;
     lastReportsSig = reportsSignature(reports);
     render();
-    toast_('Report passed', `${incoming.id || id} was passed to ${incoming.assignedToName || 'dispatcher'}.`);
-    return true;
+    toast_('Report passed', `${id} was passed to ${targetName}.`);
+    
+    // Make server call in background
+    try {
+      const res = await fetch(`/api/report/${encodeURIComponent(id)}/pass`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetDispatcherId }),
+      });
+      
+      if (res.status === 401) {
+        const data = await res.json().catch(() => ({}));
+        handleUnauthorized(data);
+        // Revert on auth error
+        r.assignedToId = originalAssignment.assignedToId;
+        r.assignedToName = originalAssignment.assignedToName;
+        r.passCount = originalAssignment.passCount;
+        lastReportsSig = reportsSignature(reports);
+        render();
+        return false;
+      }
+      
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Could not pass report');
+      }
+      
+      // Sync the full response from server for accuracy
+      const incoming = normalizeReport(data.report || {});
+      const reportIndex = reports.findIndex(x => x.id === incoming.id);
+      if (reportIndex >= 0) {
+        reports[reportIndex] = incoming;
+      }
+      lastReportsSig = reportsSignature(reports);
+      render();
+      return true;
+    } catch (e) {
+      // Revert on error
+      r.assignedToId = originalAssignment.assignedToId;
+      r.assignedToName = originalAssignment.assignedToName;
+      r.passCount = originalAssignment.passCount;
+      lastReportsSig = reportsSignature(reports);
+      render();
+      toast_('Error', e && e.message ? e.message : 'Could not pass report.', 'warn');
+      return false;
+    }
   }
 
   async function passReportPrompt(id) {
@@ -2337,6 +2393,15 @@
       toast_('Error', 'Missing report ID.', 'warn');
       return;
     }
+    // Update UI immediately for instant feedback
+    const r = reports.find(x=>x.id===id);
+    const originalStatus = r ? r.status : null;
+    if (r) { r.status=status; lastReportsSig = reportsSignature(reports); render(); }
+    const msgs = {verifying:'Calling reporter to verifyÃ¢â‚¬Â¦',dispatched:'Response team dispatched!',resolved:'Incident resolved.',['false-report']:'Flagged as false report.'};
+    callStartedIds.delete(id);
+    const msg = status === 'verifying' ? 'Verification stage started.' : (msgs[status] || '');
+    toast_(id, msg);
+    
     try {
       const res = await fetch(`/api/report/${encodeURIComponent(id)}/status`, {
         method: 'PATCH',
@@ -2350,13 +2415,11 @@
         return;
       }
       if (!res.ok) throw new Error(data.error || 'Could not update status');
-      const r = reports.find(x=>x.id===id);
-      if (r) { r.status=status; lastReportsSig = reportsSignature(reports); render(); }
-      const msgs = {verifying:'Calling reporter to verifyÃ¢â‚¬Â¦',dispatched:'Response team dispatched!',resolved:'Incident resolved.',['false-report']:'Flagged as false report.'};
-      callStartedIds.delete(id);
-      const msg = status === 'verifying' ? 'Verification stage started.' : (msgs[status] || '');
-      toast_(id, msg);
-    } catch(e) { toast_('Error', e && e.message ? e.message : 'Could not update status.','warn'); }
+    } catch(e) { 
+      // Revert if error
+      if (r && originalStatus) { r.status = originalStatus; render(); }
+      toast_('Error', e && e.message ? e.message : 'Could not update status.','warn'); 
+    }
   }
 
   function editDetails(id) {
