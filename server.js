@@ -8,12 +8,18 @@ const Pusher     = require('pusher');
 const path       = require('path');
 const mongoose   = require('mongoose');
 const compression = require('compression');
+let firebaseAdmin = null;
+try {
+  firebaseAdmin = require('firebase-admin');
+} catch (_err) {}
 
 const Report      = require('./models/Report');
 const Counter     = require('./models/Counter');
 const Admin       = require('./models/Admin');
 const Dispatcher  = require('./models/Dispatcher');
 const AuditLog    = require('./models/AuditLog');
+const Alert       = require('./models/Alert');
+const DeviceToken = require('./models/DeviceToken');
 const Session     = require('./models/Session');
 const LoginAttempt = require('./models/LoginAttempt');
 
@@ -75,6 +81,7 @@ const pusher = process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.en
     useTLS: true,
   })
   : null;
+let firebaseAdminApp = undefined;
 
 const SUPABASE_CONFIG = {
   url: String(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim().replace(/\/+$/, ''),
@@ -121,6 +128,7 @@ async function initDatabase() {
       await ensureDefaultAdmin();
     } catch (err) {
       console.error('  ✘  MongoDB connection error:', err.message);
+      logMongoConnectionHints(err, mongoUri);
       dbInitPromise = null;
       if (require.main === module) process.exit(1);
       throw err;
@@ -149,6 +157,48 @@ function extractDbNameFromMongoUri(uriRaw) {
   } catch (_err) {
     return '';
   }
+}
+
+function summarizeMongoTarget(uriRaw) {
+  const uri = String(uriRaw || '').trim();
+  if (!uri) return '';
+  try {
+    const parsed = new URL(uri);
+    return parsed.host || '';
+  } catch (_err) {
+    return '';
+  }
+}
+
+function logMongoConnectionHints(err, mongoUri) {
+  const message = String(err?.message || '');
+  const target = summarizeMongoTarget(mongoUri);
+  const hints = [];
+
+  if (/Could not connect to any servers|Server selection timed out/i.test(message)) {
+    hints.push('Verify the Atlas cluster is running and reachable from this network.');
+  }
+  if (/whitelist|access list|IP that isn\'t whitelisted/i.test(message)) {
+    hints.push('Add your current public IP to Atlas Network Access, or temporarily allow 0.0.0.0/0 for testing.');
+  }
+  if (/auth|Authentication failed|bad auth/i.test(message)) {
+    hints.push('Recheck the Atlas database username, password, and special-character escaping in MONGODB_URI.');
+  }
+  if (/ENOTFOUND|EREFUSED|ECONNRESET|ETIMEDOUT|querySrv/i.test(message)) {
+    hints.push('Check local DNS, firewall, proxy, or VPN settings. Atlas SRV lookups must be allowed from this machine.');
+  }
+  if (/certificate|TLS|SSL/i.test(message)) {
+    hints.push('Confirm TLS inspection or antivirus is not blocking Atlas certificates.');
+  }
+
+  if (!hints.length) {
+    hints.push('Check Atlas Network Access, cluster status, database user credentials, and DNS reachability.');
+  }
+
+  if (target) {
+    console.error(`    target: ${target}`);
+  }
+  hints.forEach((hint) => console.error(`    hint: ${hint}`));
 }
 
 async function recordLoginAttempt(key) {
@@ -769,6 +819,118 @@ app.post('/admin/dispatchers/:id/delete', requireRolesPage(['admin'], '/login'),
   } catch (err) {
     console.error(err);
     res.redirect(adminRedirectUrl(req, { err: 'Could not delete dispatcher' }));
+  }
+});
+
+app.post('/admin/alerts', requireRolesPage(['admin'], '/login'), async (req, res) => {
+  try {
+    const title = String(req.body.title || '').trim();
+    const message = String(req.body.message || '').trim();
+    const disasterType = String(req.body.disasterType || 'General').trim() || 'General';
+    const severity = String(req.body.severity || 'High').trim() || 'High';
+
+    if (!title && !message) {
+      return renderAdminPage(req, res, { error: 'Alert title or message is required.' }, 400);
+    }
+
+    const alert = await Alert.create({
+      title: title || `${disasterType} alert`,
+      message: message || title,
+      disasterType,
+      severity,
+      active: req.body.active !== 'false',
+      sentBy: String(req.auth.fullName || req.auth.username || 'Admin').trim(),
+    });
+
+    await logAudit({
+      actorRole: 'admin',
+      actorId: String(req.auth.userId || ''),
+      actorName: String(req.auth.fullName || req.auth.username || 'Admin'),
+      action: 'ALERT_CREATE',
+      targetType: 'alert',
+      targetId: String(alert._id),
+      details: `${alert.disasterType} ${alert.severity} alert published`,
+    });
+
+    const realtimeAlert = formatAlertPayload(alert);
+    await emitRealtime('alert-created', realtimeAlert);
+    await emitRealtime('admin-alert-created', realtimeAlert);
+    await sendPushAlertToDevices(realtimeAlert);
+
+    return res.redirect(adminRedirectUrl(req, { ok: 'Alert published' }));
+  } catch (err) {
+    console.error(err);
+    return renderAdminPage(req, res, { error: 'Could not publish alert.' }, 500);
+  }
+});
+
+app.get('/api/alerts/latest', async (_req, res) => {
+  try {
+    await ensureDbReady();
+    const latestAlert = await Alert.findOne({ active: true }).sort({ timestamp: -1 }).lean();
+    return res.json({
+      success: true,
+      alert: latestAlert ? formatAlertPayload(latestAlert) : null,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, error: 'Could not fetch latest alert.' });
+  }
+});
+
+app.get('/api/alerts', async (_req, res) => {
+  try {
+    await ensureDbReady();
+    const alerts = await Alert.find().sort({ timestamp: -1 }).limit(20).lean();
+    return res.json({
+      success: true,
+      alerts: alerts.map(formatAlertPayload),
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, error: 'Could not fetch alerts.' });
+  }
+});
+
+app.post('/api/device-tokens/register', async (req, res) => {
+  try {
+    await ensureDbReady();
+    const token = String(req.body.token || '').trim();
+    if (!token) {
+      return res.status(400).json({ success: false, error: 'Device token is required.' });
+    }
+    const platform = String(req.body.platform || 'unknown').trim() || 'unknown';
+    const deviceLabel = String(req.body.deviceLabel || '').trim();
+    await DeviceToken.findOneAndUpdate(
+      { token },
+      {
+        token,
+        platform,
+        deviceLabel,
+        isActive: true,
+        lastSeenAt: new Date(),
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    return res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, error: 'Could not register device token.' });
+  }
+});
+
+app.post('/api/device-tokens/unregister', async (req, res) => {
+  try {
+    await ensureDbReady();
+    const token = String(req.body.token || '').trim();
+    if (!token) {
+      return res.status(400).json({ success: false, error: 'Device token is required.' });
+    }
+    await DeviceToken.deleteOne({ token });
+    return res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, error: 'Could not unregister device token.' });
   }
 });
 
@@ -2003,6 +2165,7 @@ async function renderAdminPage(req, res, options = {}, statusCode = 200) {
     from: data.from,
     to: data.to,
     tab: data.tab,
+    latestAlert: data.latestAlert,
     currentUser: req.auth,
     error: options.error || '',
     success: options.success || '',
@@ -2018,6 +2181,7 @@ async function getAdminViewData(req) {
   const reportPage = parsePositiveInt(source.reportPage, 1);
   const auditPage = parsePositiveInt(source.auditPage, 1);
   const dispatchers = await Dispatcher.find().sort({ createdAt: -1 }).lean();
+  const latestAlert = await Alert.findOne({ active: true }).sort({ timestamp: -1 }).lean();
   const reportTotal = await Report.countDocuments(where);
   const reportTotalPages = Math.max(1, Math.ceil(reportTotal / ADMIN_REPORTS_PAGE_SIZE));
   const safeReportPage = Math.min(reportPage, reportTotalPages);
@@ -2056,6 +2220,7 @@ async function getAdminViewData(req) {
     from,
     to,
     tab: pickAdminTab(source.tab),
+    latestAlert,
   };
 }
 
@@ -2076,6 +2241,155 @@ function adminRedirectUrl(req, flash = {}) {
   if (flash.err) params.set('err', String(flash.err));
   const q = params.toString();
   return q ? `/admin?${q}` : '/admin';
+}
+
+function formatAlertPayload(alert) {
+  if (!alert) return null;
+  return {
+    id: String(alert._id || alert.id || ''),
+    title: String(alert.title || 'Emergency alert'),
+    message: String(alert.message || ''),
+    disasterType: String(alert.disasterType || 'General'),
+    severity: String(alert.severity || 'High'),
+    active: alert.active !== false,
+    sentBy: String(alert.sentBy || ''),
+    createdAt: alert.timestamp || alert.createdAt || null,
+    updatedAt: alert.updatedAt || alert.timestamp || null,
+  };
+}
+
+function getFirebaseServiceAccount() {
+  const inlineJson = String(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '').trim();
+  if (inlineJson) {
+    try {
+      const parsed = JSON.parse(inlineJson);
+      if (parsed && parsed.private_key) {
+        parsed.private_key = String(parsed.private_key).replace(/\\n/g, '\n');
+      }
+      return parsed;
+    } catch (err) {
+      console.error('[push] invalid FIREBASE_SERVICE_ACCOUNT_JSON:', err && err.message ? err.message : err);
+      return null;
+    }
+  }
+
+  const projectId = String(process.env.FIREBASE_PROJECT_ID || '').trim();
+  const clientEmail = String(process.env.FIREBASE_CLIENT_EMAIL || '').trim();
+  const privateKey = String(process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n').trim();
+  if (!projectId || !clientEmail || !privateKey) {
+    console.warn('[push] Firebase service account env vars are missing. Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_PROJECT_ID/FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY.');
+    return null;
+  }
+  return {
+    project_id: projectId,
+    client_email: clientEmail,
+    private_key: privateKey,
+  };
+}
+
+function getFirebaseAdminApp() {
+  if (firebaseAdminApp !== undefined) {
+    return firebaseAdminApp || null;
+  }
+  if (!firebaseAdmin) {
+    firebaseAdminApp = null;
+    return null;
+  }
+  const serviceAccount = getFirebaseServiceAccount();
+  if (!serviceAccount) {
+    firebaseAdminApp = null;
+    return null;
+  }
+  try {
+    firebaseAdminApp = firebaseAdmin.apps && firebaseAdmin.apps.length
+      ? firebaseAdmin.app()
+      : firebaseAdmin.initializeApp({
+        credential: firebaseAdmin.credential.cert(serviceAccount),
+      });
+    return firebaseAdminApp;
+  } catch (err) {
+    console.error('[push] firebase-admin init failed:', err && err.message ? err.message : err);
+    firebaseAdminApp = null;
+    return null;
+  }
+}
+
+async function sendPushAlertToDevices(alertPayload) {
+  try {
+    const app = getFirebaseAdminApp();
+    if (!alertPayload) return;
+    if (!app) {
+      console.warn('[push] Push skipped because Firebase Admin is not configured.');
+      return;
+    }
+
+    const devices = await DeviceToken.find({ isActive: true }).select('token').lean();
+    const tokens = devices
+      .map(device => String(device.token || '').trim())
+      .filter(Boolean);
+    if (!tokens.length) {
+      console.warn('[push] Push skipped because there are no registered device tokens.');
+      return;
+    }
+
+    const body = String(alertPayload.message || '').trim()
+      || `${alertPayload.disasterType || 'General'} alert`;
+
+    const response = await firebaseAdmin.messaging(app).sendEachForMulticast({
+      tokens,
+      notification: {
+        title: String(alertPayload.title || 'Emergency alert'),
+        body,
+      },
+      data: {
+        kind: 'admin_alert',
+        id: String(alertPayload.id || ''),
+        title: String(alertPayload.title || 'Emergency alert'),
+        message: body,
+        disasterType: String(alertPayload.disasterType || 'General'),
+        severity: String(alertPayload.severity || 'High'),
+        active: String(alertPayload.active !== false),
+        createdAt: String(alertPayload.createdAt || ''),
+      },
+      android: {
+        priority: 'high',
+        notification: {
+          channelId: 'svs_alerts',
+          sound: 'default',
+          priority: 'max',
+          defaultVibrateTimings: true,
+          visibility: 'public',
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: 'default',
+            badge: 1,
+          },
+        },
+      },
+    });
+    console.log(`[push] Alert fanout complete. success=${response.successCount} failure=${response.failureCount} tokens=${tokens.length}`);
+
+    const invalidTokens = [];
+    response.responses.forEach((result, index) => {
+      if (result.success) return;
+      const code = String(result.error && result.error.code || '');
+      console.warn(`[push] Token send failed (${code || 'unknown-error'}) for token index ${index}.`);
+      if (code.includes('registration-token-not-registered') ||
+          code.includes('invalid-argument') ||
+          code.includes('invalid-registration-token')) {
+        invalidTokens.push(tokens[index]);
+      }
+    });
+    if (invalidTokens.length) {
+      await DeviceToken.deleteMany({ token: { $in: invalidTokens } });
+      console.warn(`[push] Removed ${invalidTokens.length} invalid device token(s).`);
+    }
+  } catch (err) {
+    console.error('[push] failed to send alert notification:', err && err.message ? err.message : err);
+  }
 }
 
 function parsePositiveInt(value, fallback = 1) {
@@ -2246,4 +2560,3 @@ if (require.main === module) {
 }
 
 module.exports = app;
-
