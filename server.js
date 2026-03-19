@@ -88,6 +88,9 @@ const SUPABASE_CONFIG = {
   anonKey: String(process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim(),
   bucket: String(process.env.SUPABASE_BUCKET || 'svs_photo').trim(),
 };
+const SUPABASE_SERVICE_ROLE_KEY = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+const SUPABASE_ALERTS_TABLE = String(process.env.SUPABASE_ALERTS_TABLE || 'admin_alerts').trim();
+const SUPABASE_DEVICE_TOKENS_TABLE = String(process.env.SUPABASE_DEVICE_TOKENS_TABLE || 'device_tokens').trim();
 const MOBILE_ALERTS_BASE_URL = String(
   process.env.MOBILE_ALERTS_BASE_URL
   || process.env.MOBILE_APP_BASE_URL
@@ -219,6 +222,161 @@ function looksLocalBaseUrl(input) {
     value.includes('://0.0.0.0') ||
     value.includes('://10.0.2.2')
   );
+}
+
+function getSupabaseApiKey(preferServiceRole = false) {
+  if (preferServiceRole && SUPABASE_SERVICE_ROLE_KEY) return SUPABASE_SERVICE_ROLE_KEY;
+  return SUPABASE_CONFIG.anonKey || SUPABASE_SERVICE_ROLE_KEY || '';
+}
+
+function getSupabaseRestUrl(pathWithQuery) {
+  if (!SUPABASE_CONFIG.url) return '';
+  const cleanPath = String(pathWithQuery || '').replace(/^\/+/, '');
+  return `${SUPABASE_CONFIG.url}/rest/v1/${cleanPath}`;
+}
+
+function getSupabaseHeaders({ preferServiceRole = false, preferRepresentation = false, upsert = false } = {}) {
+  const apiKey = getSupabaseApiKey(preferServiceRole);
+  if (!apiKey) return null;
+  const headers = {
+    apikey: apiKey,
+    Authorization: `Bearer ${apiKey}`,
+    'Content-Type': 'application/json',
+  };
+  if (preferRepresentation) {
+    headers.Prefer = 'return=representation';
+  }
+  if (upsert) {
+    headers.Prefer = headers.Prefer
+      ? `${headers.Prefer},resolution=merge-duplicates`
+      : 'resolution=merge-duplicates';
+  }
+  return headers;
+}
+
+function hasSupabaseRestAccess() {
+  return Boolean(SUPABASE_CONFIG.url && getSupabaseApiKey(true));
+}
+
+async function upsertSupabaseAlert(alertPayload) {
+  if (!hasSupabaseRestAccess()) {
+    return {
+      ok: false,
+      message: 'Supabase alert sync skipped because SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing.',
+    };
+  }
+
+  const url = getSupabaseRestUrl(`${encodeURIComponent(SUPABASE_ALERTS_TABLE)}?on_conflict=source_id&select=id`);
+  const headers = getSupabaseHeaders({
+    preferServiceRole: true,
+    preferRepresentation: true,
+    upsert: true,
+  });
+  const payload = {
+    source_id: String(alertPayload.id || '').trim(),
+    title: String(alertPayload.title || '').trim() || 'Emergency alert',
+    message: String(alertPayload.message || '').trim(),
+    disaster_type: String(alertPayload.disasterType || 'General').trim(),
+    severity: String(alertPayload.severity || 'High').trim(),
+    active: alertPayload.active !== false,
+    sent_by: String(alertPayload.sentBy || 'Admin').trim(),
+    created_at: alertPayload.createdAt || new Date().toISOString(),
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      console.warn(`[supabase] alert sync failed: ${response.status} ${body}`.trim());
+      return { ok: false, message: `Supabase alert sync failed (${response.status}).` };
+    }
+    return { ok: true, message: 'Alert synced to Supabase.' };
+  } catch (err) {
+    console.warn('[supabase] alert sync failed:', err && err.message ? err.message : err);
+    return { ok: false, message: 'Supabase alert sync failed because the REST API is unreachable.' };
+  }
+}
+
+async function syncDeviceTokenToSupabase(tokenRecord) {
+  if (!hasSupabaseRestAccess()) return;
+  const token = String(tokenRecord && tokenRecord.token || '').trim();
+  if (!token) return;
+
+  const url = getSupabaseRestUrl(`${encodeURIComponent(SUPABASE_DEVICE_TOKENS_TABLE)}?on_conflict=token`);
+  const headers = getSupabaseHeaders({ preferServiceRole: true, upsert: true });
+  const payload = {
+    token,
+    platform: String(tokenRecord.platform || 'unknown').trim() || 'unknown',
+    device_label: String(tokenRecord.deviceLabel || '').trim(),
+    is_active: tokenRecord.isActive !== false,
+    last_seen_at: new Date().toISOString(),
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      console.warn(`[supabase] device token sync failed: ${response.status} ${body}`.trim());
+    }
+  } catch (err) {
+    console.warn('[supabase] device token sync failed:', err && err.message ? err.message : err);
+  }
+}
+
+async function deactivateSupabaseDeviceToken(token) {
+  if (!hasSupabaseRestAccess()) return;
+  const cleanToken = String(token || '').trim();
+  if (!cleanToken) return;
+  const url = getSupabaseRestUrl(`${encodeURIComponent(SUPABASE_DEVICE_TOKENS_TABLE)}?token=eq.${encodeURIComponent(cleanToken)}`);
+  const headers = getSupabaseHeaders({ preferServiceRole: true });
+  try {
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        is_active: false,
+        last_seen_at: new Date().toISOString(),
+      }),
+    });
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      console.warn(`[supabase] device token deactivate failed: ${response.status} ${body}`.trim());
+    }
+  } catch (err) {
+    console.warn('[supabase] device token deactivate failed:', err && err.message ? err.message : err);
+  }
+}
+
+async function getSupabaseDeviceTokens() {
+  if (!hasSupabaseRestAccess()) return [];
+  const url = getSupabaseRestUrl(
+    `${encodeURIComponent(SUPABASE_DEVICE_TOKENS_TABLE)}?select=token&is_active=eq.true`
+  );
+  const headers = getSupabaseHeaders({ preferServiceRole: true });
+  try {
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      console.warn(`[supabase] device token fetch failed: ${response.status} ${body}`.trim());
+      return [];
+    }
+    const rows = await response.json().catch(() => []);
+    if (!Array.isArray(rows)) return [];
+    return rows
+      .map((row) => String((row && row.token) || '').trim())
+      .filter(Boolean);
+  } catch (err) {
+    console.warn('[supabase] device token fetch failed:', err && err.message ? err.message : err);
+    return [];
+  }
 }
 
 async function syncAlertToMobileBackend(alertPayload) {
@@ -924,13 +1082,14 @@ app.post('/admin/alerts', requireRolesPage(['admin'], '/login'), async (req, res
     const realtimeAlert = formatAlertPayload(alert);
     await emitRealtime('alert-created', realtimeAlert);
     await emitRealtime('admin-alert-created', realtimeAlert);
+    const supabaseResult = await upsertSupabaseAlert(realtimeAlert);
     await sendPushAlertToDevices(realtimeAlert);
     const mirrorResult = await syncAlertToMobileBackend(realtimeAlert);
 
     return res.redirect(adminRedirectUrl(req, {
-      ok: mirrorResult.ok
+      ok: supabaseResult.ok && mirrorResult.ok
         ? 'Alert published'
-        : `Alert published locally. ${mirrorResult.message}`,
+        : `Alert published locally. ${supabaseResult.ok ? '' : `${supabaseResult.message} `}${mirrorResult.ok ? '' : mirrorResult.message}`.trim(),
     }));
   } catch (err) {
     console.error(err);
@@ -986,6 +1145,12 @@ app.post('/api/device-tokens/register', async (req, res) => {
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
+    await syncDeviceTokenToSupabase({
+      token,
+      platform,
+      deviceLabel,
+      isActive: true,
+    });
     return res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -1001,6 +1166,7 @@ app.post('/api/device-tokens/unregister', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Device token is required.' });
     }
     await DeviceToken.deleteOne({ token });
+    await deactivateSupabaseDeviceToken(token);
     return res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -2390,10 +2556,14 @@ async function sendPushAlertToDevices(alertPayload) {
       return;
     }
 
-    const devices = await DeviceToken.find({ isActive: true }).select('token').lean();
-    const tokens = devices
-      .map(device => String(device.token || '').trim())
-      .filter(Boolean);
+    const [mongoDevices, supabaseTokens] = await Promise.all([
+      DeviceToken.find({ isActive: true }).select('token').lean(),
+      getSupabaseDeviceTokens(),
+    ]);
+    const tokens = Array.from(new Set([
+      ...mongoDevices.map(device => String(device.token || '').trim()),
+      ...supabaseTokens.map(token => String(token || '').trim()),
+    ].filter(Boolean)));
     if (!tokens.length) {
       console.warn('[push] Push skipped because there are no registered device tokens.');
       return;
@@ -2452,6 +2622,7 @@ async function sendPushAlertToDevices(alertPayload) {
     });
     if (invalidTokens.length) {
       await DeviceToken.deleteMany({ token: { $in: invalidTokens } });
+      await Promise.all(invalidTokens.map((token) => deactivateSupabaseDeviceToken(token)));
       console.warn(`[push] Removed ${invalidTokens.length} invalid device token(s).`);
     }
   } catch (err) {
