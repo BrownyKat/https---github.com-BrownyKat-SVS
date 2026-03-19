@@ -962,7 +962,7 @@ app.patch('/api/report/:id/status', requireRolesApi(['dispatcher', 'admin']), as
       return res.status(400).json({ error: 'Invalid status value' });
     }
     const where = reportLookupQuery(req.params.id);
-    const updates = { status: req.body.status };
+    const updates = { status: nextStatus };
     if (req.auth && req.auth.role === 'dispatcher') {
       updates.dispatcherId = String(req.auth.userId || '');
       updates.dispatcherName = String(req.auth.fullName || req.auth.username || '').trim();
@@ -972,6 +972,7 @@ app.patch('/api/report/:id/status', requireRolesApi(['dispatcher', 'admin']), as
       updates,
       { new: true }
     );
+    if (!report) return res.status(404).json({ error: 'Report not found' });
     await logAudit({
       actorRole: req.auth.role,
       actorId: req.auth.userId,
@@ -989,10 +990,10 @@ app.patch('/api/report/:id/status', requireRolesApi(['dispatcher', 'admin']), as
       assignedToName: report.assignedToName || '',
       assignedAt: report.assignedAt || null,
     });
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Could not update report' });
+    return res.status(500).json({ error: 'Could not update report' });
   }
 });
 
@@ -1163,7 +1164,8 @@ app.delete('/api/reports', requireRolesApi(['dispatcher', 'admin']), async (_req
 // ── API: list all reports (JSON) ─────────────────────────────────────────────
 app.get('/api/reports', requireRolesApi(['dispatcher', 'admin']), async (_req, res) => {
   try {
-    const reports = await Report.find(buildReportVisibilityQuery(_req.auth)).sort({ timestamp: -1 }).lean({ virtuals: true });
+    const query = buildReportVisibilityQuery(_req.auth);
+    const reports = await Report.find(query).sort({ timestamp: -1 }).lean({ virtuals: true });
     res.json(reports);
   } catch (err) {
     console.error(err);
@@ -1261,10 +1263,12 @@ app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async
     const actorName = String(req.auth.fullName || req.auth.username || '').trim();
     const actorUsername = String(req.auth.username || '').trim();
     const nextPassCount = Math.max(0, Number(current.passCount) || 0) + 1;
+    const assignedToIdStr = String(target._id || '').trim();
+    
     const report = await Report.findOneAndUpdate(
       where,
       {
-        assignedToId: String(target._id),
+        assignedToId: assignedToIdStr,
         assignedToUsername: String(target.username || '').trim(),
         assignedToName: nextAssignedName,
         assignedAt: new Date(),
@@ -1276,6 +1280,7 @@ app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async
       },
       { new: true }
     );
+    if (!report) return res.status(404).json({ error: 'Report not found' });
     await logAudit({
       actorRole: req.auth.role,
       actorId: req.auth.userId,
@@ -1797,6 +1802,8 @@ function buildReportVisibilityQuery(auth) {
   if (!auth) return { _id: null };
   if (auth.role === 'admin') return {};
   const userId = String(auth.userId || '').trim();
+  // Dispatchers can see unassigned reports and reports assigned to them
+  // Use explicit string comparison to handle both ObjectId and string formats
   return {
     $or: [
       { assignedToId: { $exists: false } },
