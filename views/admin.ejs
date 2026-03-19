@@ -215,6 +215,41 @@
       line-height:1.5;
       box-shadow:var(--shadow-sm);
     }
+    .section-actions{
+      display:flex;
+      align-items:stretch;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .alert-mini{
+      min-width:260px;
+      max-width:420px;
+      padding:12px 14px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:rgba(255,255,255,.88);
+      box-shadow:var(--shadow-sm);
+    }
+    .alert-mini-label{
+      display:block;
+      margin-bottom:6px;
+      color:var(--muted2);
+      font:700 11px 'JetBrains Mono',monospace;
+      letter-spacing:.8px;
+      text-transform:uppercase;
+    }
+    .alert-mini strong{
+      display:block;
+      margin-bottom:4px;
+      color:var(--text);
+      font-size:15px;
+    }
+    .alert-mini p{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+    }
     .section-head svg{
       width:22px;height:22px;stroke:var(--amber);fill:none;stroke-width:1.9;
       stroke-linecap:round;stroke-linejoin:round;
@@ -319,6 +354,8 @@
     .btn:hover{border-color:var(--border-strong);background:#fff7eb}
     .btn.primary{background:var(--amber);border-color:var(--amber);color:#fff}
     .btn.primary:hover{background:#b45309}
+    .btn.danger{background:#dc2626;border-color:#dc2626;color:#fff}
+    .btn.danger:hover{background:#b91c1c;border-color:#b91c1c}
     .pager{
       margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
       padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;
@@ -451,7 +488,11 @@
       font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
       color:var(--muted2);font-family:'JetBrains Mono',monospace;
     }
-    .modal-field input{width:100%;padding:10px;border:1px solid #d8cdbd;border-radius:9px;font-family:'Outfit',sans-serif}
+    .modal-field input,
+    .modal-field select,
+    .modal-field textarea{width:100%;padding:10px;border:1px solid #d8cdbd;border-radius:9px;font-family:'Outfit',sans-serif}
+    .modal-field textarea{min-height:110px;resize:vertical}
+    .modal-field.full{grid-column:1 / -1}
     .modal-check{grid-column:1 / -1;display:flex;align-items:center;gap:8px;color:var(--text2);font-weight:600}
     .modal-actions{grid-column:1 / -1;display:flex;justify-content:flex-end;gap:8px;padding-top:2px}
     .delete-body{padding:14px}
@@ -646,7 +687,22 @@
             </h2>
             <p class="section-intro">Start here for the current system picture. The cards and charts summarize report volume, dispatcher readiness, and false report trends without changing the underlying admin process.</p>
           </div>
-          <p class="section-note"><strong>Use this panel for quick situational awareness.</strong> Drill into Reports for detailed history, Dispatchers for account changes, and Audit Trail for action review.</p>
+          <div class="section-actions">
+            <p class="section-note"><strong>Use this panel for quick situational awareness.</strong> Drill into Reports for detailed history, Dispatchers for account changes, and Audit Trail for action review.</p>
+            <div class="alert-mini">
+              <span class="alert-mini-label">Admin Alert</span>
+              <% if (latestAlert) { %>
+                <strong><%= latestAlert.title || 'Active alert' %></strong>
+                <p><%= latestAlert.disasterType || 'General' %> · <%= latestAlert.severity || 'High' %><br><%= latestAlert.message || 'No message provided.' %></p>
+              <% } else { %>
+                <strong>No active alert</strong>
+                <p>Use the button below to publish a dashboard alert for current operations.</p>
+              <% } %>
+            </div>
+            <div style="display:flex;align-items:flex-start">
+              <button class="btn danger" type="button" id="openAlertModal">Send Alert</button>
+            </div>
+          </div>
         </div>
         <div class="stats">
           <div class="kpi"><div class="k">Reports (Filtered)</div><div class="v" id="statTotalReports"><%= stats.totalReports %></div></div>
@@ -984,8 +1040,57 @@
       </div>
     </div>
   </div>
+  <div id="alertModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="alertModalTitle">
+      <div class="modal-head">
+        <h3 class="modal-title" id="alertModalTitle">Publish Alert</h3>
+        <button class="modal-close" type="button" data-close-modal="#alertModal">Close</button>
+      </div>
+      <form class="modal-form" method="post" action="/admin/alerts">
+        <input type="hidden" name="tab" value="dashboard">
+        <input type="hidden" name="reportPage" value="<%= (reportPagination && reportPagination.page) || 1 %>">
+        <input type="hidden" name="auditPage" value="<%= (auditPagination && auditPagination.page) || 1 %>">
+        <div class="modal-field">
+          <label for="alertTitle">Title</label>
+          <input id="alertTitle" type="text" name="title" placeholder="Flood warning in low-lying areas">
+        </div>
+        <div class="modal-field">
+          <label for="alertType">Disaster Type</label>
+          <select id="alertType" name="disasterType">
+            <option>General</option>
+            <option>Flood</option>
+            <option>Fire</option>
+            <option>Medical</option>
+            <option>Accident</option>
+            <option>Landslide</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label for="alertSeverity">Severity</label>
+          <select id="alertSeverity" name="severity">
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+          </select>
+        </div>
+        <label class="modal-check"><input type="checkbox" name="active" value="true" checked> Mark alert as active</label>
+        <div class="modal-field full">
+          <label for="alertMessage">Message</label>
+          <textarea id="alertMessage" name="message" placeholder="Advise residents to prepare for possible evacuation and monitor MDRRMO updates."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" type="button" data-close-modal="#alertModal">Cancel</button>
+          <button class="btn danger" type="submit">Publish Alert</button>
+        </div>
+      </form>
+    </div>
+  </div>
   <script id="reportsSeed" type="application/json"><%- JSON.stringify(reports) %></script>
   <script id="auditSeed" type="application/json"><%- JSON.stringify(auditLogs) %></script>
+  <script id="realtimeSeed" type="application/json"><%- JSON.stringify(realtime || {}) %></script>
+  <script id="reportPaginationSeed" type="application/json"><%- JSON.stringify(reportPagination || { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false }) %></script>
+  <script id="auditPaginationSeed" type="application/json"><%- JSON.stringify(auditPagination || { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false }) %></script>
   <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -1042,6 +1147,7 @@
       });
     });
     document.getElementById('openAddDispatcher')?.addEventListener('click', () => openModal('#addDispatcherModal'));
+    document.getElementById('openAlertModal')?.addEventListener('click', () => openModal('#alertModal'));
 
     const editForm = document.getElementById('editDispatcherForm');
     const deleteForm = document.getElementById('deleteDispatcherForm');
@@ -1074,7 +1180,17 @@
       document.querySelectorAll('.modal-backdrop.show').forEach(m => closeModal('#' + m.id));
     });
 
-    const realtimeCfg = <%- JSON.stringify(realtime || {}) %>;
+    function parseJsonSeed(id, fallback) {
+      try {
+        const el = document.getElementById(id);
+        if (!el) return fallback;
+        return JSON.parse(el.textContent || JSON.stringify(fallback));
+      } catch (_e) {
+        return fallback;
+      }
+    }
+
+    const realtimeCfg = parseJsonSeed('realtimeSeed', {});
     const pusher = (realtimeCfg.key && realtimeCfg.cluster && window.Pusher)
       ? new Pusher(realtimeCfg.key, { cluster: realtimeCfg.cluster, forceTLS: true })
       : null;
@@ -1150,8 +1266,12 @@
       activeDispatchers: toNum(document.getElementById('statActiveDispatchers') && document.getElementById('statActiveDispatchers').textContent),
       auditCount: toNum(document.getElementById('statAuditCount') && document.getElementById('statAuditCount').textContent),
     };
-    let reportPaginationState = <%- JSON.stringify(reportPagination || { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false }) %>;
-    let auditPaginationState = <%- JSON.stringify(auditPagination || { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false }) %>;
+    let reportPaginationState = parseJsonSeed('reportPaginationSeed', {
+      page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false
+    });
+    let auditPaginationState = parseJsonSeed('auditPaginationSeed', {
+      page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false
+    });
 
     const severityLevels = ['Low', 'Medium', 'High'];
     const trendRangeSelect = document.getElementById('trendRangeSelect');
@@ -1623,4 +1743,3 @@
   </script>
 </body>
 </html>
-
