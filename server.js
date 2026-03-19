@@ -88,6 +88,12 @@ const SUPABASE_CONFIG = {
   anonKey: String(process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim(),
   bucket: String(process.env.SUPABASE_BUCKET || 'svs_photo').trim(),
 };
+const MOBILE_ALERTS_BASE_URL = String(
+  process.env.MOBILE_ALERTS_BASE_URL
+  || process.env.MOBILE_APP_BASE_URL
+  || process.env.BASE_URL
+  || ''
+).trim().replace(/\/+$/, '');
 
 // ── Database connection ──────────────────────────────────────────────────────
 async function initDatabase() {
@@ -199,6 +205,69 @@ function logMongoConnectionHints(err, mongoUri) {
     console.error(`    target: ${target}`);
   }
   hints.forEach((hint) => console.error(`    hint: ${hint}`));
+}
+
+function normalizeBaseUrl(input) {
+  return String(input || '').trim().replace(/\/+$/, '');
+}
+
+function looksLocalBaseUrl(input) {
+  const value = normalizeBaseUrl(input).toLowerCase();
+  return (
+    value.includes('://localhost') ||
+    value.includes('://127.0.0.1') ||
+    value.includes('://0.0.0.0') ||
+    value.includes('://10.0.2.2')
+  );
+}
+
+async function syncAlertToMobileBackend(alertPayload) {
+  const targetBaseUrl = normalizeBaseUrl(MOBILE_ALERTS_BASE_URL);
+  if (!targetBaseUrl) {
+    return {
+      ok: false,
+      message: 'Mobile sync skipped because MOBILE_ALERTS_BASE_URL is not configured.',
+    };
+  }
+  if (looksLocalBaseUrl(targetBaseUrl)) {
+    return {
+      ok: false,
+      message: 'Mobile sync skipped because MOBILE_ALERTS_BASE_URL points to a local-only address.',
+    };
+  }
+
+  try {
+    const response = await fetch(`${targetBaseUrl}/api/alerts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: String(alertPayload.title || '').trim(),
+        message: String(alertPayload.message || '').trim(),
+        disasterType: String(alertPayload.disasterType || 'General').trim(),
+        severity: String(alertPayload.severity || 'High').trim(),
+        active: alertPayload.active !== false,
+        sentBy: String(alertPayload.sentBy || 'Admin').trim(),
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      console.warn(`[alerts] mobile sync failed: ${response.status} ${body}`.trim());
+      return {
+        ok: false,
+        message: `Mobile sync failed (${response.status}).`,
+      };
+    }
+
+    console.log(`[alerts] mirrored alert to mobile backend: ${targetBaseUrl}`);
+    return { ok: true, message: 'Alert published' };
+  } catch (err) {
+    console.warn('[alerts] mobile sync failed:', err && err.message ? err.message : err);
+    return {
+      ok: false,
+      message: 'Mobile sync failed because the mobile backend is unreachable.',
+    };
+  }
 }
 
 async function recordLoginAttempt(key) {
@@ -856,8 +925,13 @@ app.post('/admin/alerts', requireRolesPage(['admin'], '/login'), async (req, res
     await emitRealtime('alert-created', realtimeAlert);
     await emitRealtime('admin-alert-created', realtimeAlert);
     await sendPushAlertToDevices(realtimeAlert);
+    const mirrorResult = await syncAlertToMobileBackend(realtimeAlert);
 
-    return res.redirect(adminRedirectUrl(req, { ok: 'Alert published' }));
+    return res.redirect(adminRedirectUrl(req, {
+      ok: mirrorResult.ok
+        ? 'Alert published'
+        : `Alert published locally. ${mirrorResult.message}`,
+    }));
   } catch (err) {
     console.error(err);
     return renderAdminPage(req, res, { error: 'Could not publish alert.' }, 500);
