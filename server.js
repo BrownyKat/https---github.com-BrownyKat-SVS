@@ -1164,7 +1164,8 @@ app.delete('/api/reports', requireRolesApi(['dispatcher', 'admin']), async (_req
 // ── API: list all reports (JSON) ─────────────────────────────────────────────
 app.get('/api/reports', requireRolesApi(['dispatcher', 'admin']), async (_req, res) => {
   try {
-    const reports = await Report.find(buildReportVisibilityQuery(_req.auth)).sort({ timestamp: -1 }).lean({ virtuals: true });
+    const query = buildReportVisibilityQuery(_req.auth);
+    const reports = await Report.find(query).sort({ timestamp: -1 }).lean({ virtuals: true });
     res.json(reports);
   } catch (err) {
     console.error(err);
@@ -1262,10 +1263,12 @@ app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async
     const actorName = String(req.auth.fullName || req.auth.username || '').trim();
     const actorUsername = String(req.auth.username || '').trim();
     const nextPassCount = Math.max(0, Number(current.passCount) || 0) + 1;
+    const assignedToIdStr = String(target._id || '').trim();
+    
     const report = await Report.findOneAndUpdate(
       where,
       {
-        assignedToId: String(target._id),
+        assignedToId: assignedToIdStr,
         assignedToUsername: String(target.username || '').trim(),
         assignedToName: nextAssignedName,
         assignedAt: new Date(),
@@ -1799,6 +1802,8 @@ function buildReportVisibilityQuery(auth) {
   if (!auth) return { _id: null };
   if (auth.role === 'admin') return {};
   const userId = String(auth.userId || '').trim();
+  // Dispatchers can see unassigned reports and reports assigned to them
+  // Use explicit string comparison to handle both ObjectId and string formats
   return {
     $or: [
       { assignedToId: { $exists: false } },

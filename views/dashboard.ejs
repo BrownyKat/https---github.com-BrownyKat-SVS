@@ -1082,18 +1082,18 @@
     </div>
   </div>
   <div class="header-right">
-    <% if (currentUser && currentUser.role === 'admin') { %>
-      <a class="nav-btn" href="/admin">Admin Panel</a>
-    <% } %>
-    <a class="nav-btn" href="/dispatcher/reset" target="_blank" rel="noopener">Reset Password</a>
-    <form method="post" action="/dispatcher/logout" style="margin:0" id="dispatcherLogoutForm">
-      <button class="nav-btn" type="submit">Logout</button>
-    </form>
     <div class="header-weather" id="weatherText">
       <svg viewBox="0 0 24 24"><path d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/></svg>
       Loading weather...
     </div>
     <div class="online-pill"><div class="online-dot"></div>Live</div>
+    <a class="nav-btn" href="/dispatcher/reset" target="_blank" rel="noopener">Reset Password</a>
+    <form method="post" action="/dispatcher/logout" style="margin:0" id="dispatcherLogoutForm">
+      <button class="nav-btn danger" type="submit">Logout</button>
+    </form>
+    <% if (currentUser && currentUser.role === 'admin') { %>
+      <a class="nav-btn" href="/admin">Admin Panel</a>
+    <% } %>
   </div>
 </header>
 
@@ -1429,6 +1429,7 @@
 <script id="initialReports" type="application/json"><%- JSON.stringify(reports) %></script>
 <script id="activeDispatchersSeed" type="application/json"><%- JSON.stringify(activeDispatchers || []) %></script>
 <script id="currentUserSeed" type="application/json"><%- JSON.stringify(currentUser || {}) %></script>
+<script id="realtimeCfgSeed" type="application/json"><%- JSON.stringify(realtime || {}) %></script>
 <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
@@ -1446,7 +1447,13 @@
     }
   });
 
-  const realtimeCfg = <%- JSON.stringify(realtime || {}) %>;
+  let realtimeCfg = {};
+  try {
+    // eslint-disable-next-line no-undef
+    realtimeCfg = JSON.parse(document.getElementById('realtimeCfgSeed')?.textContent || '{}');
+  } catch (_e) {
+    realtimeCfg = {};
+  }
   const logoutForm = document.getElementById('dispatcherLogoutForm');
   if (logoutForm) {
     logoutForm.addEventListener('submit', () => {
@@ -2095,7 +2102,9 @@
       }
       if (!res.ok) return;
       const data = await res.json();
-      const fresh = dedupeReports((Array.isArray(data) ? data : []).map(normalizeReport));
+      let fresh = dedupeReports((Array.isArray(data) ? data : []).map(normalizeReport));
+      // Extra safety: filter out any reports that shouldn't be visible to current user
+      fresh = fresh.filter(r => canSeeReport(r));
       const sig = reportsSignature(fresh);
       if (!forceRender && sig === lastReportsSig) return;
       reports = fresh;
@@ -2329,9 +2338,15 @@
       
       // Sync the full response from server for accuracy
       const incoming = normalizeReport(data.report || {});
-      const reportIndex = reports.findIndex(x => x.id === incoming.id);
-      if (reportIndex >= 0) {
-        reports[reportIndex] = incoming;
+      
+      // After successful pass, explicitly remove the report if it's no longer visible to current user
+      if (!canSeeReport(incoming)) {
+        reports = reports.filter(x => x.id !== incoming.id);
+      } else {
+        const reportIndex = reports.findIndex(x => x.id === incoming.id);
+        if (reportIndex >= 0) {
+          reports[reportIndex] = incoming;
+        }
       }
       lastReportsSig = reportsSignature(reports);
       render();
@@ -2972,12 +2987,22 @@
   });
   if (channel) channel.bind('report-assignment-updated', updated => {
     const u = normalizeReport(updated);
-    if (canSeeReport(u)) upsertReport(u);
-    else reports = reports.filter(x => x.id !== u.id);
+    const reportIdToMatch = u.id || u.reportId || u._id || (updated && updated.id) || '';
+    if (!reportIdToMatch) return; // Skip if no ID
+    
+    if (canSeeReport(u)) {
+      upsertReport(u);
+    } else {
+      // Remove report if current user can no longer see it
+      reports = reports.filter(x => {
+        const xId = x.id || x.reportId || x._id || '';
+        return xId !== reportIdToMatch;
+      });
+    }
     lastReportsSig = reportsSignature(reports);
     render();
     if (updated && updated.lastPassedByName) {
-      addNotification('Report passed', `${updated.lastPassedByName} passed ${updated.id || 'a report'} to ${updated.assignedToName || 'dispatcher'}.`, 'info');
+      addNotification('Report passed', `${updated.lastPassedByName} passed ${reportIdToMatch} to ${updated.assignedToName || 'dispatcher'}.`, 'info');
     }
   });
   if (channel) channel.bind('reports-cleared', ()=>{ reports=[]; lastReportsSig = reportsSignature(reports); render(); });

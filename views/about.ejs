@@ -6,6 +6,7 @@
   <title>SVS — About</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
       --bg:#f8fafc;
@@ -21,120 +22,146 @@
       --shadow-sm:0 6px 18px rgba(15,23,42,0.06);
       --shadow-md:0 12px 28px rgba(15,23,42,0.08);
     }
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;}
-    a{color:var(--accent);text-decoration:none;}
-    a:hover{color:var(--accent-strong);}
-    header{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 4px 16px rgba(15,23,42,.04);display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;gap:1rem;}
-    .brand{display:flex;align-items:center;gap:.75rem;color:var(--text);}
-    .brand img{width:60px;height:52px;object-fit:contain;}
-    .brand-text{line-height:1.05;}
-    .brand-name{font-weight:800;font-size:1.2rem;letter-spacing:-.1px;}
-    .brand-sub{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--muted);}
-    .header-right{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;justify-content:flex-end;width:100%;}
-    .nav-links{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
-    .nav-btn{display:inline-flex;align-items:center;gap:8px;padding:.55rem 1rem;border:1px solid transparent;border-radius:10px;color:var(--text);font-weight:600;background:transparent;transition:all .15s ease;}
-    .nav-btn:hover{background:#eef2f7;border-color:var(--border);}
-    .nav-btn.active{color:var(--accent);border-color:var(--accent);background:#e8f1ff;}
-    .main-datetime{display:flex;align-items:center;gap:.75rem;padding:.65rem 1rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:var(--shadow-sm);}
-    .main-datetime svg{width:22px;height:18px;stroke:var(--accent);fill:none;stroke-width:2;}
-    .time-block{display:flex;flex-direction:column;line-height:1.05;}
-    .clock-text{font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:.6px;}
-    .date-text{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--muted);}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: 'Outfit', sans-serif; 
+      background: var(--bg); 
+      color: var(--text); 
+      line-height: 1.6; 
+      -webkit-font-smoothing: antialiased; 
+    }
+    a { color: var(--accent); text-decoration: none; transition: 0.2s; }
+    a:hover { color: var(--accent-strong); }
+    
+    /* Header */
+    header { 
+      position: sticky; top: 0; z-index: 100; 
+      background: var(--surface); border-bottom: 1px solid var(--border); 
+      box-shadow: 0 4px 16px rgba(15,23,42,.04); 
+      display: flex; align-items: center; justify-content: space-between; 
+      padding: 1rem 1.5rem; gap: 1rem; 
+    }
+    .brand { display: flex; align-items: center; gap: .75rem; color: var(--text); }
+    .brand img { width: 50px; height: 50px; object-fit: contain; }
+    .brand-text { line-height: 1.05; }
+    .brand-name { font-weight: 800; font-size: 1.2rem; letter-spacing: -.1px; }
+    .brand-sub { font-family: 'JetBrains Mono', monospace; font-size: .72rem; color: var(--muted); }
+    .header-right { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: flex-end; }
+    .nav-links { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .nav-btn { 
+      display: inline-flex; align-items: center; padding: .55rem 1rem; 
+      border: 1px solid transparent; border-radius: 10px; 
+      color: var(--text); font-weight: 600; transition: all .15s ease; 
+    }
+    .nav-btn:hover { background: #eef2f7; border-color: var(--border); }
+    .nav-btn.active { color: var(--accent); border-color: var(--accent); background: #e8f1ff; }
+    .main-datetime { 
+      display: flex; align-items: center; gap: .75rem; padding: .65rem 1rem; 
+      border: 1px solid var(--border); border-radius: 12px; background: var(--surface); 
+    }
+    .main-datetime svg { width: 20px; height: 20px; stroke: var(--accent); fill: none; stroke-width: 2; }
+    .time-block { display: flex; flex-direction: column; line-height: 1.05; }
+    .clock-text { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.9rem; }
+    .date-text { font-family: 'JetBrains Mono', monospace; font-size: .7rem; color: var(--muted); }
 
-    .page-wrap{max-width:1180px;margin:0 auto;padding:2.2rem 1.25rem 2.5rem;}
+    /* Layout */
+    .page-wrap { max-width: 1180px; margin: 0 auto; padding: 2.2rem 1.25rem; }
 
-    .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:1.5rem;padding:1.5rem;border:1px solid var(--border);border-radius:18px;background:var(--surface);box-shadow:var(--shadow-md);}
-    .hero h1{font-size:2.6rem;line-height:1.15;letter-spacing:-1px;margin:0 0 1rem;}
-    .hero p{color:var(--muted);font-size:1.05rem;margin-bottom:1.25rem;}
-    .pill{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .75rem;border-radius:999px;background:#e8f1ff;color:var(--accent);font-weight:700;font-size:.85rem;}
-    .cta-row{display:flex;gap:.75rem;flex-wrap:wrap;}
-    .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.85rem 1.25rem;border-radius:12px;border:1px solid var(--border);font-weight:700;cursor:pointer;transition:all .15s ease;}
-    .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:var(--shadow-sm);}
-    .btn.primary:hover{background:var(--accent-strong);}
-    .btn.secondary{background:var(--surface);color:var(--accent);border-color:var(--accent);}
-    .btn.secondary:hover{background:#e8f1ff;}
-    .summary-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.25rem;box-shadow:var(--shadow-sm);}
-    .summary-eyebrow{font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:.3rem;}
-    .summary-card h3{margin:0 0 .6rem;font-size:1.3rem;}
-    .summary-card ul{margin:0 0 0 1.05rem;color:var(--muted);line-height:1.55;}
-    .summary-card li{margin-bottom:.35rem;}
+    /* Hero Section */
+    .hero { 
+      display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 2rem; 
+      padding: 2.5rem; border: 1px solid var(--border); border-radius: 24px; 
+      background: var(--surface); box-shadow: var(--shadow-md); align-items: center;
+    }
+    .hero h1 { font-size: 2.8rem; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 1.2rem; }
+    .hero p { color: var(--muted); font-size: 1.1rem; margin-bottom: 2rem; max-width: 500px; }
+    
+    .pill { 
+      display: inline-flex; align-items: center; padding: .4rem 1rem; 
+      border-radius: 999px; background: #e8f1ff; color: var(--accent); 
+      font-weight: 700; font-size: .8rem; margin-bottom: 1rem;
+    }
 
-    .cards{margin:2rem 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;}
-    .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.2rem;box-shadow:var(--shadow-sm);}
-    .card h3{font-size:1.05rem;margin-bottom:.35rem;color:var(--text);}
-    .card p{color:var(--muted);}
-    .card.step{padding-left:4.2rem;position:relative;}
-    .card.step::before{content:attr(data-step);position:absolute;left:1rem;top:1.05rem;width:32px;height:32px;border-radius:10px;background:var(--accent);color:#fff;font-weight:800;display:grid;place-items:center;font-size:.9rem;}
+    .cta-row { display: flex; gap: 1rem; }
+    .btn { 
+      padding: .85rem 1.5rem; border-radius: 12px; font-weight: 700; 
+      cursor: pointer; transition: 0.2s; border: 1px solid transparent; 
+    }
+    .btn.primary { background: var(--accent); color: white; }
+    .btn.primary:hover { background: var(--accent-strong); transform: translateY(-2px); }
+    .btn.secondary { background: white; color: var(--accent); border-color: var(--accent); }
 
-    .inline-cta{margin:1.5rem 0;padding:1rem 1.1rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);display:flex;justify-content:center;align-items:center;gap:.4rem;font-weight:700;box-shadow:var(--shadow-sm);}
+    .summary-card { 
+      background: #f8fafc; border: 1px solid var(--border); 
+      border-radius: 20px; padding: 1.5rem; 
+    }
+    .summary-card h3 { margin-bottom: 1rem; }
+    .summary-card ul { list-style: none; color: var(--muted); }
+    .summary-card li { margin-bottom: .8rem; position: relative; padding-left: 1.5rem; }
+    .summary-card li::before { content: "✓"; position: absolute; left: 0; color: var(--green); font-weight: 800; }
 
-    .disaster-wrap{margin:2.4rem 0;padding:1.25rem 0;}
-    .disaster-head{text-align:center;margin-bottom:1.5rem;}
-    .disaster-head h2{font-size:2.1rem;letter-spacing:-.6px;margin-bottom:.4rem;}
-    .disaster-head p{color:var(--muted);}
-    .hazard-grid{display:flex;flex-direction:column;gap:.9rem;}
-    .hazard-accordion{border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow-sm);padding:.35rem 0;transition:box-shadow .12s ease,border-color .12s ease;}
-    .hazard-accordion[open]{box-shadow:var(--shadow-md);border-color:#cbd5e1;}
-    .hazard-accordion summary{display:flex;align-items:center;gap:.75rem;padding:.7rem 1rem;cursor:pointer;list-style:none;transition:background .12s ease;}
-    .hazard-accordion summary:hover{background:#f1f5f9;}
-    .hazard-accordion summary::-webkit-details-marker{display:none;}
-    .hazard-chevron{margin-left:auto;transition:transform .16s ease;}
-    .hazard-accordion[open] .hazard-chevron{transform:rotate(180deg);}
-    .hazard-title{display:flex;align-items:center;gap:.55rem;font-weight:800;font-size:1.08rem;}
-    .hazard-icon{width:38px;height:38px;border-radius:10px;background:#e8f1ff;display:grid;place-items:center;flex-shrink:0;}
-    .hazard-icon svg{width:20px;height:20px;stroke:var(--accent);fill:none;stroke-width:1.6;}
-    .hazard-tags{display:flex;gap:.4rem;flex-wrap:wrap;margin-left:auto;}
-    .hazard-tag{display:inline-flex;align-items:center;padding:.25rem .65rem;border-radius:999px;font-weight:700;font-size:.78rem;color:#a16207;background:#fff5e5;}
-    .hazard-content{padding:0 1rem 1rem;}
-    .hazard-section{display:flex;flex-direction:column;gap:.5rem;margin-top:.35rem;}
-    .hazard-group{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:.55rem;}
-    .hazard-item{display:flex;gap:.55rem;align-items:flex-start;border:1px solid var(--border);border-radius:12px;padding:.55rem .65rem;background:#f8fafc;}
-    .hazard-label{min-width:72px;text-align:center;padding:.18rem .55rem;border-radius:10px;font-weight:700;font-size:.78rem;color:var(--muted);background:#eef2f7;border:1px solid var(--border);}
-    .hazard-label.cause{background:#eef2f7;color:#334155;}
-    .hazard-label.effects{background:#eef2f7;color:#334155;}
-    .hazard-label.before{color:#92400e;background:#fffbeb;border-color:#f5e5b5;}
-    .hazard-label.during{color:#1d4ed8;background:#e0f2fe;border-color:#bcdcf6;}
-    .hazard-label.after{color:#166534;background:#ecfdf3;border-color:#c3ecd3;}
-    .hazard-label.do{color:#166534;background:#ecfdf3;border-color:#c3ecd3;}
-    .hazard-label.dont{color:#b91c1c;background:#fef2f2;border-color:#f4c7c7;}
-    .hazard-text{flex:1;color:var(--text);line-height:1.5;font-size:.95rem;}
-    .tag-pill{display:inline-block;margin-top:.25rem;padding:.25rem .6rem;border-radius:9px;background:#e8f1ff;color:var(--accent);font-weight:700;font-size:.78rem;}
+    /* Process Cards */
+    .cards { margin: 3rem 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; box-shadow: var(--shadow-sm); }
+    .card.step::before { 
+      content: attr(data-step); display: block; width: 32px; height: 32px; 
+      background: var(--accent); color: white; border-radius: 8px; 
+      text-align: center; line-height: 32px; font-weight: 800; margin-bottom: 1rem;
+    }
 
-    .site-footer{margin-top:2.5rem;padding:1.8rem 1.25rem 2.1rem;border-top:1px solid var(--border);background:var(--surface);box-shadow:0 -4px 16px rgba(15,23,42,.04);}
-    .footer-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;}
-    .footer-brand{display:flex;align-items:center;gap:.75rem;}
-    .footer-brand img{width:56px;height:56px;object-fit:contain;}
-    .footer-tag{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700;color:var(--muted);}
-    .footer-copy{margin-top:.4rem;color:var(--muted);font-size:.98rem;}
-    .footer-contact h5{margin:0 0 .4rem;font-size:.85rem;color:var(--text);letter-spacing:.6px;text-transform:uppercase;}
-    .footer-contact p{margin:.15rem 0;color:var(--text);font-weight:600;}
-    .footer-line{height:1px;background:var(--border);margin:1.1rem 0;}
-    .footer-meta{display:flex;justify-content:space-between;gap:1rem;color:var(--muted);font-size:.9rem;flex-wrap:wrap;}
+    /* Map Section */
+    #map { height: 450px; border-radius: 20px; border: 1px solid var(--border); margin: 2rem 0; box-shadow: var(--shadow-sm); }
 
-    @media(max-width:960px){.hero{grid-template-columns:1fr;}.header-right{justify-content:flex-start;}}
-    @media(max-width:720px){header{flex-direction:column;align-items:flex-start;}.footer-grid{grid-template-columns:1fr;}.main-datetime{width:100%;justify-content:space-between;}}
+    .my-label { 
+        font-weight: bold; 
+        background: white; 
+        border: 1px solid #d32f2f; 
+        color: #d32f2f;
+        padding: 2px 5px;
+        border-radius: 4px;
+    }
+
+    /* Disaster Info */
+    .hazard-grid { display: grid; gap: 1rem; margin-top: 2rem; }
+    .hazard-accordion { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .hazard-accordion summary { padding: 1.2rem; cursor: pointer; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
+    .hazard-content { padding: 1.2rem; background: #fcfcfd; border-top: 1px solid var(--border); }
+    .hazard-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .hazard-item { background: white; padding: 1rem; border: 1px solid var(--border); border-radius: 8px; }
+    .hazard-label { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 0.3rem; color: var(--accent); }
+
+    /* Footer */
+    footer { padding: 3rem 1.5rem; background: white; border-top: 1px solid var(--border); margin-top: 4rem; }
+    .footer-grid { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; }
+
+    @media (max-width: 800px) {
+      .hero { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
+
   <header>
     <a class="brand" href="/about">
-      <img src="/images/logo.png" alt="SVS logo">
-      <div class="brand-text">
+      <img src="/images/logo.png" alt="SVS logo"> <div class="brand-text">
         <div class="brand-name">SVS</div>
         <div class="brand-sub">Smart Verification System</div>
       </div>
     </a>
     <div class="header-right">
-      <div class="nav-links">
+      <nav class="nav-links">
         <a class="nav-btn" href="/sos">SOS</a>
         <a class="nav-btn" href="/report">Report</a>
         <a class="nav-btn active" href="/about">About Us</a>
         <a class="nav-btn" href="/faq">FAQ</a>
-      </div>
+      </nav>
       <div class="main-datetime" id="aboutTime">
-        <svg viewBox="0 0 24 24"><path d="M6.75 3v2.25m10.5-2.25v2.25M3.75 9.75h16.5M4.5 5.25h15A1.5 1.5 0 0 1 21 6.75v12A1.5 1.5 0 0 1 19.5 20.25h-15A1.5 1.5 0 0 1 3 18.75v-12A1.5 1.5 0 0 1 4.5 5.25Z"/></svg>
-        <div class="time-block"><span class="clock-text">--:--:--</span><span class="date-text">Loading...</span></div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 6v6l4 2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="time-block">
+          <span class="clock-text">00:00:00 AM</span>
+          <span class="date-text">Loading Date...</span>
+        </div>
       </div>
     </div>
   </header>
@@ -330,61 +357,108 @@
         </details>
       </div>
     </section>
+
+    <h2 style="margin-top: 3rem; margin-bottom: 1rem;">Evacuation & Response Centers</h2>
+    <iframe 
+        id="mapFrame"
+        title="Mapandan Map"
+        style="border: none; border-radius: 8px; width: 100%; height: 500px; margin: 2rem 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    </iframe>
   </main>
 
-  <footer class="site-footer">
-    <div class="footer-grid">
-      <div>
-        <div class="footer-brand">
-          <img src="/images/logo.png" alt="SVS badge">
-          <div>
-            <div class="footer-tag">Emergency Reporting</div>
-            <h4>Smart Verification System</h4>
-          </div>
-        </div>
-        <div class="footer-copy">Fast and reliable citizen incident reporting with real-time dispatcher visibility and location-aware alerts.</div>
-      </div>
-      <div class="footer-contact">
-        <h5>Contact Us</h5>
-        <p>Hotline: 911</p>
-        <p>Office: +63 917 000 0000</p>
-        <p>Email: support@svs.local</p>
-      </div>
-    </div>
-    <div class="footer-line"></div>
-    <div class="footer-meta">
-      <span>© 2026 SVS. All rights reserved.</span>
-      <span>Built for easy and fast emergency reporting.</span>
-    </div>
-  </footer>
-
   <script>
-    function updateTime(elId){
-      const el=document.getElementById(elId);
-      if(!el) return;
-      const clock=el.querySelector('.clock-text');
-      const date=el.querySelector('.date-text');
-      const now=new Date();
-      const pad=n=>String(n).padStart(2,'0');
-      const h24=now.getHours(); const h=h24%12||12;
-      const ampm=h24>=12?'PM':'AM';
-      clock.textContent=`${pad(h)}:${pad(now.getMinutes())}:${pad(now.getSeconds())} ${ampm}`;
-      const days=['SUN','MON','TUE','WED','THU','FRI','SAT'];
-      date.textContent=`${days[now.getDay()]} ${pad(now.getMonth()+1)}/${pad(now.getDate())}/${now.getFullYear()}`;
-    }
-    updateTime('aboutTime'); setInterval(()=>updateTime('aboutTime'),1000);
+    // Initialize Map in iframe
+    const mapFrame = document.getElementById('mapFrame');
+    const mapHTML = `<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
+        #map { height: 100%; width: 100%; }
+        .my-label { 
+            font-weight: bold; 
+            background: white; 
+            border: 1px solid #d32f2f; 
+            color: #d32f2f;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+    <\/style>
+</head>
+<body>
+    <div id="map"><\/div>
+    <script>
+        var map = L.map("map").setView([16.0285, 120.4517], 13);
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+            attribution: "&copy; CARTO"
+        }).addTo(map);
 
-    // Single-open accordion behavior for hazards
-    const hazardAccordions = Array.from(document.querySelectorAll('.hazard-accordion'));
-    hazardAccordions.forEach(acc => {
+        var centers = [
+            { name: "Mapandan Central School", lat: 16.0298, lng: 120.4526 },
+            { name: "Aloha Building", lat: 16.0278, lng: 120.4515 },
+            { name: "Cong. Tulagan Gym", lat: 16.0275, lng: 120.4510 },
+            { name: "Coral Barangay Hall", lat: 16.0264, lng: 120.4716 },
+            { name: "Primicias Elem/High School", lat: 15.9898, lng: 120.4568 },
+            { name: "Sta. Maria Elementary School", lat: 16.0425, lng: 120.4678 },
+            { name: "Baloling Elementary School", lat: 16.0475, lng: 120.4580 },
+            { name: "Nilombot Elementary School", lat: 16.0125, lng: 120.4428 },
+            { name: "Torres Elementary School", lat: 16.0465, lng: 120.4285 },
+            { name: "Golden Elementary School", lat: 16.0195, lng: 120.4320 },
+            { name: "Jimenez Elementary School", lat: 16.0020, lng: 120.4655 },
+            { name: "Lambayan Elementary School", lat: 16.0350, lng: 120.4410 }
+        ];
+
+        centers.forEach(function(center) {
+            var marker = L.marker([center.lat, center.lng]).addTo(map);
+            marker.bindTooltip(center.name, {
+                permanent: true,
+                direction: "top",
+                className: "my-label"
+            }).openTooltip();
+        });
+    <\/script>
+</body>
+</html>`;
+
+    mapFrame.setAttribute('srcdoc', mapHTML);
+
+    // Time Update Script
+    function updateTime() {
+      const clock = document.querySelector('.clock-text');
+      const dateEl = document.querySelector('.date-text');
+      const now = new Date();
+      
+      clock.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      dateEl.textContent = now.toLocaleDateString([], { weekday: 'short', month: '2-digit', day: '2-digit', year: 'numeric' });
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    // Accordion logic: only one open at a time
+    const accordions = document.querySelectorAll('.hazard-accordion');
+    accordions.forEach(acc => {
       acc.addEventListener('toggle', () => {
         if (acc.open) {
-          hazardAccordions.forEach(other => {
-            if (other !== acc) other.open = false;
-          });
+          accordions.forEach(other => { if (other !== acc) other.open = false; });
         }
       });
     });
   </script>
+
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <h4>Smart Verification System</h4>
+        <p style="color: var(--muted); margin-top: 10px;">Dedicated to faster, more reliable emergency response for the community.</p>
+      </div>
+      <div>
+        <h5>Contact MDRRMO</h5>
+        <p>Emergency: 911</p>
+        <p>Local Office: (075) 123-4567</p>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
