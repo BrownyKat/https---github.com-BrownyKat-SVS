@@ -6,6 +6,7 @@
   <title>SVS — About</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
       --bg:#f8fafc;
@@ -15,6 +16,7 @@
       --border:#e2e8f0;
       --accent:#0f6fff;
       --accent-strong:#0b54c2;
+      --blue:#1d4ed8;
       --amber:#f59e0b;
       --green:#16a34a;
       --red:#dc2626;
@@ -23,24 +25,9 @@
     }
     *{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;}
-    a{color:var(--accent);text-decoration:none;}
-    a:hover{color:var(--accent-strong);}
-    header{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 4px 16px rgba(15,23,42,.04);display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;gap:1rem;}
-    .brand{display:flex;align-items:center;gap:.75rem;color:var(--text);}
-    .brand img{width:60px;height:52px;object-fit:contain;}
-    .brand-text{line-height:1.05;}
-    .brand-name{font-weight:800;font-size:1.2rem;letter-spacing:-.1px;}
-    .brand-sub{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--muted);}
-    .header-right{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;justify-content:flex-end;width:100%;}
-    .nav-links{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
-    .nav-btn{display:inline-flex;align-items:center;gap:8px;padding:.55rem 1rem;border:1px solid transparent;border-radius:10px;color:var(--text);font-weight:600;background:transparent;transition:all .15s ease;}
-    .nav-btn:hover{background:#eef2f7;border-color:var(--border);}
-    .nav-btn.active{color:var(--accent);border-color:var(--accent);background:#e8f1ff;}
-    .main-datetime{display:flex;align-items:center;gap:.75rem;padding:.65rem 1rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:var(--shadow-sm);}
-    .main-datetime svg{width:22px;height:18px;stroke:var(--accent);fill:none;stroke-width:2;}
-    .time-block{display:flex;flex-direction:column;line-height:1.05;}
-    .clock-text{font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:.6px;}
-    .date-text{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--muted);}
+    .page-wrap a{color:var(--accent);text-decoration:none;}
+    .page-wrap a:visited{color:var(--accent);}
+    .page-wrap a:hover{color:var(--accent-strong);}
 
     .page-wrap{max-width:1180px;margin:0 auto;padding:2.2rem 1.25rem 2.5rem;}
 
@@ -101,43 +88,13 @@
     .hazard-text{flex:1;color:var(--text);line-height:1.5;font-size:.95rem;}
     .tag-pill{display:inline-block;margin-top:.25rem;padding:.25rem .6rem;border-radius:9px;background:#e8f1ff;color:var(--accent);font-weight:700;font-size:.78rem;}
 
-    .site-footer{margin-top:2.5rem;padding:1.8rem 1.25rem 2.1rem;border-top:1px solid var(--border);background:var(--surface);box-shadow:0 -4px 16px rgba(15,23,42,.04);}
-    .footer-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;}
-    .footer-brand{display:flex;align-items:center;gap:.75rem;}
-    .footer-brand img{width:56px;height:56px;object-fit:contain;}
-    .footer-tag{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700;color:var(--muted);}
-    .footer-copy{margin-top:.4rem;color:var(--muted);font-size:.98rem;}
-    .footer-contact h5{margin:0 0 .4rem;font-size:.85rem;color:var(--text);letter-spacing:.6px;text-transform:uppercase;}
-    .footer-contact p{margin:.15rem 0;color:var(--text);font-weight:600;}
-    .footer-line{height:1px;background:var(--border);margin:1.1rem 0;}
-    .footer-meta{display:flex;justify-content:space-between;gap:1rem;color:var(--muted);font-size:.9rem;flex-wrap:wrap;}
-
-    @media(max-width:960px){.hero{grid-template-columns:1fr;}.header-right{justify-content:flex-start;}}
-    @media(max-width:720px){header{flex-direction:column;align-items:flex-start;}.footer-grid{grid-template-columns:1fr;}.main-datetime{width:100%;justify-content:space-between;}}
+    @media(max-width:960px){
+      .hero{grid-template-columns:1fr;}
+    }
   </style>
 </head>
 <body>
-  <header>
-    <a class="brand" href="/about">
-      <img src="/images/logo.png" alt="SVS logo">
-      <div class="brand-text">
-        <div class="brand-name">SVS</div>
-        <div class="brand-sub">Smart Verification System</div>
-      </div>
-    </a>
-    <div class="header-right">
-      <div class="nav-links">
-        <a class="nav-btn" href="/sos">SOS</a>
-        <a class="nav-btn" href="/report">Report</a>
-        <a class="nav-btn active" href="/about">About Us</a>
-        <a class="nav-btn" href="/faq">FAQ</a>
-      </div>
-      <div class="main-datetime" id="aboutTime">
-        <svg viewBox="0 0 24 24"><path d="M6.75 3v2.25m10.5-2.25v2.25M3.75 9.75h16.5M4.5 5.25h15A1.5 1.5 0 0 1 21 6.75v12A1.5 1.5 0 0 1 19.5 20.25h-15A1.5 1.5 0 0 1 3 18.75v-12A1.5 1.5 0 0 1 4.5 5.25Z"/></svg>
-        <div class="time-block"><span class="clock-text">--:--:--</span><span class="date-text">Loading...</span></div>
-      </div>
-    </div>
-  </header>
+  <%- include('partials/navbar', { active: 'about', timeId: 'aboutTime' }) %>
 
   <main class="page-wrap">
     <section class="hero">
@@ -332,31 +289,7 @@
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="footer-grid">
-      <div>
-        <div class="footer-brand">
-          <img src="/images/logo.png" alt="SVS badge">
-          <div>
-            <div class="footer-tag">Emergency Reporting</div>
-            <h4>Smart Verification System</h4>
-          </div>
-        </div>
-        <div class="footer-copy">Fast and reliable citizen incident reporting with real-time dispatcher visibility and location-aware alerts.</div>
-      </div>
-      <div class="footer-contact">
-        <h5>Contact Us</h5>
-        <p>Hotline: 911</p>
-        <p>Office: +63 917 000 0000</p>
-        <p>Email: support@svs.local</p>
-      </div>
-    </div>
-    <div class="footer-line"></div>
-    <div class="footer-meta">
-      <span>© 2026 SVS. All rights reserved.</span>
-      <span>Built for easy and fast emergency reporting.</span>
-    </div>
-  </footer>
+  <%- include('partials/footer') %>
 
   <script>
     function updateTime(elId){
@@ -388,3 +321,4 @@
   </script>
 </body>
 </html>
+
