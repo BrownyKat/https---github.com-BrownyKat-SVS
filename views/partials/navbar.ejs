@@ -1,0 +1,70 @@
+<%
+  const navLinks = [
+    { href: '/sos', key: 'sos', label: 'SOS' },
+    { href: '/report', key: 'report', label: 'Report' },
+    { href: '/about', key: 'about', label: 'About Us' },
+    { href: '/faq', key: 'faq', label: 'FAQ' },
+  ];
+  const activeKey = (typeof active === 'string' && active) || '';
+  const clockId = (typeof timeId === 'string' && timeId) || 'navTime';
+%>
+
+<header class="sticky top-0 z-50 border-b border-slate-200/70 bg-slate-50/80 backdrop-blur-xl">
+  <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+    <div class="rounded-[1.6rem] border border-white/80 bg-white/75 px-4 py-3 shadow-[0_12px_34px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/70 sm:px-5">
+      <div class="flex items-center justify-between gap-4">
+        <a class="flex min-w-0 items-center gap-3 no-underline group" href="/about">
+          <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 ring-1 ring-slate-200 transition-transform group-hover:scale-[1.03]">
+            <img class="h-10 w-10 object-contain" src="/images/logo.png" alt="SVS logo">
+          </div>
+          <div class="min-w-0 leading-none">
+            <div class="text-lg font-black tracking-tight text-slate-900 uppercase sm:text-xl">SVS</div>
+            <div class="mt-1 truncate font-mono text-[0.62rem] font-bold uppercase tracking-[0.22em] text-slate-500 sm:text-[0.68rem]">Smart Verification System</div>
+          </div>
+        </a>
+
+        <nav class="hidden items-center gap-1 rounded-2xl border border-slate-200/80 bg-slate-100/70 p-1 md:flex">
+          <% navLinks.forEach(link => {
+               const isActive = activeKey === link.key;
+          %>
+            <a
+              href="<%= link.href %>"
+              class="rounded-xl px-4 py-2 text-sm font-bold transition-all duration-200 <%= isActive ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:bg-white/70 hover:text-slate-900' %>"
+            >
+              <%= link.label %>
+            </a>
+          <% }) %>
+        </nav>
+
+        <div
+          id="<%= clockId %>"
+          class="hidden min-w-[172px] items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/55 px-3.5 py-2.5 text-slate-700 shadow-sm ring-1 ring-white/70 sm:flex"
+        >
+          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100/80 text-slate-500 ring-1 ring-slate-200/80">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="8"></circle>
+              <path d="M12 7v5l3 2"></path>
+            </svg>
+          </div>
+          <div class="flex flex-col justify-center">
+            <span class="clock-text font-mono text-[0.88rem] font-black tracking-[0.14em] leading-none text-slate-800">00:00:00</span>
+            <span class="date-text mt-1 font-mono text-[0.58rem] font-bold uppercase tracking-[0.18em] text-slate-500">Loading...</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="mt-3 flex items-center gap-2 overflow-x-auto pb-1 md:hidden">
+        <% navLinks.forEach(link => {
+             const isActive = activeKey === link.key;
+        %>
+          <a
+            href="<%= link.href %>"
+            class="whitespace-nowrap rounded-xl border px-3.5 py-2 text-sm font-bold transition-all duration-200 <%= isActive ? 'border-slate-200 bg-slate-900 text-white shadow-sm' : 'border-slate-200 bg-white/85 text-slate-600 hover:border-slate-300 hover:text-slate-900' %>"
+          >
+            <%= link.label %>
+          </a>
+        <% }) %>
+      </nav>
+    </div>
+  </div>
+</header>
