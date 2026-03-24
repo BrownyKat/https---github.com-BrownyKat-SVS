@@ -1034,6 +1034,75 @@ function selType(el, t) {
     renderPhotoArea();
   }
 
+  let reportPhotoData = '';
+
+  function bytesToReadableSize(bytes) {
+    const value = Number(bytes) || 0;
+    if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+    if (value >= 1024) return `${Math.round(value / 1024)} KB`;
+    return `${value} B`;
+  }
+
+  function updateReportPhotoUi(file = null) {
+    const meta = document.getElementById('uploadMeta');
+    const thumb = document.getElementById('uploadThumb');
+    const nameEl = document.getElementById('uploadFileName');
+    const hintEl = document.getElementById('uploadFileHint');
+
+    if (!meta || !thumb || !nameEl || !hintEl) return;
+
+    if (!file || !reportPhotoData) {
+      meta.classList.remove('show');
+      thumb.removeAttribute('src');
+      nameEl.textContent = 'No file selected';
+      hintEl.textContent = 'Optional but helpful for dispatch verification.';
+      return;
+    }
+
+    meta.classList.add('show');
+    thumb.src = reportPhotoData;
+    nameEl.textContent = file.name || 'Selected image';
+    hintEl.textContent = `${file.type.replace('image/', '').toUpperCase()} - ${bytesToReadableSize(file.size)}`;
+  }
+
+  function clearReportPhoto() {
+    reportPhotoData = '';
+    const photoInput = document.getElementById('iPhoto');
+    if (photoInput) photoInput.value = '';
+    updateReportPhotoUi();
+  }
+
+  function handleReportPhotoChange(event) {
+    const input = event?.target;
+    const file = input?.files?.[0];
+
+    if (!file) {
+      clearReportPhoto();
+      return;
+    }
+    if (!/^image\/(png|jpe?g|webp)$/i.test(file.type)) {
+      clearReportPhoto();
+      toast('Unsupported photo', 'Please upload a JPG, PNG, or WEBP image.','warn');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      clearReportPhoto();
+      toast('Photo too large', 'Please choose an image that is 10 MB or smaller.','warn');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      reportPhotoData = typeof reader.result === 'string' ? reader.result : '';
+      updateReportPhotoUi(file);
+    };
+    reader.onerror = () => {
+      clearReportPhoto();
+      toast('Upload failed', 'The selected image could not be read. Please try another file.','warn');
+    };
+    reader.readAsDataURL(file);
+  }
+
   async function submitReport() {
     const submitBtn = document.querySelector('.submit-btn');
     const nameInput = document.getElementById('iName');

@@ -260,6 +260,72 @@ function hasSupabaseRestAccess() {
   return Boolean(SUPABASE_CONFIG.url && getSupabaseApiKey(true));
 }
 
+function getSupabaseStoragePublicUrl(objectPath) {
+  if (!SUPABASE_CONFIG.url || !objectPath) return '';
+  const bucket = encodeURIComponent(SUPABASE_CONFIG.bucket);
+  const cleanPath = String(objectPath || '').split('/').map(part => encodeURIComponent(part)).join('/');
+  return `${SUPABASE_CONFIG.url}/storage/v1/object/public/${bucket}/${cleanPath}`;
+}
+
+function decodeDataImageUri(input) {
+  const value = String(input || '').trim();
+  const match = /^data:(image\/(?:png|jpe?g|webp));base64,([a-z0-9+/=]+)$/i.exec(value);
+  if (!match) return null;
+  return {
+    mimeType: match[1].toLowerCase(),
+    buffer: Buffer.from(match[2], 'base64'),
+  };
+}
+
+function getPhotoExtensionFromMime(mimeType) {
+  if (/image\/png/i.test(mimeType)) return 'png';
+  if (/image\/webp/i.test(mimeType)) return 'webp';
+  return 'jpg';
+}
+
+async function uploadReportPhotoToSupabase(photoValue, { reportId, index = 0 } = {}) {
+  const decoded = decodeDataImageUri(photoValue);
+  if (!decoded) return String(photoValue || '').trim();
+  if (!hasSupabaseRestAccess()) {
+    throw new Error('Photo upload requires SUPABASE_URL, SUPABASE_BUCKET, and SUPABASE_SERVICE_ROLE_KEY');
+  }
+
+  const ext = getPhotoExtensionFromMime(decoded.mimeType);
+  const stamp = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14);
+  const safeReportId = String(reportId || 'report').replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
+  const fileName = `${safeReportId}-${stamp}-${index + 1}-${crypto.randomUUID()}.${ext}`;
+  const objectPath = `reports/${safeReportId}/${fileName}`;
+  const bucket = encodeURIComponent(SUPABASE_CONFIG.bucket);
+  const pathParts = objectPath.split('/').map(part => encodeURIComponent(part)).join('/');
+  const url = `${SUPABASE_CONFIG.url}/storage/v1/object/${bucket}/${pathParts}`;
+  const headers = {
+    apikey: getSupabaseApiKey(true),
+    Authorization: `Bearer ${getSupabaseApiKey(true)}`,
+    'Content-Type': decoded.mimeType,
+    'x-upsert': 'false',
+  };
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: decoded.buffer,
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`Photo upload failed (${response.status})${body ? `: ${body}` : ''}`);
+  }
+  return getSupabaseStoragePublicUrl(objectPath);
+}
+
+async function persistReportPhotosToSupabase(photos, { reportId } = {}) {
+  const list = Array.isArray(photos) ? photos : [];
+  if (!list.length) return [];
+  const uploaded = [];
+  for (let i = 0; i < list.length; i += 1) {
+    uploaded.push(await uploadReportPhotoToSupabase(list[i], { reportId, index: i }));
+  }
+  return uploaded.filter(Boolean);
+}
+
 async function upsertSupabaseAlert(alertPayload) {
   if (!hasSupabaseRestAccess()) {
     return {
@@ -1269,13 +1335,24 @@ app.post('/api/report', async (req, res) => {
     const clean = sanitizeNormalReportInput(req.body || {});
     const seq      = await Counter.nextSeq('report');
     const reportId = `RPT-${String(seq).padStart(4, '0')}`;
+    let uploadedPhotos = [];
+    try {
+      uploadedPhotos = await persistReportPhotosToSupabase(clean.photos, { reportId });
+    } catch (uploadErr) {
+      console.warn('[report] photo upload skipped:', uploadErr && uploadErr.message ? uploadErr.message : uploadErr);
+    }
+    const cleanWithStoredPhotos = {
+      ...clean,
+      photos: uploadedPhotos,
+      photo: uploadedPhotos[0] || '',
+    };
 
     const report = await Report.create({
-      ...clean,
+      ...cleanWithStoredPhotos,
       reportId,
       status:      'new',
       timestamp:   new Date(),
-      credibility: computeCredibility(clean),
+      credibility: computeCredibility(cleanWithStoredPhotos),
       isPanic:     false,
     });
 
