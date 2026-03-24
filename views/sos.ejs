@@ -11,18 +11,24 @@
 <body class="min-h-screen bg-[linear-gradient(180deg,#f2f6ff_0%,#fff7ef_72%,#ffffff_100%)] text-slate-900 antialiased [font-family:'Outfit',sans-serif] leading-[1.65]">
   <%- include('partials/navbar', { active: 'sos', timeId: 'sosTime' }) %>
 
-  <main class="mx-auto my-12 max-w-[1100px] px-5">
-    <section class="rounded-[28px] border border-red-200/70 bg-[linear-gradient(180deg,#ecf2ff_0%,#fff7e8_52%,#ffeef1_100%)] px-6 py-10 text-center shadow-[0_18px_38px_rgba(0,0,0,0.12)] sm:px-8 sm:py-14" style="margin-bottom:2.2rem;">
+  <main class="mx-auto my-9 max-w-[1100px] px-5">
+    <section class="rounded-[28px] border border-red-200/70 bg-[linear-gradient(180deg,#ecf2ff_0%,#fff7e8_52%,#ffeef1_100%)] px-6 py-9 text-center shadow-[0_18px_38px_rgba(0,0,0,0.12)] sm:px-7 sm:py-11">
       <div class="mb-5 font-mono text-[1.05rem] font-extrabold uppercase tracking-[0.22em] text-red-700 sm:text-[1.1rem]">
         Urgent Emergency
       </div>
 
-  <main class="wrap">
-    <section class="panic-strip">
-      <div class="panic-eyebrow">Urgent Emergency</div>
-      <button class="panic-btn" type="button" onclick="triggerPanic()">
-        <svg viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
-        <div class="panic-btn-label">PANIC SOS</div>
+      <button
+        class="mx-auto mb-6 flex h-[220px] w-[220px] cursor-pointer flex-col items-center justify-center gap-3 rounded-full border-0 bg-[linear-gradient(145deg,#ef4444,#dc2626,#b91c1c)] text-white shadow-[0_0_0_14px_rgba(220,38,38,0.08),0_12px_40px_rgba(220,38,38,0.35)] transition duration-150 hover:-translate-y-0.5 hover:shadow-[0_0_0_16px_rgba(220,38,38,0.10),0_18px_48px_rgba(220,38,38,0.40)] focus:outline-none focus:ring-4 focus:ring-red-200 disabled:cursor-not-allowed max-[820px]:h-[200px] max-[820px]:w-[200px]"
+        type="button"
+        onclick="triggerPanic()"
+        id="panicBtn"
+      >
+        <svg class="h-12 w-12 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="1.6">
+          <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+        </svg>
+        <div class="panic-btn-label text-[0.95rem] font-black uppercase tracking-[0.28em] text-white">
+          PANIC SOS
+        </div>
       </button>
 
       <div class="mx-auto mb-5 max-w-[520px] rounded-[18px] border border-blue-200 bg-white px-5 py-5 shadow-[0_14px_30px_rgba(15,23,42,0.14)]">
@@ -34,13 +40,29 @@
 
       <div class="mt-4 flex flex-wrap items-center justify-center gap-3 rounded-[14px] border border-slate-300 bg-slate-50 px-4 py-3 font-mono font-extrabold text-slate-900">
         <span>Sending as:</span>
-        <input id="sosNumber" type="tel" inputmode="tel" placeholder="+63 9XX XXX XXXX">
-        <button id="sosBtn" type="button" onclick="handleSosClick()">Save</button>
-        <span id="sosSaved" style="color:#2563eb;"></span>
+        <input
+          class="min-w-[180px] rounded-[10px] border border-slate-300 bg-white px-3 py-2 text-[0.95rem] font-bold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 [font-family:'Outfit',sans-serif]"
+          id="sosNumber"
+          type="tel"
+          inputmode="tel"
+          pattern="[0-9+ ]{10,16}"
+          maxlength="16"
+          placeholder="+63 9XX XXX XXXX"
+        >
+        <button
+          class="rounded-[10px] border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-extrabold text-white transition hover:bg-blue-700"
+          type="button"
+          onclick="saveSosNumber()"
+        >
+          Save
+        </button>
+        <span id="sosSaved" class="text-blue-600"></span>
       </div>
+
+      <div id="panicStatus" class="mt-3 text-sm font-extrabold text-blue-600 sm:text-base"></div>
     </section>
 
-    <div class="mt-8 grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
+    <div class="mt-6 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
       <div class="rounded-[18px] border border-blue-200 bg-[linear-gradient(180deg,#e9f2ff,#fdf7ef)] px-5 py-5 shadow-[0_12px_28px_rgba(15,23,42,0.12)]">
         <h3 class="mb-2 text-[1.05rem] font-extrabold text-red-500">1. Tap Panic</h3>
         <p class="text-[0.98rem] leading-[1.6] text-slate-800">
@@ -77,99 +99,152 @@
     }
     updateTime('sosTime'); setInterval(()=>updateTime('sosTime'),1000);
 
-    async function triggerPanic() {
-      const contact = localStorage.getItem('mdrrmo_panic');
-      if (!contact) {
-        alert('Please save an emergency contact number first.');
-        document.getElementById('sosNumber').focus();
-        return;
+    function toIntlPhone(v) {
+      const digits = String(v || '').replace(/\D/g, '');
+      if (/^09\d{9}$/.test(digits)) return `+63${digits.slice(1)}`;
+      if (/^63\d{10}$/.test(digits)) return `+${digits}`;
+      if (/^9\d{9}$/.test(digits)) return `+63${digits}`;
+      return null;
+    }
+
+    function formatPhoneForDisplay(v) {
+      const intl = toIntlPhone(v);
+      if (!intl) {
+        const digits = String(v || '').replace(/\D/g, '');
+        let partial = digits;
+        if (partial.startsWith('0')) partial = partial.slice(1);
+        else if (partial.startsWith('63')) partial = partial.slice(2);
+        partial = partial.replace(/\D/g, '').slice(0, 10);
+        if (!partial) return '';
+        if (partial.length <= 3) return `+63 ${partial}`;
+        if (partial.length <= 6) return `+63 ${partial.slice(0, 3)} ${partial.slice(3)}`;
+        return `+63 ${partial.slice(0, 3)} ${partial.slice(3, 6)} ${partial.slice(6)}`;
       }
-
-      const panicBtn = document.querySelector('.panic-btn');
-      const btnLabel = panicBtn.querySelector('.panic-btn-label');
-      const originalLabel = btnLabel.textContent;
-
-      panicBtn.disabled = true;
-      btnLabel.textContent = 'SENDING...';
-      panicBtn.style.animation = 'none'; // Pause pulse
-      panicBtn.style.cursor = 'wait';
-
-      let gps = 'unavailable';
-      try {
-        const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-          });
-        });
-        gps = `${position.coords.latitude}, ${position.coords.longitude}`;
-      } catch (err) {
-        console.warn('Could not get GPS location:', err.message);
-      }
-
-      try {
-        const response = await fetch('/api/panic', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contact, gps }),
-        });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'Failed to send SOS.');
-        alert(`SOS sent successfully! Report ID: ${result.id}. Dispatchers will contact you shortly.`);
-      } catch (err) {
-        alert(`Error: Could not send SOS. Please try again or use the full report form.\nDetails: ${err.message}`);
-      } finally {
-        panicBtn.disabled = false;
-        btnLabel.textContent = originalLabel;
-        panicBtn.style.animation = '';
-        panicBtn.style.cursor = 'pointer';
-      }
+      const local = intl.slice(3);
+      return `+63 ${local.slice(0, 3)} ${local.slice(3, 6)} ${local.slice(6, 10)}`;
     }
 
     function normalizePh(phone){
-      if(!phone) return '';
-      let p = phone.replace(/[^0-9+]/g,'');
-      if(p.startsWith('0')) p = '+63' + p.slice(1);
-      if(p.startsWith('63')) p = '+' + p;
-      if(!p.startsWith('+63')) return '';
-      return p;
+      return toIntlPhone(phone) || '';
     }
-    function handleSosClick(){
+
+    function saveSosNumber(){
       const input=document.getElementById('sosNumber');
-      const btn=document.getElementById('sosBtn');
       const saved=document.getElementById('sosSaved');
-      if(input.disabled){
-        input.disabled=false;
-        input.focus();
-        btn.textContent='Save';
-        saved.textContent='';
-        return;
-      }
       const norm=normalizePh(input.value);
-      if(!norm || norm.length < 13){
-        saved.textContent='Invalid PH mobile';
+      if(!norm){
+        saved.textContent='Invalid PH mobile (+63 9XXXXXXXXX)';
         saved.style.color='#b91c1c';
         return;
       }
       try{ localStorage.setItem('mdrrmo_panic', norm); }catch(_e){}
-      saved.textContent='Saved';
+      const pretty=formatPhoneForDisplay(norm);
+      saved.textContent=pretty;
       saved.style.color='#2563eb';
-      input.value=norm;
-      input.disabled=true;
-      btn.textContent='Edit';
+      input.value=pretty;
     }
+
+    (function attachSanitizer(){
+      const input=document.getElementById('sosNumber');
+      if(!input) return;
+      const handle=()=>{
+        const formatted=formatPhoneForDisplay(input.value);
+        if(formatted!==input.value) input.value=formatted;
+      };
+      input.addEventListener('input', handle);
+      input.addEventListener('blur', handle);
+      input.addEventListener('paste', evt=>{
+        evt.preventDefault();
+        const pasted=(evt.clipboardData||window.clipboardData).getData('text');
+        input.value=formatPhoneForDisplay(pasted);
+      });
+    })();
+
     (function initSaved(){
       try{
-        const n=localStorage.getItem('mdrrmo_panic')||'';
-        if(n){
-          const input=document.getElementById('sosNumber');
-          input.value=n;
-          input.disabled=true;
-          document.getElementById('sosBtn').textContent='Edit';
+        const stored=localStorage.getItem('mdrrmo_panic')||'';
+        const norm=normalizePh(stored);
+        if(norm){
+          const pretty=formatPhoneForDisplay(norm);
+          document.getElementById('sosNumber').value=pretty;
+          document.getElementById('sosSaved').textContent=pretty;
+          document.getElementById('sosSaved').style.color='#2563eb';
         }
       }catch(_e){}
     })();
+
+    function setPanicStatus(msg, color='#2563eb'){
+      const el=document.getElementById('panicStatus');
+      if(!el) return;
+      el.textContent=msg;
+      el.style.color=color;
+    }
+
+    function getSavedNumber(){
+      try{return localStorage.getItem('mdrrmo_panic')||'';}catch(_e){return '';}
+    }
+
+    function setPanicBtnState(state='idle'){
+      const btn=document.getElementById('panicBtn');
+      if(!btn) return;
+      const label=btn.querySelector('.panic-btn-label');
+      if(state==='sending'){
+        btn.disabled=true;
+        label.textContent='SENDING...';
+      }else if(state==='sent'){
+        btn.disabled=true;
+        label.textContent='SENT!';
+        setTimeout(()=>{ btn.disabled=false; label.textContent='PANIC SOS'; }, 1600);
+      }else{
+        btn.disabled=false;
+        label.textContent='PANIC SOS';
+      }
+    }
+
+    function detectGps(){
+      return new Promise(resolve=>{
+        if(!navigator.geolocation) return resolve({ gps:'', note:'GPS not available on this device' });
+        navigator.geolocation.getCurrentPosition(
+          pos => resolve({
+            gps: `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`,
+            note: `Detected location +/-${Math.round(pos.coords.accuracy||0)}m`
+          }),
+          () => resolve({ gps:'', note:'Could not detect GPS - will send without location' }),
+          { enableHighAccuracy:true, timeout:12000, maximumAge:0 }
+        );
+      });
+    }
+
+    async function triggerPanic(){
+      const input=document.getElementById('sosNumber');
+      const norm=normalizePh(input.value || getSavedNumber());
+      if(!norm){
+        setPanicStatus('Enter a valid PH mobile first (+63 9XXXXXXXXX).', '#b91c1c');
+        return;
+      }
+      try{ localStorage.setItem('mdrrmo_panic', norm); }catch(_e){}
+      input.value = formatPhoneForDisplay(norm);
+      setPanicBtnState('sending');
+      setPanicStatus('Detecting location...');
+      const gpsResult = await detectGps();
+      if(gpsResult.note) setPanicStatus(gpsResult.note);
+      try{
+        const resp = await fetch('/api/panic', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ contact: norm, gps: gpsResult.gps })
+        });
+        const data = await resp.json().catch(()=>({}));
+        if(!resp.ok){
+          throw new Error(data.error || 'Could not send SOS');
+        }
+        setPanicStatus(`SOS sent ${data.id ? '('+data.id+') ' : ''}- dispatchers alerted.`, '#15803d');
+        setPanicBtnState('sent');
+      }catch(err){
+        setPanicStatus(err && err.message ? err.message : 'Could not send SOS', '#b91c1c');
+        setPanicBtnState('idle');
+      }
+    }
   </script>
 </body>
 </html>
