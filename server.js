@@ -8,12 +8,18 @@ const Pusher     = require('pusher');
 const path       = require('path');
 const mongoose   = require('mongoose');
 const compression = require('compression');
+let firebaseAdmin = null;
+try {
+  firebaseAdmin = require('firebase-admin');
+} catch (_err) {}
 
 const Report      = require('./models/Report');
 const Counter     = require('./models/Counter');
 const Admin       = require('./models/Admin');
 const Dispatcher  = require('./models/Dispatcher');
 const AuditLog    = require('./models/AuditLog');
+const Alert       = require('./models/Alert');
+const DeviceToken = require('./models/DeviceToken');
 const Session     = require('./models/Session');
 const LoginAttempt = require('./models/LoginAttempt');
 
@@ -76,12 +82,22 @@ const pusher = process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.en
     useTLS: true,
   })
   : null;
+let firebaseAdminApp = undefined;
 
 const SUPABASE_CONFIG = {
   url: String(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim().replace(/\/+$/, ''),
   anonKey: String(process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim(),
   bucket: String(process.env.SUPABASE_BUCKET || 'svs_photo').trim(),
 };
+const SUPABASE_SERVICE_ROLE_KEY = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+const SUPABASE_ALERTS_TABLE = String(process.env.SUPABASE_ALERTS_TABLE || 'admin_alerts').trim();
+const SUPABASE_DEVICE_TOKENS_TABLE = String(process.env.SUPABASE_DEVICE_TOKENS_TABLE || 'device_tokens').trim();
+const MOBILE_ALERTS_BASE_URL = String(
+  process.env.MOBILE_ALERTS_BASE_URL
+  || process.env.MOBILE_APP_BASE_URL
+  || process.env.BASE_URL
+  || ''
+).trim().replace(/\/+$/, '');
 
 // ── Database connection ──────────────────────────────────────────────────────
 async function initDatabase() {
@@ -122,6 +138,7 @@ async function initDatabase() {
       await ensureDefaultAdmin();
     } catch (err) {
       console.error('  ✘  MongoDB connection error:', err.message);
+      logMongoConnectionHints(err, mongoUri);
       dbInitPromise = null;
       if (require.main === module) process.exit(1);
       throw err;
@@ -149,6 +166,266 @@ function extractDbNameFromMongoUri(uriRaw) {
     return rawPath.split('/')[0].trim();
   } catch (_err) {
     return '';
+  }
+}
+
+function summarizeMongoTarget(uriRaw) {
+  const uri = String(uriRaw || '').trim();
+  if (!uri) return '';
+  try {
+    const parsed = new URL(uri);
+    return parsed.host || '';
+  } catch (_err) {
+    return '';
+  }
+}
+
+function logMongoConnectionHints(err, mongoUri) {
+  const message = String(err?.message || '');
+  const target = summarizeMongoTarget(mongoUri);
+  const hints = [];
+
+  if (/Could not connect to any servers|Server selection timed out/i.test(message)) {
+    hints.push('Verify the Atlas cluster is running and reachable from this network.');
+  }
+  if (/whitelist|access list|IP that isn\'t whitelisted/i.test(message)) {
+    hints.push('Add your current public IP to Atlas Network Access, or temporarily allow 0.0.0.0/0 for testing.');
+  }
+  if (/auth|Authentication failed|bad auth/i.test(message)) {
+    hints.push('Recheck the Atlas database username, password, and special-character escaping in MONGODB_URI.');
+  }
+  if (/ENOTFOUND|EREFUSED|ECONNRESET|ETIMEDOUT|querySrv/i.test(message)) {
+    hints.push('Check local DNS, firewall, proxy, or VPN settings. Atlas SRV lookups must be allowed from this machine.');
+  }
+  if (/certificate|TLS|SSL/i.test(message)) {
+    hints.push('Confirm TLS inspection or antivirus is not blocking Atlas certificates.');
+  }
+
+  if (!hints.length) {
+    hints.push('Check Atlas Network Access, cluster status, database user credentials, and DNS reachability.');
+  }
+
+  if (target) {
+    console.error(`    target: ${target}`);
+  }
+  hints.forEach((hint) => console.error(`    hint: ${hint}`));
+}
+
+function normalizeBaseUrl(input) {
+  return String(input || '').trim().replace(/\/+$/, '');
+}
+
+function looksLocalBaseUrl(input) {
+  const value = normalizeBaseUrl(input).toLowerCase();
+  return (
+    value.includes('://localhost') ||
+    value.includes('://127.0.0.1') ||
+    value.includes('://0.0.0.0') ||
+    value.includes('://10.0.2.2')
+  );
+}
+
+function getSupabaseApiKey(preferServiceRole = false) {
+  if (preferServiceRole && SUPABASE_SERVICE_ROLE_KEY) return SUPABASE_SERVICE_ROLE_KEY;
+  return SUPABASE_CONFIG.anonKey || SUPABASE_SERVICE_ROLE_KEY || '';
+}
+
+function getSupabaseRestUrl(pathWithQuery) {
+  if (!SUPABASE_CONFIG.url) return '';
+  const cleanPath = String(pathWithQuery || '').replace(/^\/+/, '');
+  return `${SUPABASE_CONFIG.url}/rest/v1/${cleanPath}`;
+}
+
+function getSupabaseHeaders({ preferServiceRole = false, preferRepresentation = false, upsert = false } = {}) {
+  const apiKey = getSupabaseApiKey(preferServiceRole);
+  if (!apiKey) return null;
+  const headers = {
+    apikey: apiKey,
+    Authorization: `Bearer ${apiKey}`,
+    'Content-Type': 'application/json',
+  };
+  if (preferRepresentation) {
+    headers.Prefer = 'return=representation';
+  }
+  if (upsert) {
+    headers.Prefer = headers.Prefer
+      ? `${headers.Prefer},resolution=merge-duplicates`
+      : 'resolution=merge-duplicates';
+  }
+  return headers;
+}
+
+function hasSupabaseRestAccess() {
+  return Boolean(SUPABASE_CONFIG.url && getSupabaseApiKey(true));
+}
+
+async function upsertSupabaseAlert(alertPayload) {
+  if (!hasSupabaseRestAccess()) {
+    return {
+      ok: false,
+      message: 'Supabase alert sync skipped because SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing.',
+    };
+  }
+
+  const url = getSupabaseRestUrl(`${encodeURIComponent(SUPABASE_ALERTS_TABLE)}?on_conflict=source_id&select=id`);
+  const headers = getSupabaseHeaders({
+    preferServiceRole: true,
+    preferRepresentation: true,
+    upsert: true,
+  });
+  const payload = {
+    source_id: String(alertPayload.id || '').trim(),
+    title: String(alertPayload.title || '').trim() || 'Emergency alert',
+    message: String(alertPayload.message || '').trim(),
+    disaster_type: String(alertPayload.disasterType || 'General').trim(),
+    severity: String(alertPayload.severity || 'High').trim(),
+    active: alertPayload.active !== false,
+    sent_by: String(alertPayload.sentBy || 'Admin').trim(),
+    created_at: alertPayload.createdAt || new Date().toISOString(),
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      console.warn(`[supabase] alert sync failed: ${response.status} ${body}`.trim());
+      return { ok: false, message: `Supabase alert sync failed (${response.status}).` };
+    }
+    return { ok: true, message: 'Alert synced to Supabase.' };
+  } catch (err) {
+    console.warn('[supabase] alert sync failed:', err && err.message ? err.message : err);
+    return { ok: false, message: 'Supabase alert sync failed because the REST API is unreachable.' };
+  }
+}
+
+async function syncDeviceTokenToSupabase(tokenRecord) {
+  if (!hasSupabaseRestAccess()) return;
+  const token = String(tokenRecord && tokenRecord.token || '').trim();
+  if (!token) return;
+
+  const url = getSupabaseRestUrl(`${encodeURIComponent(SUPABASE_DEVICE_TOKENS_TABLE)}?on_conflict=token`);
+  const headers = getSupabaseHeaders({ preferServiceRole: true, upsert: true });
+  const payload = {
+    token,
+    platform: String(tokenRecord.platform || 'unknown').trim() || 'unknown',
+    device_label: String(tokenRecord.deviceLabel || '').trim(),
+    is_active: tokenRecord.isActive !== false,
+    last_seen_at: new Date().toISOString(),
+  };
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      console.warn(`[supabase] device token sync failed: ${response.status} ${body}`.trim());
+    }
+  } catch (err) {
+    console.warn('[supabase] device token sync failed:', err && err.message ? err.message : err);
+  }
+}
+
+async function deactivateSupabaseDeviceToken(token) {
+  if (!hasSupabaseRestAccess()) return;
+  const cleanToken = String(token || '').trim();
+  if (!cleanToken) return;
+  const url = getSupabaseRestUrl(`${encodeURIComponent(SUPABASE_DEVICE_TOKENS_TABLE)}?token=eq.${encodeURIComponent(cleanToken)}`);
+  const headers = getSupabaseHeaders({ preferServiceRole: true });
+  try {
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        is_active: false,
+        last_seen_at: new Date().toISOString(),
+      }),
+    });
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      console.warn(`[supabase] device token deactivate failed: ${response.status} ${body}`.trim());
+    }
+  } catch (err) {
+    console.warn('[supabase] device token deactivate failed:', err && err.message ? err.message : err);
+  }
+}
+
+async function getSupabaseDeviceTokens() {
+  if (!hasSupabaseRestAccess()) return [];
+  const url = getSupabaseRestUrl(
+    `${encodeURIComponent(SUPABASE_DEVICE_TOKENS_TABLE)}?select=token&is_active=eq.true`
+  );
+  const headers = getSupabaseHeaders({ preferServiceRole: true });
+  try {
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      console.warn(`[supabase] device token fetch failed: ${response.status} ${body}`.trim());
+      return [];
+    }
+    const rows = await response.json().catch(() => []);
+    if (!Array.isArray(rows)) return [];
+    return rows
+      .map((row) => String((row && row.token) || '').trim())
+      .filter(Boolean);
+  } catch (err) {
+    console.warn('[supabase] device token fetch failed:', err && err.message ? err.message : err);
+    return [];
+  }
+}
+
+async function syncAlertToMobileBackend(alertPayload) {
+  const targetBaseUrl = normalizeBaseUrl(MOBILE_ALERTS_BASE_URL);
+  if (!targetBaseUrl) {
+    return {
+      ok: false,
+      message: 'Mobile sync skipped because MOBILE_ALERTS_BASE_URL is not configured.',
+    };
+  }
+  if (looksLocalBaseUrl(targetBaseUrl)) {
+    return {
+      ok: false,
+      message: 'Mobile sync skipped because MOBILE_ALERTS_BASE_URL points to a local-only address.',
+    };
+  }
+
+  try {
+    const response = await fetch(`${targetBaseUrl}/api/alerts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: String(alertPayload.title || '').trim(),
+        message: String(alertPayload.message || '').trim(),
+        disasterType: String(alertPayload.disasterType || 'General').trim(),
+        severity: String(alertPayload.severity || 'High').trim(),
+        active: alertPayload.active !== false,
+        sentBy: String(alertPayload.sentBy || 'Admin').trim(),
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      console.warn(`[alerts] mobile sync failed: ${response.status} ${body}`.trim());
+      return {
+        ok: false,
+        message: `Mobile sync failed (${response.status}).`,
+      };
+    }
+
+    console.log(`[alerts] mirrored alert to mobile backend: ${targetBaseUrl}`);
+    return { ok: true, message: 'Alert published' };
+  } catch (err) {
+    console.warn('[alerts] mobile sync failed:', err && err.message ? err.message : err);
+    return {
+      ok: false,
+      message: 'Mobile sync failed because the mobile backend is unreachable.',
+    };
   }
 }
 
@@ -773,6 +1050,131 @@ app.post('/admin/dispatchers/:id/delete', requireRolesPage(['admin'], '/login'),
   }
 });
 
+app.post('/admin/alerts', requireRolesPage(['admin'], '/login'), async (req, res) => {
+  try {
+    const title = String(req.body.title || '').trim();
+    const message = String(req.body.message || '').trim();
+    const disasterType = String(req.body.disasterType || 'General').trim() || 'General';
+    const severity = String(req.body.severity || 'High').trim() || 'High';
+
+    if (!title && !message) {
+      return renderAdminPage(req, res, { error: 'Alert title or message is required.' }, 400);
+    }
+
+    const alert = await Alert.create({
+      title: title || `${disasterType} alert`,
+      message: message || title,
+      disasterType,
+      severity,
+      active: req.body.active !== 'false',
+      sentBy: String(req.auth.fullName || req.auth.username || 'Admin').trim(),
+    });
+
+    await logAudit({
+      actorRole: 'admin',
+      actorId: String(req.auth.userId || ''),
+      actorName: String(req.auth.fullName || req.auth.username || 'Admin'),
+      action: 'ALERT_CREATE',
+      targetType: 'alert',
+      targetId: String(alert._id),
+      details: `${alert.disasterType} ${alert.severity} alert published`,
+    });
+
+    const realtimeAlert = formatAlertPayload(alert);
+    await emitRealtime('alert-created', realtimeAlert);
+    await emitRealtime('admin-alert-created', realtimeAlert);
+    const supabaseResult = await upsertSupabaseAlert(realtimeAlert);
+    await sendPushAlertToDevices(realtimeAlert);
+    const mirrorResult = await syncAlertToMobileBackend(realtimeAlert);
+
+    return res.redirect(adminRedirectUrl(req, {
+      ok: supabaseResult.ok && mirrorResult.ok
+        ? 'Alert published'
+        : `Alert published locally. ${supabaseResult.ok ? '' : `${supabaseResult.message} `}${mirrorResult.ok ? '' : mirrorResult.message}`.trim(),
+    }));
+  } catch (err) {
+    console.error(err);
+    return renderAdminPage(req, res, { error: 'Could not publish alert.' }, 500);
+  }
+});
+
+app.get('/api/alerts/latest', async (_req, res) => {
+  try {
+    await ensureDbReady();
+    const latestAlert = await Alert.findOne({ active: true }).sort({ timestamp: -1 }).lean();
+    return res.json({
+      success: true,
+      alert: latestAlert ? formatAlertPayload(latestAlert) : null,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, error: 'Could not fetch latest alert.' });
+  }
+});
+
+app.get('/api/alerts', async (_req, res) => {
+  try {
+    await ensureDbReady();
+    const alerts = await Alert.find().sort({ timestamp: -1 }).limit(20).lean();
+    return res.json({
+      success: true,
+      alerts: alerts.map(formatAlertPayload),
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, error: 'Could not fetch alerts.' });
+  }
+});
+
+app.post('/api/device-tokens/register', async (req, res) => {
+  try {
+    await ensureDbReady();
+    const token = String(req.body.token || '').trim();
+    if (!token) {
+      return res.status(400).json({ success: false, error: 'Device token is required.' });
+    }
+    const platform = String(req.body.platform || 'unknown').trim() || 'unknown';
+    const deviceLabel = String(req.body.deviceLabel || '').trim();
+    await DeviceToken.findOneAndUpdate(
+      { token },
+      {
+        token,
+        platform,
+        deviceLabel,
+        isActive: true,
+        lastSeenAt: new Date(),
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    await syncDeviceTokenToSupabase({
+      token,
+      platform,
+      deviceLabel,
+      isActive: true,
+    });
+    return res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, error: 'Could not register device token.' });
+  }
+});
+
+app.post('/api/device-tokens/unregister', async (req, res) => {
+  try {
+    await ensureDbReady();
+    const token = String(req.body.token || '').trim();
+    if (!token) {
+      return res.status(400).json({ success: false, error: 'Device token is required.' });
+    }
+    await DeviceToken.deleteOne({ token });
+    await deactivateSupabaseDeviceToken(token);
+    return res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, error: 'Could not unregister device token.' });
+  }
+});
+
 app.get('/admin/reports/export.xls', requireRolesPage(['admin'], '/login'), async (req, res) => {
   try {
     const { where } = buildReportDateRangeFilter(req.query.from, req.query.to);
@@ -876,7 +1278,7 @@ app.post('/api/report', async (req, res) => {
       isPanic:     false,
     });
 
-    const payload = report.toJSON();
+    const payload = ensureReportHasId(report.toJSON());
     await emitRealtime('new-report', payload);
     res.json({ success: true, id: reportId });
   } catch (err) {
@@ -942,7 +1344,7 @@ app.post('/api/panic', async (req, res) => {
       timestamp:     new Date(),
     });
 
-    const payload = report.toJSON();
+    const payload = ensureReportHasId(report.toJSON());
     await emitRealtime('new-report', payload);
     res.json({ success: true, id: reportId });
   } catch (err) {
@@ -963,7 +1365,7 @@ app.patch('/api/report/:id/status', requireRolesApi(['dispatcher', 'admin']), as
       return res.status(400).json({ error: 'Invalid status value' });
     }
     const where = reportLookupQuery(req.params.id);
-    const updates = { status: req.body.status };
+    const updates = { status: nextStatus };
     if (req.auth && req.auth.role === 'dispatcher') {
       updates.dispatcherId = String(req.auth.userId || '');
       updates.dispatcherName = String(req.auth.fullName || req.auth.username || '').trim();
@@ -973,6 +1375,7 @@ app.patch('/api/report/:id/status', requireRolesApi(['dispatcher', 'admin']), as
       updates,
       { new: true }
     );
+    if (!report) return res.status(404).json({ error: 'Report not found' });
     await logAudit({
       actorRole: req.auth.role,
       actorId: req.auth.userId,
@@ -990,10 +1393,10 @@ app.patch('/api/report/:id/status', requireRolesApi(['dispatcher', 'admin']), as
       assignedToName: report.assignedToName || '',
       assignedAt: report.assignedAt || null,
     });
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Could not update report' });
+    return res.status(500).json({ error: 'Could not update report' });
   }
 });
 
@@ -1068,6 +1471,7 @@ app.patch('/api/report/:id/details', requireRolesApi(['dispatcher', 'admin']), a
     });
 
     const payload = report.toJSON();
+    payload.id = payload.id || payload.reportId || String(report._id || '');
     await emitRealtime('report-details-updated', payload);
     res.json({ success: true, report: payload });
   } catch (err) {
@@ -1164,8 +1568,11 @@ app.delete('/api/reports', requireRolesApi(['dispatcher', 'admin']), async (_req
 // ── API: list all reports (JSON) ─────────────────────────────────────────────
 app.get('/api/reports', requireRolesApi(['dispatcher', 'admin']), async (_req, res) => {
   try {
-    const reports = await Report.find(buildReportVisibilityQuery(_req.auth)).sort({ timestamp: -1 }).lean({ virtuals: true });
-    res.json(reports);
+    const query = buildReportVisibilityQuery(_req.auth);
+    const reports = await Report.find(query).sort({ timestamp: -1 }).lean({ virtuals: true });
+    // Ensure every report has an id field
+    const reportsWithId = reports.map(ensureReportHasId);
+    res.json(reportsWithId);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Could not fetch reports' });
@@ -1229,6 +1636,7 @@ app.post('/api/report/:id/claim', requireRolesApi(['dispatcher', 'admin']), asyn
       details: `Claimed report by ${report.assignedToName || req.auth.username}`,
     });
     const payload = report.toJSON();
+    payload.id = payload.id || payload.reportId || String(report._id || '');
     await emitRealtime('report-assignment-updated', payload);
     return res.json({ success: true, report: payload });
   } catch (err) {
@@ -1262,10 +1670,12 @@ app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async
     const actorName = String(req.auth.fullName || req.auth.username || '').trim();
     const actorUsername = String(req.auth.username || '').trim();
     const nextPassCount = Math.max(0, Number(current.passCount) || 0) + 1;
+    const assignedToIdStr = String(target._id || '').trim();
+    
     const report = await Report.findOneAndUpdate(
       where,
       {
-        assignedToId: String(target._id),
+        assignedToId: assignedToIdStr,
         assignedToUsername: String(target.username || '').trim(),
         assignedToName: nextAssignedName,
         assignedAt: new Date(),
@@ -1277,6 +1687,7 @@ app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async
       },
       { new: true }
     );
+    if (!report) return res.status(404).json({ error: 'Report not found' });
     await logAudit({
       actorRole: req.auth.role,
       actorId: req.auth.userId,
@@ -1287,6 +1698,7 @@ app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async
       details: `Passed report to ${nextAssignedName}`,
     });
     const payload = report.toJSON();
+    payload.id = payload.id || payload.reportId || String(report._id || '');
     await emitRealtime('report-assignment-updated', payload);
     return res.json({ success: true, report: payload });
   } catch (err) {
@@ -1347,6 +1759,14 @@ function normalizeBarangayLabel(value) {
   s = s.replace(/\s+/g, ' ');
   if (/^brgy\.?/i.test(s)) return s.replace(/^brgy\.?/i, 'Barangay').replace(/\s+/g, ' ').trim();
   return s;
+}
+
+function ensureReportHasId(report) {
+  if (!report || typeof report !== 'object') return report;
+  return {
+    ...report,
+    id: report.id || report.reportId || String(report._id || '')
+  };
 }
 
 function reportLookupQuery(id) {
@@ -1798,6 +2218,8 @@ function buildReportVisibilityQuery(auth) {
   if (!auth) return { _id: null };
   if (auth.role === 'admin') return {};
   const userId = String(auth.userId || '').trim();
+  // Dispatchers can see unassigned reports and reports assigned to them
+  // Use explicit string comparison to handle both ObjectId and string formats
   return {
     $or: [
       { assignedToId: { $exists: false } },
@@ -1997,6 +2419,7 @@ async function renderAdminPage(req, res, options = {}, statusCode = 200) {
     from: data.from,
     to: data.to,
     tab: data.tab,
+    latestAlert: data.latestAlert,
     currentUser: req.auth,
     error: options.error || '',
     success: options.success || '',
@@ -2012,6 +2435,7 @@ async function getAdminViewData(req) {
   const reportPage = parsePositiveInt(source.reportPage, 1);
   const auditPage = parsePositiveInt(source.auditPage, 1);
   const dispatchers = await Dispatcher.find().sort({ createdAt: -1 }).lean();
+  const latestAlert = await Alert.findOne({ active: true }).sort({ timestamp: -1 }).lean();
   const reportTotal = await Report.countDocuments(where);
   const reportTotalPages = Math.max(1, Math.ceil(reportTotal / ADMIN_REPORTS_PAGE_SIZE));
   const safeReportPage = Math.min(reportPage, reportTotalPages);
@@ -2050,6 +2474,7 @@ async function getAdminViewData(req) {
     from,
     to,
     tab: pickAdminTab(source.tab),
+    latestAlert,
   };
 }
 
@@ -2070,6 +2495,160 @@ function adminRedirectUrl(req, flash = {}) {
   if (flash.err) params.set('err', String(flash.err));
   const q = params.toString();
   return q ? `/admin?${q}` : '/admin';
+}
+
+function formatAlertPayload(alert) {
+  if (!alert) return null;
+  return {
+    id: String(alert._id || alert.id || ''),
+    title: String(alert.title || 'Emergency alert'),
+    message: String(alert.message || ''),
+    disasterType: String(alert.disasterType || 'General'),
+    severity: String(alert.severity || 'High'),
+    active: alert.active !== false,
+    sentBy: String(alert.sentBy || ''),
+    createdAt: alert.timestamp || alert.createdAt || null,
+    updatedAt: alert.updatedAt || alert.timestamp || null,
+  };
+}
+
+function getFirebaseServiceAccount() {
+  const inlineJson = String(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '').trim();
+  if (inlineJson) {
+    try {
+      const parsed = JSON.parse(inlineJson);
+      if (parsed && parsed.private_key) {
+        parsed.private_key = String(parsed.private_key).replace(/\\n/g, '\n');
+      }
+      return parsed;
+    } catch (err) {
+      console.error('[push] invalid FIREBASE_SERVICE_ACCOUNT_JSON:', err && err.message ? err.message : err);
+      return null;
+    }
+  }
+
+  const projectId = String(process.env.FIREBASE_PROJECT_ID || '').trim();
+  const clientEmail = String(process.env.FIREBASE_CLIENT_EMAIL || '').trim();
+  const privateKey = String(process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n').trim();
+  if (!projectId || !clientEmail || !privateKey) {
+    console.warn('[push] Firebase service account env vars are missing. Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_PROJECT_ID/FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY.');
+    return null;
+  }
+  return {
+    project_id: projectId,
+    client_email: clientEmail,
+    private_key: privateKey,
+  };
+}
+
+function getFirebaseAdminApp() {
+  if (firebaseAdminApp !== undefined) {
+    return firebaseAdminApp || null;
+  }
+  if (!firebaseAdmin) {
+    firebaseAdminApp = null;
+    return null;
+  }
+  const serviceAccount = getFirebaseServiceAccount();
+  if (!serviceAccount) {
+    firebaseAdminApp = null;
+    return null;
+  }
+  try {
+    firebaseAdminApp = firebaseAdmin.apps && firebaseAdmin.apps.length
+      ? firebaseAdmin.app()
+      : firebaseAdmin.initializeApp({
+        credential: firebaseAdmin.credential.cert(serviceAccount),
+      });
+    return firebaseAdminApp;
+  } catch (err) {
+    console.error('[push] firebase-admin init failed:', err && err.message ? err.message : err);
+    firebaseAdminApp = null;
+    return null;
+  }
+}
+
+async function sendPushAlertToDevices(alertPayload) {
+  try {
+    const app = getFirebaseAdminApp();
+    if (!alertPayload) return;
+    if (!app) {
+      console.warn('[push] Push skipped because Firebase Admin is not configured.');
+      return;
+    }
+
+    const [mongoDevices, supabaseTokens] = await Promise.all([
+      DeviceToken.find({ isActive: true }).select('token').lean(),
+      getSupabaseDeviceTokens(),
+    ]);
+    const tokens = Array.from(new Set([
+      ...mongoDevices.map(device => String(device.token || '').trim()),
+      ...supabaseTokens.map(token => String(token || '').trim()),
+    ].filter(Boolean)));
+    if (!tokens.length) {
+      console.warn('[push] Push skipped because there are no registered device tokens.');
+      return;
+    }
+
+    const body = String(alertPayload.message || '').trim()
+      || `${alertPayload.disasterType || 'General'} alert`;
+
+    const response = await firebaseAdmin.messaging(app).sendEachForMulticast({
+      tokens,
+      notification: {
+        title: String(alertPayload.title || 'Emergency alert'),
+        body,
+      },
+      data: {
+        kind: 'admin_alert',
+        id: String(alertPayload.id || ''),
+        title: String(alertPayload.title || 'Emergency alert'),
+        message: body,
+        disasterType: String(alertPayload.disasterType || 'General'),
+        severity: String(alertPayload.severity || 'High'),
+        active: String(alertPayload.active !== false),
+        createdAt: String(alertPayload.createdAt || ''),
+      },
+      android: {
+        priority: 'high',
+        notification: {
+          channelId: 'svs_alerts',
+          sound: 'default',
+          priority: 'max',
+          defaultVibrateTimings: true,
+          visibility: 'public',
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: 'default',
+            badge: 1,
+          },
+        },
+      },
+    });
+    console.log(`[push] Alert fanout complete. success=${response.successCount} failure=${response.failureCount} tokens=${tokens.length}`);
+
+    const invalidTokens = [];
+    response.responses.forEach((result, index) => {
+      if (result.success) return;
+      const code = String(result.error && result.error.code || '');
+      console.warn(`[push] Token send failed (${code || 'unknown-error'}) for token index ${index}.`);
+      if (code.includes('registration-token-not-registered') ||
+          code.includes('invalid-argument') ||
+          code.includes('invalid-registration-token')) {
+        invalidTokens.push(tokens[index]);
+      }
+    });
+    if (invalidTokens.length) {
+      await DeviceToken.deleteMany({ token: { $in: invalidTokens } });
+      await Promise.all(invalidTokens.map((token) => deactivateSupabaseDeviceToken(token)));
+      console.warn(`[push] Removed ${invalidTokens.length} invalid device token(s).`);
+    }
+  } catch (err) {
+    console.error('[push] failed to send alert notification:', err && err.message ? err.message : err);
+  }
 }
 
 function parsePositiveInt(value, fallback = 1) {
@@ -2240,4 +2819,3 @@ if (require.main === module) {
 }
 
 module.exports = app;
-

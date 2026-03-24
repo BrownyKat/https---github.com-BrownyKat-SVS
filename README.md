@@ -29,6 +29,12 @@ Required env:
 - `ADMIN_USERNAME`
 - `ADMIN_PASSWORD`
 
+Optional push-notification env for mobile-wide admin alerts:
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_CLIENT_EMAIL`
+- `FIREBASE_PRIVATE_KEY`
+or `FIREBASE_SERVICE_ACCOUNT_JSON`
+
 Open in browser:
 
 | Role       | URL                          |
@@ -90,6 +96,12 @@ mdrrmo/
 - Credibility scoring (High / Medium / Low)
 - Photo thumbnails
 - Socket.IO: all dispatcher windows sync instantly
+
+### Mobile Admin Alerts
+- Admin can publish alerts from the admin dashboard
+- Backend stores device push tokens and fans out alerts to all registered phones
+- Flutter app registers its FCM token and shows alert popup + vibration on receipt
+- Add `android/app/google-services.json` from your Firebase project before building the Flutter app
 
 ---
 
