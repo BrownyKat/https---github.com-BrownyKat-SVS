@@ -6,6 +6,7 @@
   <title>SVS — About</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root{
       --amber:#FACC15; --amber-dark:#EAB308; --blue:#1D4ED8; --red:#DC2626; --bg:#e9f0ff; --bg-2:#fff7ef; --surface:#ffffff;
@@ -238,31 +239,7 @@
 
   <div class="footer" style="text-align:center;font-weight:700;font-size:1.02rem;letter-spacing:-.1px;">Need immediate help? Go to the <a href="/sos">SOS page</a> or file a <a href="/report">report</a>.</div>
 
-  <footer class="site-footer">
-    <div class="footer-grid">
-      <div>
-        <div class="footer-brand">
-          <img src="/images/logo.png" alt="SVS badge">
-          <div>
-            <div class="footer-tag">Emergency Reporting</div>
-            <h4>Smart Verification System</h4>
-          </div>
-        </div>
-        <div class="footer-copy">Fast and reliable citizen incident reporting with real-time dispatcher visibility and location-aware alerts.</div>
-      </div>
-      <div class="footer-contact">
-        <h5>Contact Us</h5>
-        <p>Hotline: 911</p>
-        <p>Office: +63 917 000 0000</p>
-        <p>Email: support@svs.local</p>
-      </div>
-    </div>
-    <div class="footer-line"></div>
-    <div class="footer-meta">
-      <span>© 2026 SVS. All rights reserved.</span>
-      <span>Built for easy and fast emergency reporting.</span>
-    </div>
-  </footer>
+  <%- include('partials/footer') %>
 
   <script>
     function updateTime(elId){
