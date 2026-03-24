@@ -2220,7 +2220,7 @@
           <button class="upload-clear" type="button" onclick="clearReportPhoto()">Remove</button>
         </div>
       </div>
-      <div class="field-note">A clear photo helps responders verify the situation faster.</div>
+      <div class="field-note">The image file is stored in Supabase, and MongoDB only keeps the resulting photo URL.</div>
     </div>
   </div>
 
@@ -2659,6 +2659,7 @@ function selType(el, t) {
       clearReportPhoto();
       return;
     }
+
     if (!/^image\/(png|jpe?g|webp)$/i.test(file.type)) {
       clearReportPhoto();
       toast('Unsupported photo', 'Please upload a JPG, PNG, or WEBP image.','warn');

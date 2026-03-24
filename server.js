@@ -2374,7 +2374,7 @@ function sanitizeDataImage(photoRaw) {
   try {
     const u = new URL(photo);
     if (!/^https?:$/i.test(u.protocol)) throw new Error('Invalid photo URL');
-    // Allow supabase/public object urls only to avoid arbitrary fetches
+    // Allow Supabase URLs so previously uploaded images can still be resubmitted safely.
     if (!/supabase\.co\/storage\/v1\/object/i.test(u.href)) {
       throw new Error('Photo URL must be a Supabase storage link');
     }
