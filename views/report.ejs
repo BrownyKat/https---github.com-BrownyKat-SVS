@@ -35,6 +35,7 @@
       --text2:        #1E3A8A;
       --muted:        #334155;
       --muted2:       #64748B;
+      --header-h:     89px;
       --shadow-sm: 0 1px 3px rgba(15,23,42,.08),0 1px 2px rgba(15,23,42,.05);
       --shadow-md: 0 4px 14px rgba(15,23,42,.10),0 2px 6px rgba(15,23,42,.06);
       --shadow-lg: 0 12px 36px rgba(15,23,42,.12),0 4px 14px rgba(15,23,42,.07);
@@ -45,6 +46,11 @@
     html{scroll-behavior:smooth;}
     body{
       font-family:'Outfit',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.65;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      overflow-x:hidden;
+      padding-top:var(--header-h);
       background:
         radial-gradient(520px 360px at 120% -20%, rgba(59,130,246,.16), transparent 60%),
         radial-gradient(420px 280px at -10% 120%, rgba(239,68,68,.12), transparent 60%),
@@ -53,15 +59,22 @@
     a{color:var(--blue);text-decoration:none;}
     a:visited{color:var(--blue);}
     a:hover{color:#0f3fb5;}
-    ::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:99px;}
+    ::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:50px;}
 
-    header{position:sticky;top:0;z-index:10;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:1rem;padding:1rem 1.5rem;background:rgba(243,247,255,.9);backdrop-filter:blur(18px);border-bottom:1px solid rgba(191,214,245,.9);box-shadow:0 6px 18px rgba(0,0,0,.08);color:var(--text);}
+    header{position:fixed;top:0;left:0;right:0;z-index:50;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:1rem;padding:1rem 1.5rem;background:rgba(243,247,255,.9);backdrop-filter:blur(18px);border-bottom:1px solid rgba(191,214,245,.9);box-shadow:0 6px 18px rgba(0,0,0,.08);color:var(--text);}
     .brand{display:flex;align-items:center;gap:.6rem;color:var(--text);text-decoration:none;}
     .brand img{width:72px;height:60px;object-fit:contain;flex-shrink:0;}
     .brand-text{line-height:1;}
     .brand-name{font-weight:900;font-size:1.25rem;letter-spacing:-.2px;color:var(--text);}
     .brand-sub{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:1px;color:#475569;}
-    .header-right{display:grid;grid-template-columns:1fr auto;align-items:center;gap:.7rem;width:100%;justify-items:center;}
+    .header-right{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      align-items:center;
+      gap:.7rem;
+      width:100%;
+      min-width:0;
+    }
     .nav-links{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;justify-content:center;}
     .nav-btn{display:inline-flex;align-items:center;gap:8px;padding:.5rem 1.1rem;border:1.6px solid rgba(151,189,233,.9);border-radius:15px;background:linear-gradient(180deg,#fff,#f3f7ff);color:var(--text);font-weight:820;font-size:.9rem;transition:.16s;box-shadow:0 9px 18px rgba(15,23,42,.08);}
     .nav-btn:hover{border-color:var(--blue);color:var(--blue);box-shadow:0 12px 24px rgba(29,78,216,.15);}
@@ -224,6 +237,7 @@
     .card-sub{font-size:.77rem;color:var(--muted);margin-top:2px;}
 
     .row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+    @media(max-width:1500px){.row2{grid-template-columns:1fr;}}
     @media(max-width:520px){.row2{grid-template-columns:1fr;}}
     .field{margin-bottom:1rem;}
     .field:last-child{margin-bottom:0;}
@@ -260,7 +274,17 @@
       box-shadow:0 0 0 3.5px rgba(245,158,11,.13);
     }
     input::placeholder,textarea::placeholder{color:var(--muted2);font-weight:400;}
-    textarea{resize:vertical;min-height:115px;}
+    textarea::placeholder{
+      line-height:1.6;
+      font-size:.88rem;
+    }
+    textarea{
+      resize:vertical;
+      min-height:115px;
+      padding:1.2rem 1.15rem 1.1rem;
+      line-height:1.55;
+      text-indent:.2rem;
+    }
     select option{background:#fff;}
     .req-missing{
       border-color:var(--red)!important;
@@ -730,8 +754,13 @@
       background-size: 34px 34px;
       mask-image: radial-gradient(circle at center, rgba(0,0,0,.92), rgba(0,0,0,.30));
     }
-    .header,.panic-strip,.form-wrap,.report-footer{position:relative;z-index:1}
+    .panic-strip,.form-wrap,.report-footer{position:relative;z-index:1}
     .header{
+      position:fixed;
+      top:0;
+      left:0;
+      right:0;
+      z-index:50;
       display:grid;
       grid-template-columns:auto 1fr auto;
       align-items:center;
@@ -971,6 +1000,246 @@
     }
     .submit-btn,.panic-number-pill{
       box-shadow: var(--shadow-sm);
+    }
+    .custom-scrollbar::-webkit-scrollbar{width:8px;}
+    .custom-scrollbar::-webkit-scrollbar-track{background:transparent;}
+    .custom-scrollbar::-webkit-scrollbar-thumb{background:rgba(148,163,184,.45);border-radius:999px;}
+    .custom-scrollbar{scrollbar-width:thin;scrollbar-color:rgba(148,163,184,.6) transparent;}
+    .dashboard-form-wrap{
+      max-width:none;
+      padding:0;
+      margin:0;
+      min-width:0;
+      width:100%;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+    }
+    .dashboard-form-card{
+      min-height:100%;
+      height:100%;
+      max-height:100%;
+      min-width:0;
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+    }
+    .dashboard-form-head{
+      position:static;
+      background:transparent;
+      backdrop-filter:none;
+      padding-bottom:0;
+      margin-bottom:1.5rem;
+      flex:0 0 auto;
+    }
+    .dashboard-form-scroll{
+      flex:1 1 auto;
+      min-height:0;
+      overflow-y:auto;
+      overflow-x:hidden;
+      padding-right:.2rem;
+      scrollbar-width:none;
+      -ms-overflow-style:none;
+    }
+    .dashboard-form-scroll::-webkit-scrollbar{
+      display:none;
+    }
+    .dashboard-card-stack{
+      display:flex;
+      flex-direction:column;
+      gap:1.75rem;
+    }
+    .dashboard-form-card .card{
+      background:transparent;
+      border:none;
+      box-shadow:none;
+      border-radius:0;
+      padding:0 0 1.75rem;
+      margin:0;
+      overflow:visible;
+      animation:none;
+      transform:none;
+    }
+    .dashboard-form-card .card::before{display:none;}
+    .dashboard-form-card .card:hover{
+      box-shadow:none;
+      border-color:transparent;
+      transform:none;
+    }
+    .dashboard-form-card .card:not(:last-child){
+      border-bottom:1px solid rgba(226,232,240,.9);
+    }
+    .dashboard-main{
+      width:100%;
+      flex:1 1 auto;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+      position:relative;
+    }
+    .dashboard-layout{
+      display:flex;
+      flex-direction:column;
+      width:100%;
+      min-height:0;
+      flex:1 1 auto;
+      overflow:hidden;
+      background:#f8fafc;
+      align-items:stretch;
+    }
+    .report-form-panel{
+      width:100%;
+      min-width:0;
+      min-height:0;
+      overflow:hidden;
+      overflow-x:hidden;
+      background:#f8fafc;
+      padding:clamp(.9rem,2vw,1.5rem);
+      scrollbar-width:none;
+      -ms-overflow-style:none;
+    }
+    .report-form-panel::-webkit-scrollbar{
+      display:none;
+    }
+    .report-map-panel{
+      display:none;
+      min-width:0;
+      min-height:0;
+      background:#e5e7eb;
+      overflow:hidden;
+      position:relative;
+    }
+    .dashboard-map-shell{
+      height:100%;
+      min-height:0;
+      padding:clamp(.9rem,2vw,1.5rem) clamp(.9rem,2vw,1.5rem) clamp(.9rem,2vw,1.5rem) 0;
+      display:flex;
+      flex-direction:column;
+    }
+    .dashboard-map-shell .gps-map-wrap{
+      display:flex !important;
+      flex-direction:column;
+      flex:1 1 auto;
+      height:100%;
+      min-height:0;
+      margin:0;
+      border:none;
+      border-radius:28px;
+      box-shadow:0 18px 50px rgba(15,23,42,.12);
+      background:rgba(255,255,255,.92);
+      overflow:hidden;
+    }
+    .dashboard-map-shell .gps-map-head{
+      padding:1rem 1.15rem;
+      background:rgba(255,255,255,.94);
+      border-bottom:1px solid rgba(226,232,240,.95);
+    }
+    .dashboard-map-shell .gps-map-canvas{
+      display:flex;
+      flex:1 1 auto;
+      min-height:0;
+      border-radius:0;
+      border:none;
+      background:linear-gradient(180deg,#dbeafe,#e2e8f0);
+      position:relative;
+    }
+    .dashboard-map-shell .gps-map-frame{
+      display:block;
+      flex:1 1 auto;
+      width:100%;
+      height:100% !important;
+      min-height:100% !important;
+      border-radius:0;
+    }
+    @media(min-width:768px){
+      .dashboard-main{
+        min-height:calc(100vh - var(--header-h));
+        height:calc(100vh - var(--header-h));
+      }
+      .dashboard-layout{
+        display:block;
+        min-height:calc(100vh - var(--header-h));
+        background:#eef2f7;
+      }
+      .report-form-panel{
+        position:fixed;
+        z-index:2;
+        top:var(--header-h);
+        left:0;
+        width:clamp(420px, 34vw, 520px);
+        max-width:clamp(420px, 34vw, 520px);
+        height:calc(100vh - var(--header-h));
+        padding:0;
+        background:#f8fafc;
+        overflow:hidden;
+        border-right:1px solid rgba(191,214,245,.95);
+        box-shadow:18px 0 36px rgba(15,23,42,.08);
+      }
+      .report-map-panel{
+        display:block !important;
+        position:fixed;
+        top:var(--header-h);
+        right:0;
+        bottom:0;
+        left:clamp(420px, 34vw, 520px);
+        width:auto;
+        height:auto;
+        z-index:1;
+        background:#e5e7eb;
+      }
+      .dashboard-map-shell{
+        position:absolute;
+        inset:0;
+        height:auto;
+        padding:0;
+      }
+      .dashboard-map-shell .gps-map-wrap{
+        border-radius:0;
+        box-shadow:none;
+        background:#fff;
+      }
+      .dashboard-map-shell .gps-map-head{
+        background:rgba(255,255,255,.96);
+        backdrop-filter:blur(10px);
+      }
+      .dashboard-form-card{
+        min-height:100%;
+        height:100%;
+        max-height:100%;
+        background:#ffffff !important;
+        border:none;
+        border-radius:0 !important;
+        box-shadow:none !important;
+        backdrop-filter:none;
+        padding:1.35rem 1.35rem 0 !important;
+      }
+      .dashboard-form-scroll{
+        padding:0 1.35rem 1.35rem 0;
+      }
+      .dashboard-form-head{
+        margin-bottom:1.1rem;
+        padding-right:1.35rem;
+      }
+    }
+    @media(min-width:1200px){
+      .report-form-panel{
+        width:clamp(430px, 32vw, 540px);
+        max-width:clamp(430px, 32vw, 540px);
+      }
+      .report-map-panel{
+        left:clamp(430px, 32vw, 540px);
+      }
+    }
+    @media(max-width:1360px){
+      .card-topline{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .step-badge{
+        align-self:flex-start;
+      }
     }
     .report-shell{
       max-width:1280px;
@@ -1217,10 +1486,15 @@
     }
     .submit-copy{
       display:flex;
+      flex-direction:column;
       align-items:flex-start;
-      justify-content:space-between;
-      gap:1rem;
+      justify-content:flex-start;
+      gap:.75rem;
       margin-bottom:.95rem;
+    }
+    .submit-copy > div:first-child{
+      width:100%;
+      min-width:0;
     }
     .submit-copy h3{
       font-size:1rem;
@@ -1233,7 +1507,7 @@
       font-size:.8rem;
       line-height:1.55;
       color:var(--muted);
-      max-width:48ch;
+      max-width:none;
     }
     .required-pill{
       display:inline-flex;
@@ -1250,6 +1524,7 @@
       letter-spacing:1px;
       text-transform:uppercase;
       white-space:nowrap;
+      align-self:flex-start;
     }
     .required-pill svg{
       width:13px;
@@ -1345,6 +1620,52 @@
       }
     }
     @media(max-width:768px){
+      .header-right{
+        grid-template-columns:1fr;
+        justify-items:stretch;
+      }
+      .nav-links{
+        justify-content:flex-start;
+      }
+      .nav-btn{
+        flex:1 1 auto;
+        justify-content:center;
+      }
+      .brand img{
+        width:58px;
+        height:48px;
+      }
+      .brand-name{
+        font-size:1.05rem;
+      }
+      .brand-sub{
+        font-size:.6rem;
+        letter-spacing:.7px;
+      }
+      .form-head h1{
+        font-size:2.2rem;
+        letter-spacing:-1.4px;
+      }
+      .dashboard-form-card{
+        padding:1.5rem !important;
+        border-radius:24px !important;
+      }
+      .dashboard-layout{
+        overflow:visible;
+      }
+      .report-form-panel{
+        overflow:visible;
+      }
+      .sos-save-row{
+        display:grid;
+        grid-template-columns:1fr;
+        align-items:stretch;
+      }
+      .sos-save-row input,
+      .sos-save-row button{
+        width:100%;
+        max-width:none;
+      }
       .intro-grid{
         grid-template-columns:1fr;
       }
@@ -1397,12 +1718,23 @@
         border-radius:24px;
       }
       .header{height:auto;min-height:64px;padding:.75rem 1rem;align-items:flex-start;gap:.75rem;flex-wrap:wrap;}
-    .main-datetime{width:100%;white-space:normal;}
+      .main-datetime{width:100%;white-space:normal;justify-content:flex-start;}
       .panic-sublabel{padding:.85rem 1rem}
+    }
+    @media(max-width:900px){
+      .etype-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+      .severity-guide{
+        grid-template-columns:1fr;
+      }
+      .submit-copy{
+        flex-direction:column;
+      }
     }
     @media(max-width:520px){
       .form-wrap{
-        padding:1.5rem .85rem 3rem;
+        padding:.3rem .15rem 1rem;
       }
       .intro-grid{
         margin-top:1rem;
@@ -1421,7 +1753,18 @@
         gap:.75rem;
       }
       .card{
-        padding:1.2rem;
+        padding:.8rem;
+      }
+      .dashboard-form-card{
+        padding:.65rem !important;
+        border-radius:14px !important;
+      }
+      .form-head h1{
+        font-size:1.95rem;
+        line-height:1.02;
+      }
+      .form-head p{
+        font-size:.88rem;
       }
       .card-head{
         gap:.85rem;
@@ -1440,6 +1783,12 @@
       }
       .etype-copy span{
         max-width:none;
+      }
+      .field-note{
+        font-size:.74rem;
+      }
+      textarea{
+        min-height:150px;
       }
       .sev-row{
         grid-template-columns:1fr;
@@ -1464,10 +1813,69 @@
       .action-chip{
         flex-basis:100%;
       }
+      .nav-links{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        width:100%;
+      }
+      .nav-btn{
+        width:100%;
+        padding:.6rem .8rem;
+        font-size:.82rem;
+      }
       .main-datetime{padding:.68rem .85rem;gap:.7rem;}
       .main-datetime svg{width:20px;height:20px;}
       .clock-text{font-size:.95rem;letter-spacing:.7px;}
       .date-text{font-size:.6rem;letter-spacing:.45px;}
+    }
+    @media(max-width:1100px){
+      .card-step{
+        font-size:.68rem;
+      }
+      .card-title{
+        font-size:1.5rem;
+      }
+      .card-sub{
+        max-width:none;
+      }
+      .etype-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+      .sev-row{
+        grid-template-columns:1fr;
+      }
+      .severity-guide{
+        grid-template-columns:1fr;
+      }
+      .submit-panel{
+        padding:1rem;
+      }
+    }
+    @media(max-width:767px){
+      body{
+        padding-top:var(--header-h);
+      }
+      .dashboard-main{
+        min-height:auto;
+      }
+      .dashboard-layout{
+        min-height:auto;
+        overflow:visible;
+      }
+      .report-form-panel{
+        position:relative;
+        top:auto;
+        margin-left:0;
+        height:auto;
+      }
+      .dashboard-form-card{
+        min-height:auto;
+        height:auto;
+        max-height:none;
+      }
+      .report-map-panel{
+        display:none !important;
+      }
     }
   </style>
 </head>
@@ -1920,6 +2328,7 @@
     <!-- Field Guide removed for clarity and focus -->
   </div>
 </div>
+</main>
 
 <!-- FOOTER -->
 <div class="relative left-1/2 w-screen -translate-x-1/2">
@@ -1987,12 +2396,12 @@
 </div>
 
 <script>
-  let selType_ = '', selSev_ = '', photoData = null;
-  let selectedTags = [];
-  const TAG_OPTIONS = ['people_trapped','injured','road_blocked','power_out','rising_water','fire_spreading','hazmat','structure_damage','blocked_access','missing_persons','medical_needed','evac_needed'];
+  let selType_ = '', selSev_ = '';
   let panicNum = '';
   const MAP_MIN_ZOOM = 6;
   const MAP_MAX_ZOOM = 20;
+  const MAP_STREET_ZOOM = 17;
+  const MAPANDAN_DEFAULT = { query: 'Mapandan, Pangasinan', lat: 16.0249, lng: 120.4541, zoom: 14 };
   const mapState = { lat: null, lng: null, zoom: 16, view: 'map' };
   const MAP_TYPE_CODES = { map: 'm', satellite: 'k' };
   const API_TIMEOUT_MS = 15000;
@@ -2259,47 +2668,6 @@ function selType(el, t) {
     );
   }
 
-  function handlePhoto(input) {
-    if (!input.files[0]) return;
-    const file = input.files[0];
-    if (!/^image\/(png|jpe?g|webp)$/i.test(file.type || '')) {
-      toast('Invalid image', 'Please upload PNG, JPG, or WEBP only.', 'warn');
-      input.value = '';
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      toast('Image too large', 'Please upload an image up to 10 MB only.', 'warn');
-      input.value = '';
-      return;
-    }
-    const r = new FileReader();
-    r.onload = e => {
-      const result = String((e && e.target && e.target.result) || '').trim();
-      if (!isSafeImageDataUrl(result)) {
-        toast('Invalid image', 'Could not process this photo safely.', 'warn');
-        input.value = '';
-        return;
-      }
-      photoData = result;
-      const area = document.getElementById('uploadArea');
-      area.innerHTML = '';
-      const img = document.createElement('img');
-      img.src = result;
-      img.style.maxHeight = '120px';
-      img.style.borderRadius = '9px';
-      img.style.maxWidth = '100%';
-      const note = document.createElement('p');
-      note.style.marginTop = '8px';
-      note.style.fontSize = '.82rem';
-      note.style.color = 'var(--green)';
-      note.style.fontWeight = '700';
-      note.textContent = 'Photo attached';
-      area.appendChild(img);
-      area.appendChild(note);
-    };
-    r.readAsDataURL(file);
-  }
-
   async function submitReport() {
     const submitBtn = document.querySelector('.submit-btn');
     const nameInput = document.getElementById('iName');
@@ -2330,10 +2698,8 @@ function selType(el, t) {
     setRequiredError(barangayInput, !barangay);
     setRequiredError(landmarkInput, !landmark);
     setRequiredError(streetInput, !street);
-    const attest = document.getElementById('iAttest');
-    setRequiredError(attest, !attest || !attest.checked);
 
-    if (!name||!contact||!selType_||!selSev_||!barangay||!landmark||!street||!attest?.checked) {
+    if (!name||!contact||!selType_||!selSev_||!barangay||!landmark||!street) {
       toast('Missing fields', 'Please complete all required fields and selections.','warn'); return;
     }
     if (!isValidPhMobile(contact)) {
@@ -2357,7 +2723,7 @@ function selType(el, t) {
         submitBtn.disabled = true;
         submitBtn.style.opacity = '.7';
       }
-      const payload = { name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue, photo: photoData, tags: selectedTags };
+      const payload = { name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue };
       if (!navigator.onLine) {
         enqueuePending(payload);
         toast('Saved offline', 'Will auto-send when you reconnect.');
@@ -2381,7 +2747,7 @@ function selType(el, t) {
       flushPendingQueue();
       updatePendingCount();
     } catch(e) {
-      enqueuePending({ name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue, photo: photoData, tags: selectedTags });
+      enqueuePending({ name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue });
       toast('Stored to retry', 'Network error. Will retry when back online.','warn');
       updatePendingCount();
     } finally {
@@ -2397,12 +2763,11 @@ function selType(el, t) {
     document.getElementById('iBarangay').value='';
     document.querySelectorAll('.etype-btn').forEach(b=>b.classList.remove('sel'));
     document.querySelectorAll('.sev-btn').forEach(b=>b.classList.remove('sel'));
-    selType_=''; selSev_=''; photoData=null; selectedTags=[]; syncTagUi();
+    selType_=''; selSev_='';
     const g=document.getElementById('gpsBtn');
     g.classList.remove('got'); g.disabled=false;
-    document.getElementById('gpsMapWrap').style.display='none';
+    resetMapToDefaultView();
     g.innerHTML=`<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round"><path d="M9.348 14.651a3.75 3.75 0 0 1 0-5.303m5.304-.001a3.75 3.75 0 0 1 0 5.304m-7.425 2.122a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79M12 12h.008v.007H12V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg> Auto-detect My Location (GPS)`;
-    document.getElementById('uploadArea').innerHTML=`<input type="file" accept="image/*" onchange="handlePhoto(this)"><svg viewBox="0 0 24 24" style="width:34px;height:34px;stroke:var(--muted2);fill:none;stroke-width:1.5;margin-bottom:.2rem;transition:stroke .2s"><path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg><div class="upload-label">Click or drag to upload a photo</div><div class="upload-hint">JPG, PNG — up to 10 MB</div>`;
     updatePendingCount();
   }
 
@@ -2546,7 +2911,17 @@ function selType(el, t) {
 
   function toEmbedUrl(lat, lng, view = 'map', zoom = 16) {
     const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
-    return `https://maps.google.com/maps?q=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
+    return `https://maps.google.com/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
+  }
+
+  function toQueryEmbedUrl(query, view = 'map', zoom = 14) {
+    const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
+    return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=${type}&z=${zoom}&output=embed`;
+  }
+
+  function toCenterEmbedUrl(lat, lng, view = 'map', zoom = 14) {
+    const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
+    return `https://maps.google.com/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
   }
 
   function renderReporterMap(gps, label = 'Detected location') {
@@ -2565,16 +2940,23 @@ function selType(el, t) {
 
   function refreshMapLink() {
     const link = document.getElementById('gpsMapLink');
-    if (!link || !mapState.lat) return;
+    if (!link) return;
+    if (!mapState.lat) {
+      link.href = `https://www.google.com/maps?q=${encodeURIComponent(MAPANDAN_DEFAULT.query)}`;
+      return;
+    }
     const type = mapState.view === 'satellite' ? MAP_TYPE_CODES.satellite : MAP_TYPE_CODES.map;
     link.href = `https://www.google.com/maps?q=${mapState.lat.toFixed(6)},${mapState.lng.toFixed(6)}&t=${type}`;
   }
 
   function refreshMapFrame() {
     const frame = document.getElementById('gpsMapFrame');
+    const labelEl = document.getElementById('gpsMapLabel');
     if (!frame) return;
     if (!mapState.lat) {
-      frame.removeAttribute('src');
+      if (labelEl) labelEl.textContent = 'Mapandan, Pangasinan overview';
+      const src = toCenterEmbedUrl(MAPANDAN_DEFAULT.lat, MAPANDAN_DEFAULT.lng, mapState.view, mapState.zoom);
+      if (frame.src !== src) frame.src = src;
       updateZoomDisplay();
       updateZoomButtons();
       updateViewToggle();
@@ -2610,6 +2992,14 @@ function selType(el, t) {
     if (zoomIn) zoomIn.disabled = !mapState.lat || mapState.zoom >= MAP_MAX_ZOOM;
   }
 
+  function resetMapToDefaultView() {
+    mapState.lat = null;
+    mapState.lng = null;
+    mapState.zoom = MAPANDAN_DEFAULT.zoom;
+    mapState.view = 'map';
+    refreshMapFrame();
+  }
+
   function changeMapZoom(delta) {
     if (!mapState.lat) return;
     const nextZoom = Math.min(MAP_MAX_ZOOM, Math.max(MAP_MIN_ZOOM, mapState.zoom + delta));
@@ -2630,6 +3020,7 @@ function selType(el, t) {
   updateZoomDisplay();
   updateZoomButtons();
   updateViewToggle();
+  resetMapToDefaultView();
 
   function normText(s) {
     return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -2796,10 +3187,12 @@ function selType(el, t) {
   async function autoFillLocationFromCoords(lat, lng, options = {}) {
     const overwriteExisting = !!options.overwriteExisting;
     const info = await reverseGeocode(lat, lng);
+    const fallbackBarangay = pickFirst([info.barangay, 'Mapandan area']);
     const fallbackLandmark = `Near ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-    const changedBarangay = maybeSetBarangay(info.barangay || '', overwriteExisting);
+    const fallbackStreet = pickFirst([info.street, info.landmark, fallbackLandmark]);
+    const changedBarangay = maybeSetBarangay(fallbackBarangay, overwriteExisting);
     const changedLandmark = maybeSetLandmark(info.landmark ? `Near ${info.landmark}` : fallbackLandmark, overwriteExisting);
-    const changedStreet = maybeSetStreet(info.street || '', overwriteExisting);
+    const changedStreet = maybeSetStreet(fallbackStreet, overwriteExisting);
     if (changedBarangay || changedLandmark || changedStreet) {
       toast('Location autofill', 'Location fields updated from detected GPS.');
     }
@@ -2811,6 +3204,7 @@ function selType(el, t) {
     document.getElementById('iGPS').value = gps;
     document.getElementById('iGPSAt').value = String(Date.now());
     document.getElementById('iGPSAcc').value = String(Math.round(pos.coords.accuracy || 0));
+    mapState.zoom = Math.max(MAP_STREET_ZOOM, mapState.zoom);
     renderReporterMap(gps, 'Detected location');
     await autoFillLocationFromCoords(pos.coords.latitude, pos.coords.longitude, options);
   }

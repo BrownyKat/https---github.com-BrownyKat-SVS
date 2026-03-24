@@ -103,8 +103,9 @@ const MOBILE_ALERTS_BASE_URL = String(
 async function initDatabase() {
   if (dbInitPromise) return dbInitPromise;
   dbInitPromise = (async () => {
+    let mongoUri;
     try {
-      const mongoUri = String(
+      mongoUri = String(
         process.env.MONGODB_URI
         || process.env.MONGO_URI
         || process.env.DATABASE_URL
