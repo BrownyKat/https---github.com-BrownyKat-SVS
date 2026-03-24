@@ -502,6 +502,44 @@
     .upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;}
     .upload-label{font-weight:600;}
     .upload-hint{font-size:.74rem;color:var(--muted2);}
+    .upload-meta{
+      display:none;align-items:center;justify-content:space-between;gap:.85rem;
+      margin-top:.8rem;padding:.8rem .95rem;border:1px solid var(--border);
+      border-radius:12px;background:#fff;
+    }
+    .upload-meta.show{display:flex;}
+    .upload-file{
+      min-width:0;display:flex;flex-direction:column;gap:.18rem;
+    }
+    .upload-file strong{
+      display:block;font-size:.84rem;font-weight:700;color:var(--text);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .upload-file span{font-size:.74rem;color:var(--muted2);}
+    .upload-thumb{
+      width:48px;height:48px;border-radius:10px;object-fit:cover;
+      border:1px solid var(--border);background:var(--bg);
+    }
+    .upload-clear{
+      border:1px solid var(--border-mid);background:#fff;color:var(--text2);
+      border-radius:999px;padding:.45rem .75rem;font:inherit;font-size:.78rem;
+      font-weight:700;cursor:pointer;transition:all .18s ease;
+    }
+    .upload-actions{
+      display:flex;align-items:center;gap:.5rem;flex-shrink:0;
+    }
+    .upload-change{
+      display:inline-flex;align-items:center;justify-content:center;
+      border:1px solid var(--blue-border);background:var(--blue-light);color:var(--blue);
+      border-radius:999px;padding:.45rem .75rem;font:inherit;font-size:.78rem;
+      font-weight:700;cursor:pointer;transition:all .18s ease;
+    }
+    .upload-change:hover{
+      border-color:var(--blue);background:rgba(59,130,246,.12);
+    }
+    .upload-clear:hover{
+      border-color:var(--red-border);color:var(--red);background:var(--red-light);
+    }
 
     /* submit */
     .submit-btn{
@@ -2163,6 +2201,27 @@
       <textarea id="iDesc" placeholder="Describe what is happening. Include: number of people affected, current situation, any danger present..."></textarea>
       <div class="field-note">Optional but helpful: injuries, trapped people, hazards, flooding depth, fire spread, or anything changing fast.</div>
     </div>
+    <div class="field">
+      <label>Upload Photo (optional)</label>
+      <label class="upload-area" for="iPhoto">
+        <svg viewBox="0 0 24 24"><path d="M3 16.5V7.75A2.75 2.75 0 0 1 5.75 5h2.086a1.5 1.5 0 0 0 1.06-.44l.604-.603A1.5 1.5 0 0 1 10.56 3.5h2.88a1.5 1.5 0 0 1 1.06.44l.604.603a1.5 1.5 0 0 0 1.06.44h2.086A2.75 2.75 0 0 1 21 7.75v8.75A2.75 2.75 0 0 1 18.25 19H5.75A2.75 2.75 0 0 1 3 16.25v.25Z"/><path d="M9 12.5a3 3 0 1 0 6 0 3 3 0 0 0-6 0Z"/></svg>
+        <div class="upload-label">Click or tap to upload a photo</div>
+        <div class="upload-hint">JPG, PNG, or WEBP up to 10 MB</div>
+        <input id="iPhoto" type="file" accept="image/png,image/jpeg,image/webp" onchange="handleReportPhotoChange(event)">
+      </label>
+      <div class="upload-meta" id="uploadMeta">
+        <img class="upload-thumb" id="uploadThumb" alt="Selected upload preview">
+        <div class="upload-file">
+          <strong id="uploadFileName">No file selected</strong>
+          <span id="uploadFileHint">Optional but helpful for dispatch verification.</span>
+        </div>
+        <div class="upload-actions">
+          <label class="upload-change" for="iPhoto">Change</label>
+          <button class="upload-clear" type="button" onclick="clearReportPhoto()">Remove</button>
+        </div>
+      </div>
+      <div class="field-note">A clear photo helps responders verify the situation faster.</div>
+    </div>
   </div>
 
   <div class="submit-panel">
@@ -2416,6 +2475,10 @@
     } catch (_e) {}
   }
 
+  function getReportRequestTimeout(payload = {}) {
+    return payload && payload.photo ? 60000 : 20000;
+  }
+
   async function flushPendingQueue() {
     if (!navigator.onLine) return;
     let queue = getPendingQueue();
@@ -2423,12 +2486,13 @@
       const next = queue.shift();
       try {
         localStorage.setItem(PENDING_KEY, JSON.stringify(queue));
+        const payload = next.payload || {};
         const { res, data: d } = await fetchJson('/api/report', {
           method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify(next.payload || {})
-        }, 12000);
+          body: JSON.stringify(payload)
+        }, getReportRequestTimeout(payload));
         if (!res.ok || !d || !d.success) {
-          enqueuePending(next.payload || {});
+          enqueuePending(payload);
           break;
         }
         toast('Sent pending report', `Queued report delivered${d.id ? ` (ID ${d.id})` : ''}.`);
@@ -2549,6 +2613,75 @@ function selType(el, t) {
     );
   }
 
+  let reportPhotoData = '';
+
+  function bytesToReadableSize(bytes) {
+    const value = Number(bytes) || 0;
+    if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+    if (value >= 1024) return `${Math.round(value / 1024)} KB`;
+    return `${value} B`;
+  }
+
+  function updateReportPhotoUi(file = null) {
+    const meta = document.getElementById('uploadMeta');
+    const thumb = document.getElementById('uploadThumb');
+    const nameEl = document.getElementById('uploadFileName');
+    const hintEl = document.getElementById('uploadFileHint');
+
+    if (!meta || !thumb || !nameEl || !hintEl) return;
+
+    if (!file || !reportPhotoData) {
+      meta.classList.remove('show');
+      thumb.removeAttribute('src');
+      nameEl.textContent = 'No file selected';
+      hintEl.textContent = 'Optional but helpful for dispatch verification.';
+      return;
+    }
+
+    meta.classList.add('show');
+    thumb.src = reportPhotoData;
+    nameEl.textContent = file.name || 'Selected image';
+    hintEl.textContent = `${file.type.replace('image/', '').toUpperCase()} - ${bytesToReadableSize(file.size)}`;
+  }
+
+  function clearReportPhoto() {
+    reportPhotoData = '';
+    const photoInput = document.getElementById('iPhoto');
+    if (photoInput) photoInput.value = '';
+    updateReportPhotoUi();
+  }
+
+  function handleReportPhotoChange(event) {
+    const input = event?.target;
+    const file = input?.files?.[0];
+
+    if (!file) {
+      clearReportPhoto();
+      return;
+    }
+    if (!/^image\/(png|jpe?g|webp)$/i.test(file.type)) {
+      clearReportPhoto();
+      toast('Unsupported photo', 'Please upload a JPG, PNG, or WEBP image.','warn');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      clearReportPhoto();
+      toast('Photo too large', 'Please choose an image that is 10 MB or smaller.','warn');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      reportPhotoData = typeof reader.result === 'string' ? reader.result : '';
+      updateReportPhotoUi(file);
+    };
+    reader.onerror = () => {
+      clearReportPhoto();
+      toast('Upload failed', 'The selected image could not be read. Please try another file.','warn');
+    };
+    reader.readAsDataURL(file);
+  }
+
   async function submitReport() {
     const submitBtn = document.querySelector('.submit-btn');
     const nameInput = document.getElementById('iName');
@@ -2604,7 +2737,7 @@ function selType(el, t) {
         submitBtn.disabled = true;
         submitBtn.style.opacity = '.7';
       }
-      const payload = { name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue };
+      const payload = { name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue, photo: reportPhotoData || '' };
       if (!navigator.onLine) {
         enqueuePending(payload);
         toast('Saved offline', 'Will auto-send when you reconnect.');
@@ -2615,7 +2748,7 @@ function selType(el, t) {
       const { res, data: d } = await fetchJson('/api/report', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify(payload)
-      });
+      }, getReportRequestTimeout(payload));
       if (!res.ok || !d.success) {
         enqueuePending(payload);
         toast('Stored to retry', d.error || 'Network issue. Will retry automatically.','warn');
@@ -2628,7 +2761,7 @@ function selType(el, t) {
       flushPendingQueue();
       updatePendingCount();
     } catch(e) {
-      enqueuePending({ name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue });
+      enqueuePending({ name, contact, emergencyType: selType_, severity: selSev_, barangay, landmark, street, description, gps: gpsValue, photo: reportPhotoData || '' });
       toast('Stored to retry', 'Network error. Will retry when back online.','warn');
       updatePendingCount();
     } finally {
@@ -2642,6 +2775,7 @@ function selType(el, t) {
   function resetForm() {
     ['iName','iContact','iLandmark','iStreet','iDesc','iGPS','iGPSAt','iGPSAcc'].forEach(id => document.getElementById(id).value='');
     document.getElementById('iBarangay').value='';
+    clearReportPhoto();
     document.querySelectorAll('.etype-btn').forEach(b=>b.classList.remove('sel'));
     document.querySelectorAll('.sev-btn').forEach(b=>b.classList.remove('sel'));
     selType_=''; selSev_='';
