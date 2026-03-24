@@ -1796,7 +1796,7 @@
     document.getElementById('cDisp').textContent   = visible.filter(r=>r.status==='dispatched').length;
     document.getElementById('cRes').textContent    = visible.filter(r=>r.status==='resolved').length;
     document.getElementById('cFalse').textContent  = visible.filter(r=>r.status==='false-report').length;
-    document.getElementById('opsIncoming').textContent = visible.filter(r => r.status === 'new' || isSosReport(r)).length;
+    document.getElementById('opsIncoming').textContent = visible.filter(r => (r.status === 'new' || isSosReport(r)) && !isClosedStatus(r.status)).length;
     document.getElementById('opsMine').textContent = mine.length;
     document.getElementById('opsVerify').textContent = visible.filter(r=>r.status==='verifying').length;
     document.getElementById('opsResolved').textContent = visible.filter(r=>r.status==='resolved').length;
