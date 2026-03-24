@@ -892,6 +892,96 @@
     .profile-btn.save{background:linear-gradient(135deg,var(--blue),var(--red));border-color:transparent;color:#fff;}
     .profile-btn.save:hover{box-shadow:0 4px 14px rgba(29,78,216,.28);}
 
+    /* dispatch team selection modal */
+    .dispatch-backdrop{
+      position:fixed;inset:0;z-index:970;
+      background:rgba(15,23,42,.4);
+      backdrop-filter:blur(4px);
+      display:none;align-items:center;justify-content:center;
+      padding:1rem;
+    }
+    .dispatch-backdrop.show{display:flex;animation:fadeIn .2s ease;}
+    .dispatch-modal{
+      width:min(480px,100%);
+      background:linear-gradient(180deg,#FFFFFF,#F8FAFC);
+      border:1.5px solid var(--border);
+      border-radius:16px;
+      box-shadow:var(--shadow-xl);
+      overflow:hidden;
+    }
+    .dispatch-head{
+      display:flex;flex-direction:column;gap:.5rem;
+      padding:1.2rem 1.3rem;
+      border-bottom:1.5px solid var(--border);
+      background:linear-gradient(135deg,rgba(29,78,216,.03),rgba(220,38,38,.03));
+    }
+    .dispatch-title{font-size:.95rem;font-weight:800;color:var(--text);}
+    .dispatch-subtitle{font-size:.78rem;color:var(--muted);line-height:1.4;}
+    .dispatch-content{
+      padding:1.3rem;
+      display:flex;flex-direction:column;gap:.8rem;
+    }
+    .team-option{
+      display:flex;align-items:center;gap:.8rem;
+      padding:.85rem 1rem;
+      border:1.5px solid var(--border);
+      border-radius:12px;
+      cursor:pointer;
+      transition:all .2s ease;
+      background:var(--surface);
+    }
+    .team-option:hover{
+      border-color:var(--blue);
+      background:var(--green-light);
+      box-shadow:0 2px 8px rgba(29,78,216,.15);
+    }
+    .team-option input[type="radio"]{
+      cursor:pointer;
+      width:18px;height:18px;accent-color:var(--blue);
+    }
+    .team-option label{
+      flex:1;cursor:pointer;display:flex;flex-direction:column;gap:.2rem;
+      font-weight:600;color:var(--text);
+      font-size:.88rem;
+    }
+    .team-option small{
+      font-weight:500;color:var(--muted);font-size:.75rem;
+    }
+    .dispatch-actions{
+      display:flex;justify-content:flex-end;gap:.6rem;
+      padding:0 1.3rem 1.3rem;
+      border-top:1px solid var(--border);
+      background:var(--surface);
+    }
+    .dispatch-btn{
+      border:1.5px solid var(--border-mid);
+      background:var(--surface);
+      color:var(--text2);
+      border-radius:10px;
+      padding:.5rem 1rem;
+      cursor:pointer;
+      font-weight:700;
+      font-size:.8rem;
+      transition:all .2s ease;
+    }
+    .dispatch-btn:hover{
+      background:var(--amber-light);
+      border-color:var(--amber-border);
+      color:var(--amber-dark);
+    }
+    .dispatch-btn.confirm{
+      background:linear-gradient(135deg,var(--blue),var(--green));
+      border-color:transparent;
+      color:#fff;
+    }
+    .dispatch-btn.confirm:hover{
+      box-shadow:0 4px 14px rgba(29,78,216,.3);
+    }
+    .dispatch-btn.confirm:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+    }
+
     @media(max-width:1024px){
       .header{padding:0 .95rem;height:72px}
       .body{height:calc(100vh - 72px);}
@@ -1099,18 +1189,18 @@
     </div>
   </div>
   <div class="header-right">
-    <% if (currentUser && currentUser.role === 'admin') { %>
-      <a class="nav-btn" href="/admin">Admin Panel</a>
-    <% } %>
-    <a class="nav-btn" href="/dispatcher/reset" target="_blank" rel="noopener">Reset Password</a>
-    <form method="post" action="/dispatcher/logout" style="margin:0" id="dispatcherLogoutForm">
-      <button class="nav-btn" type="submit">Logout</button>
-    </form>
     <div class="header-weather" id="weatherText">
       <svg viewBox="0 0 24 24"><path d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/></svg>
       Loading weather...
     </div>
     <div class="online-pill"><div class="online-dot"></div>Live</div>
+    <a class="nav-btn" href="/dispatcher/reset" target="_blank" rel="noopener">Reset Password</a>
+    <form method="post" action="/dispatcher/logout" style="margin:0" id="dispatcherLogoutForm">
+      <button class="nav-btn danger" type="submit">Logout</button>
+    </form>
+    <% if (currentUser && currentUser.role === 'admin') { %>
+      <a class="nav-btn" href="/admin">Admin Panel</a>
+    <% } %>
   </div>
 </header>
 
@@ -1427,6 +1517,44 @@
     </div>
   </div>
 </div>
+
+<!-- DISPATCH TEAM SELECTION MODAL -->
+<div class="dispatch-backdrop" id="dispatchBackdrop" onclick="if(event.target===this) closeDispatchModal()">
+  <div class="dispatch-modal" role="dialog" aria-modal="true" aria-labelledby="dispatchTitle">
+    <div class="dispatch-head">
+      <div class="dispatch-title" id="dispatchTitle">Select Response Team</div>
+      <div class="dispatch-subtitle">Choose the appropriate emergency response team for this incident before dispatching</div>
+    </div>
+    <div class="dispatch-content">
+      <label class="team-option">
+        <input type="radio" name="responseTeam" value="Fire" required>
+        <span>
+          <strong>🚒 Fire Department</strong>
+          <small>For fire and structural emergencies</small>
+        </span>
+      </label>
+      <label class="team-option">
+        <input type="radio" name="responseTeam" value="Ambulance" required>
+        <span>
+          <strong>🚑 Ambulance / Medical</strong>
+          <small>For medical emergencies and injuries</small>
+        </span>
+      </label>
+      <label class="team-option">
+        <input type="radio" name="responseTeam" value="Police" required>
+        <span>
+          <strong>🚔 Police / Law Enforcement</strong>
+          <small>For security and criminal incidents</small>
+        </span>
+      </label>
+    </div>
+    <div class="dispatch-actions">
+      <button class="dispatch-btn" type="button" onclick="closeDispatchModal()">Cancel</button>
+      <button class="dispatch-btn confirm" type="button" id="dispatchConfirmBtn" onclick="confirmDispatch()" disabled>Confirm & Dispatch</button>
+    </div>
+  </div>
+</div>
+
 <div id="webCallPanel" class="webcall-panel hidden">
   <div class="webcall-top">
     <div class="webcall-ico">
@@ -1446,6 +1574,7 @@
 <script id="initialReports" type="application/json"><%- JSON.stringify(reports) %></script>
 <script id="activeDispatchersSeed" type="application/json"><%- JSON.stringify(activeDispatchers || []) %></script>
 <script id="currentUserSeed" type="application/json"><%- JSON.stringify(currentUser || {}) %></script>
+<script id="realtimeCfgSeed" type="application/json"><%- JSON.stringify(realtime || {}) %></script>
 <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
@@ -1463,7 +1592,13 @@
     }
   });
 
-  const realtimeCfg = <%- JSON.stringify(realtime || {}) %>;
+  let realtimeCfg = {};
+  try {
+    // eslint-disable-next-line no-undef
+    realtimeCfg = JSON.parse(document.getElementById('realtimeCfgSeed')?.textContent || '{}');
+  } catch (_e) {
+    realtimeCfg = {};
+  }
   const logoutForm = document.getElementById('dispatcherLogoutForm');
   if (logoutForm) {
     logoutForm.addEventListener('submit', () => {
@@ -1668,17 +1803,17 @@
 
   function counts() {
     const visible = reports.filter(canSeeReport);
-    const mine = visible.filter(r => String(r.assignedToId || '').trim() === currentUserId);
-    document.getElementById('cAll').textContent   = visible.length;
+    const mine = visible.filter(r => String(r.assignedToId || '').trim() === currentUserId && !isClosedStatus(r.status));
+    document.getElementById('cAll').textContent   = visible.filter(r => !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId)).length;
     document.getElementById('cNew').textContent    = visible.filter(r=>r.status==='new' && !String(r.assignedToId||'').trim()).length;
     document.getElementById('cAssigned').textContent = mine.length;
-    document.getElementById('cSos').textContent    = visible.filter(isSosReport).length;
-    document.getElementById('cReport').textContent = visible.filter(isRegularReport).length;
+    document.getElementById('cSos').textContent    = visible.filter(r => isSosReport(r) && !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId)).length;
+    document.getElementById('cReport').textContent = visible.filter(r => isRegularReport(r) && !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId)).length;
     document.getElementById('cVerify').textContent = visible.filter(r=>r.status==='verifying').length;
     document.getElementById('cDisp').textContent   = visible.filter(r=>r.status==='dispatched').length;
     document.getElementById('cRes').textContent    = visible.filter(r=>r.status==='resolved').length;
     document.getElementById('cFalse').textContent  = visible.filter(r=>r.status==='false-report').length;
-    document.getElementById('opsIncoming').textContent = visible.filter(r => r.status === 'new' || isSosReport(r)).length;
+    document.getElementById('opsIncoming').textContent = visible.filter(r => (r.status === 'new' || isSosReport(r)) && !isClosedStatus(r.status)).length;
     document.getElementById('opsMine').textContent = mine.length;
     document.getElementById('opsVerify').textContent = visible.filter(r=>r.status==='verifying').length;
     document.getElementById('opsResolved').textContent = visible.filter(r=>r.status==='resolved').length;
@@ -1889,9 +2024,13 @@
           <svg viewBox="0 0 24 24"><path d="M9 12.75 11.25 15 15 9.75M3.75 12a8.25 8.25 0 1 1 16.5 0 8.25 8.25 0 0 1-16.5 0Z"/></svg>
           ${isClaiming ? 'Claiming...' : 'Claim'}
         </button>` : ''}
-        ${isMine && !isClosed ? `<button class="act-btn" onclick="passReportPrompt('${rid}')">
+        ${isMine && !isClosed && r.status!=='verifying' && r.status!=='dispatched' && r.status!=='resolved' && r.status!=='false-report' ? `<button class="act-btn" onclick="passReportPrompt('${rid}')">
           <svg viewBox="0 0 24 24"><path d="M7.5 8.25h9m-9 3h6m-6 3h3M3 5.25A2.25 2.25 0 0 1 5.25 3h13.5A2.25 2.25 0 0 1 21 5.25v13.5A2.25 2.25 0 0 1 18.75 21H5.25A2.25 2.25 0 0 1 3 18.75V5.25Z"/></svg>
           Pass
+        </button>` : ''}
+        ${isMine && !isClosed && r.status!=='verifying' && r.status!=='dispatched' && r.status!=='resolved' && r.status!=='false-report' ? `<button class="act-btn primary" onclick="updStatus('${rid}','verifying')">
+          <svg viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12L2.25 6.338Z"/></svg>
+          Verify
         </button>` : ''}
         ${canManageAssignedReport ? `<button class="act-btn utility" onclick="editDetails('${rid}')">
           <svg viewBox="0 0 24 24"><path d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487ZM19.5 7.125 16.875 4.5"/></svg>
@@ -1901,7 +2040,7 @@
           <svg viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12L2.25 6.338Z"/></svg>
           Verify
         </button>` : ''}
-        ${r.status==='verifying' ? `<button class="act-btn primary" onclick="updStatus('${rid}','dispatched')">
+        ${r.status==='verifying' && rid ? `<button class="act-btn primary" onclick="openDispatchModal('${rid}')">
           <svg viewBox="0 0 24 24"><path d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"/></svg>
           Dispatch
         </button>` : ''}
@@ -2112,7 +2251,9 @@
       }
       if (!res.ok) return;
       const data = await res.json();
-      const fresh = dedupeReports((Array.isArray(data) ? data : []).map(normalizeReport));
+      let fresh = dedupeReports((Array.isArray(data) ? data : []).map(normalizeReport));
+      // Extra safety: filter out any reports that shouldn't be visible to current user
+      fresh = fresh.filter(r => canSeeReport(r));
       const sig = reportsSignature(fresh);
       if (!forceRender && sig === lastReportsSig) return;
       reports = fresh;
@@ -2138,15 +2279,15 @@
 
     const visibleReports = reports.filter(canSeeReport);
     const baseFiltered = curFilter === 'all'
-      ? visibleReports
+      ? visibleReports.filter(r => !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId))
       : curFilter === 'sos'
-        ? visibleReports.filter(isSosReport)
+        ? visibleReports.filter(r => isSosReport(r) && !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId))
         : curFilter === 'report'
-          ? visibleReports.filter(isRegularReport)
+          ? visibleReports.filter(r => isRegularReport(r) && !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId))
           : curFilter === 'new'
             ? visibleReports.filter(r=>r.status==='new' && !String(r.assignedToId||'').trim())
             : curFilter === 'assigned'
-              ? visibleReports.filter(r=>String(r.assignedToId||'').trim() === currentUserId)
+              ? visibleReports.filter(r=>String(r.assignedToId||'').trim() === currentUserId && !isClosedStatus(r.status))
               : visibleReports.filter(r=>r.status===curFilter);
     const searchTerm = curSearch.trim().toLowerCase();
     const filtered = searchTerm
@@ -2260,53 +2401,115 @@
       const data = await res.json().catch(() => ({}));
       if (res.status === 401) {
         handleUnauthorized(data);
+        pendingClaims.delete(id);
+        render();
         return null;
       }
       if (res.status === 409) {
         toast_('Already claimed', data.error || 'Another dispatcher claimed this first.', 'warn');
+        pendingClaims.delete(id);
+        render();
         syncReportsFromServer(true);
         return null;
       }
       if (!res.ok || !data.success) throw new Error(data.error || 'Could not claim report');
       const incoming = normalizeReport(data.report || {});
       upsertReport(incoming);
-      render();
-      // Ensure latest state for everyone; if realtime is delayed, force a refresh.
-      await syncReportsFromServer(true);
       if (!silent) {
         toast_('Report claimed', `${incoming.id || id} is now assigned to you.`);
       }
+      // Clear pending and render immediately
+      pendingClaims.delete(id);
+      render();
+      // Sync in background without blocking UI
+      syncReportsFromServer(true);
       return incoming;
     } catch (e) {
       toast_('Error', e && e.message ? e.message : 'Could not claim report.', 'warn');
-      return null;
-    } finally {
       pendingClaims.delete(id);
       render();
+      return null;
     }
   }
 
   async function passReport(id, targetDispatcherId) {
-    const res = await fetch(`/api/report/${encodeURIComponent(id)}/pass`, {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ targetDispatcherId }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.status === 401) {
-      handleUnauthorized(data);
+    if (!id || !targetDispatcherId) {
+      toast_('Error', 'Missing report or target dispatcher', 'warn');
       return false;
     }
-    if (!res.ok || !data.success) throw new Error(data.error || 'Could not pass report');
-
-    const incoming = normalizeReport(data.report || {});
-    if (canSeeReport(incoming)) upsertReport(incoming);
-    else reports = dedupeReports(reports.filter(r => r.id !== incoming.id));
+    
+    // Find the target dispatcher info for instant feedback
+    const targetDisp = activeDispatchers.find(u => String(u.id || '').trim() === String(targetDispatcherId || '').trim());
+    const targetName = String(targetDisp ? (targetDisp.fullName || targetDisp.username) : 'dispatcher').trim();
+    
+    // Update UI immediately for instant feedback
+    const r = reports.find(x => x.id === id);
+    if (!r) {
+      toast_('Error', 'Report not found', 'warn');
+      return false;
+    }
+    
+    const originalAssignment = { assignedToId: r.assignedToId, assignedToName: r.assignedToName, passCount: r.passCount };
+    
+    // Optimistic update
+    r.assignedToId = targetDispatcherId;
+    r.assignedToName = targetName;
+    r.passCount = (Number(r.passCount) || 0) + 1;
     lastReportsSig = reportsSignature(reports);
     render();
-    toast_('Report passed', `${incoming.id || id} was passed to ${incoming.assignedToName || 'dispatcher'}.`);
-    return true;
+    toast_('Report passed', `${id} was passed to ${targetName}.`);
+    
+    // Make server call in background
+    try {
+      const res = await fetch(`/api/report/${encodeURIComponent(id)}/pass`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetDispatcherId }),
+      });
+      
+      if (res.status === 401) {
+        const data = await res.json().catch(() => ({}));
+        handleUnauthorized(data);
+        // Revert on auth error
+        r.assignedToId = originalAssignment.assignedToId;
+        r.assignedToName = originalAssignment.assignedToName;
+        r.passCount = originalAssignment.passCount;
+        lastReportsSig = reportsSignature(reports);
+        render();
+        return false;
+      }
+      
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Could not pass report');
+      }
+      
+      // Sync the full response from server for accuracy
+      const incoming = normalizeReport(data.report || {});
+      
+      // After successful pass, explicitly remove the report if it's no longer visible to current user
+      if (!canSeeReport(incoming)) {
+        reports = reports.filter(x => x.id !== incoming.id);
+      } else {
+        const reportIndex = reports.findIndex(x => x.id === incoming.id);
+        if (reportIndex >= 0) {
+          reports[reportIndex] = incoming;
+        }
+      }
+      lastReportsSig = reportsSignature(reports);
+      render();
+      return true;
+    } catch (e) {
+      // Revert on error
+      r.assignedToId = originalAssignment.assignedToId;
+      r.assignedToName = originalAssignment.assignedToName;
+      r.passCount = originalAssignment.passCount;
+      lastReportsSig = reportsSignature(reports);
+      render();
+      toast_('Error', e && e.message ? e.message : 'Could not pass report.', 'warn');
+      return false;
+    }
   }
 
   async function passReportPrompt(id) {
@@ -2349,17 +2552,77 @@
     }
   }
 
-  async function updStatus(id, status) {
+  let pendingDispatchId = null;
+  let pendingResponseTeamType = null;
+
+  function openDispatchModal(reportId) {
+    pendingDispatchId = reportId;
+    pendingResponseTeamType = null;
+    document.querySelectorAll('input[name="responseTeam"]').forEach(r => r.checked = false);
+    document.getElementById('dispatchConfirmBtn').disabled = true;
+    document.getElementById('dispatchBackdrop').classList.add('show');
+  }
+
+  function closeDispatchModal() {
+    pendingDispatchId = null;
+    pendingResponseTeamType = null;
+    document.getElementById('dispatchBackdrop').classList.remove('show');
+  }
+
+  function confirmDispatch() {
+    if (!pendingDispatchId || !pendingResponseTeamType) {
+      toast_('Error', 'Please select a response team type.', 'warn');
+      return;
+    }
+    const idToDispatch = pendingDispatchId;
+    const typeToDispatch = pendingResponseTeamType;
+    closeDispatchModal();
+    updStatus(idToDispatch, 'dispatched', typeToDispatch);
+  }
+
+  // Handle radio button changes for dispatch modal
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[name="responseTeam"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        if (this.checked) {
+          pendingResponseTeamType = this.value;
+          document.getElementById('dispatchConfirmBtn').disabled = false;
+        }
+      });
+    });
+  });
+
+  async function updStatus(id, status, responseTeamType = null) {
     if (!id) {
       toast_('Error', 'Missing report ID.', 'warn');
       return;
     }
+    
+    // For dispatch status, a response team type is mandatory
+    if (status === 'dispatched' && !responseTeamType) {
+      toast_('Error', 'Response team type is required for dispatch.', 'warn');
+      return;
+    }
+    
+    // Update UI immediately for instant feedback
+    const r = reports.find(x=>x.id===id);
+    const originalStatus = r ? r.status : null;
+    if (r) { r.status=status; lastReportsSig = reportsSignature(reports); render(); }
+    const msgs = {verifying:'Calling reporter to verify…',dispatched:`${responseTeamType || 'Response'} team dispatched!`,resolved:'Incident resolved.',['false-report']:'Flagged as false report.'};
+    callStartedIds.delete(id);
+    const msg = status === 'verifying' ? 'Verification stage started.' : (msgs[status] || '');
+    toast_(id, msg);
+    
     try {
+      const body = {status};
+      if (responseTeamType) {
+        body.responseTeamType = responseTeamType;
+      }
       const res = await fetch(`/api/report/${encodeURIComponent(id)}/status`, {
         method: 'PATCH',
         credentials: 'same-origin',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({status})
+        body: JSON.stringify(body)
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 401) {
@@ -2367,13 +2630,11 @@
         return;
       }
       if (!res.ok) throw new Error(data.error || 'Could not update status');
-      const r = reports.find(x=>x.id===id);
-      if (r) { r.status=status; lastReportsSig = reportsSignature(reports); render(); }
-      const msgs = {verifying:'Calling reporter to verifyÃ¢â‚¬Â¦',dispatched:'Response team dispatched!',resolved:'Incident resolved.',['false-report']:'Flagged as false report.'};
-      callStartedIds.delete(id);
-      const msg = status === 'verifying' ? 'Verification stage started.' : (msgs[status] || '');
-      toast_(id, msg);
-    } catch(e) { toast_('Error', e && e.message ? e.message : 'Could not update status.','warn'); }
+    } catch(e) { 
+      // Revert if error
+      if (r && originalStatus) { r.status = originalStatus; render(); }
+      toast_('Error', e && e.message ? e.message : 'Could not update status.','warn'); 
+    }
   }
 
   function editDetails(id) {
@@ -2926,12 +3187,22 @@
   });
   if (channel) channel.bind('report-assignment-updated', updated => {
     const u = normalizeReport(updated);
-    if (canSeeReport(u)) upsertReport(u);
-    else reports = reports.filter(x => x.id !== u.id);
+    const reportIdToMatch = u.id || u.reportId || u._id || (updated && updated.id) || '';
+    if (!reportIdToMatch) return; // Skip if no ID
+    
+    if (canSeeReport(u)) {
+      upsertReport(u);
+    } else {
+      // Remove report if current user can no longer see it
+      reports = reports.filter(x => {
+        const xId = x.id || x.reportId || x._id || '';
+        return xId !== reportIdToMatch;
+      });
+    }
     lastReportsSig = reportsSignature(reports);
     render();
     if (updated && updated.lastPassedByName) {
-      addNotification('Report passed', `${updated.lastPassedByName} passed ${updated.id || 'a report'} to ${updated.assignedToName || 'dispatcher'}.`, 'info');
+      addNotification('Report passed', `${updated.lastPassedByName} passed ${reportIdToMatch} to ${updated.assignedToName || 'dispatcher'}.`, 'info');
     }
   });
   if (channel) channel.bind('reports-cleared', ()=>{ reports=[]; lastReportsSig = reportsSignature(reports); render(); });
@@ -2971,5 +3242,3 @@
 </script>
 </body>
 </html>
-
-

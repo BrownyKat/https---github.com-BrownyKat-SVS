@@ -38,15 +38,16 @@ const reportSchema = new mongoose.Schema(
   { versionKey: false }
 );
 
-// Virtual so every lean() doc exposes `.id = reportId`
+// Virtual so every lean() doc exposes `.id = reportId` (with fallback to _id)
 reportSchema.virtual('id').get(function () {
-  return this.reportId;
+  return this.reportId || String(this._id || '');
 });
 
 reportSchema.set('toJSON', {
   virtuals: true,
   transform: (_doc, ret) => {
-    delete ret._id;   // hide Mongo internal _id from the frontend
+    ret.id = ret.id || ret.reportId || String(ret._id || '');
+    // Keep _id for fallback, but also expose it as id
     return ret;
   },
 });
