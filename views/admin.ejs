@@ -904,37 +904,43 @@
           <p class="section-note"><strong>Use this when checking accountability.</strong> Increase rows only when needed to keep the table easier to scan on live operations.</p>
         </div>
         <div class="filters">
-          <form method="get" action="/admin" class="row-form" style="width:100%">
+          <form method="get" action="/admin" class="row-form" style="width:100%;align-items:flex-end;grid-template-columns:120px 120px 1fr;gap:12px;">
             <input type="hidden" name="tab" value="audit">
             <input type="hidden" name="reportPage" value="<%= (reportPager && reportPager.currentPage) || 1 %>">
             <input type="hidden" name="reportLimit" value="<%= reportLimit || 20 %>">
             <input type="hidden" name="from" value="<%= from || '' %>">
             <input type="hidden" name="to" value="<%= to || '' %>">
             <input type="hidden" name="auditPage" value="1">
-            <div class="f">
+            <div class="f" style="min-width:110px;">
               <label for="auditLimitSel">Rows</label>
-              <select id="auditLimitSel" name="auditLimit" class="btn">
+              <select id="auditLimitSel" name="auditLimit" class="btn" style="min-width:90px;">
                 <% [10,20,40,80,100,200].forEach(function(n){ %>
                   <option value="<%= n %>" <%= Number(auditLimit) === n ? 'selected' : '' %>><%= n %></option>
                 <% }) %>
               </select>
             </div>
-            <button class="btn primary" type="submit">Apply</button>
+            <div style="align-self:end;">
+              <button class="btn primary" type="submit" style="min-width:80px;">Apply</button>
+            </div>
           </form>
         </div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Timestamp</th><th>Dispatcher</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
             <tbody id="auditTableBody">
-              <% auditLogs.forEach(function(a){ %>
-                <tr>
-                  <td><%= new Date(a.timestamp).toLocaleString() %></td>
-                  <td><%= a.actorName || a.actorId || '-' %></td>
-                  <td><%= a.action || '-' %></td>
-                  <td><%= a.targetType || '-' %> <%= a.targetId || '' %></td>
-                  <td><%= a.details || '-' %></td>
-                </tr>
-              <% }) %>
+              <% if (auditLogs.length === 0) { %>
+                <tr><td colspan="5" style="text-align:center;color:#6f644f">No audit entries found.</td></tr>
+              <% } else { %>
+                <% auditLogs.slice(0, Number(auditLimit) || 20).forEach(function(a){ %>
+                  <tr>
+                    <td><%= new Date(a.timestamp).toLocaleString() %></td>
+                    <td><%= a.actorName || a.actorId || '-' %></td>
+                    <td><%= a.action || '-' %></td>
+                    <td><%= a.targetType || '-' %> <%= a.targetId || '' %></td>
+                    <td><%= a.details || '-' %></td>
+                  </tr>
+                <% }) %>
+              <% } %>
             </tbody>
           </table>
         </div>

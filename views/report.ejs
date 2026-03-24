@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SVS — Report Emergency</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>SVS - Report Emergency</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -1880,86 +1879,150 @@
     }
   </style>
 </head>
-<body>
+<style>
+  .tag-glow {
+    box-shadow: 0 0 0 4px #93c5fd, 0 2px 8px 0 rgba(59,130,246,0.15);
+    border-color: #3b82f6 !important;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+</style>
+</head>
+<body class="overflow-x-hidden bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.08),_transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef4ff_100%)] font-['Outfit'] text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-800">
 
 <!-- HEADER -->
-<header class="header">
-  <a class="brand" href="/about">
-    <img src="/images/logo.png" alt="SVS logo">
-    <div class="brand-text">
-      <div class="brand-name">SVS</div>
-    <div class="brand-sub">Smart Verification System</div>
-    </div>
-  </a>
-    <div class="header-right">
-      <div class="nav-links">
-        <a class="nav-btn" href="/sos">SOS</a>
-        <a class="nav-btn active" href="/report">Report</a>
-        <a class="nav-btn" href="/about">About Us</a>
-        <a class="nav-btn" href="/faq">FAQ</a>
-      </div>
-    <div class="main-datetime" id="reportTime">
-      <svg viewBox="0 0 24 24"><path d="M6.75 3v2.25m10.5-2.25v2.25M3.75 9.75h16.5M4.5 5.25h15A1.5 1.5 0 0 1 21 6.75v12A1.5 1.5 0 0 1 19.5 20.25h-15A1.5 1.5 0 0 1 3 18.75v-12A1.5 1.5 0 0 1 4.5 5.25Z"/></svg>
-      <div class="time-block"><span class="clock-text">--:--:--</span><span class="date-text">Loading...</span></div>
-    </div>
-  </div>
-</header>
+<%- include('partials/navbar', { active: 'report', timeId: 'reportTime' }) %>
 
-<main class="dashboard-main">
-<div class="dashboard-layout">
-  <div class="report-form-panel custom-scrollbar">
-    <div class="form-wrap dashboard-form-wrap" id="report-form">
-      <div class="bg-white rounded-3xl shadow-lg p-8 dashboard-form-card">
-  <div class="dashboard-form-scroll custom-scrollbar">
-  <div class="form-head dashboard-form-head">
-    <div class="form-eyebrow">
-      <!-- Heroicon: document-text -->
-      <svg viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
-      SVS Emergency Report System
-    </div>
-    <h1>Report an <em>Emergency</em></h1>
-    <p>Your report will be received immediately by SVS dispatchers. Provide as much detail as possible for a faster response.</p>
-    <div class="head-actions">
-      <button class="chip-btn" type="button" onclick="alertQueued()">Offline Queue (<span id="pendingCount">0</span>)</button>
-    </div>
-  </div>
-  <div class="alert-strip">
+<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8" id="report-form">
+  <div class="grid items-start justify-items-center gap-8">
+    <div class="w-full max-w-5xl min-w-0">
+      <section class="mb-8 overflow-hidden rounded-[30px] border border-slate-200 bg-white/90 p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] backdrop-blur sm:p-8">
+        <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_260px] xl:items-start">
+          <div>
+            <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 font-['JetBrains_Mono'] text-[0.7rem] font-bold uppercase tracking-wider text-blue-700">
+              <!-- Heroicon: document-text -->
+              <svg class="h-4 w-4 stroke-current fill-none [stroke-width:1.8]" viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+              SVS Emergency Report System
+            </div>
+            <h1 class="max-w-3xl text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-[2.7rem]">Report an <span class="text-blue-600">Emergency</span></h1>
+            <p class="mt-3 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Send the most important details first, confirm the scene location, and help dispatchers act faster with a cleaner report.</p>
+            <div class="mt-5 flex flex-wrap gap-3">
+              <button class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-blue-700" type="button" onclick="alertQueued()">
+                <svg class="h-4 w-4 stroke-current fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M12 6v6l4 2.25"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                Offline Queue (<span id="pendingCount">0</span>)
+              </button>
+              <div class="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
+                <svg class="h-4 w-4 stroke-current fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M4.5 12.75l6 6 9-13.5"/></svg>
+                Mobile-friendly form layout
+              </div>
+            </div>
+          </div>
+          <div class="rounded-[28px] border border-slate-200 bg-slate-50/80 p-5">
+            <div class="font-['JetBrains_Mono'] text-[0.68rem] font-bold uppercase tracking-[0.18em] text-slate-500">Response Ready</div>
+            <div class="mt-4 space-y-4">
+              <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
+                  <svg class="h-5 w-5 stroke-current fill-none [stroke-width:1.8]" viewBox="0 0 24 24"><path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold text-slate-900">Pin the scene clearly</div>
+                  <p class="mt-1 text-sm leading-6 text-slate-500">GPS helps most when you are physically near the incident.</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+                  <svg class="h-5 w-5 stroke-current fill-none [stroke-width:1.8]" viewBox="0 0 24 24"><path d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold text-slate-900">Lead with the risk</div>
+                  <p class="mt-1 text-sm leading-6 text-slate-500">Mention injuries, fire spread, blocked roads, or active hazards first.</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                  <svg class="h-5 w-5 stroke-current fill-none [stroke-width:1.8]" viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12L2.25 6.338Z"/></svg>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold text-slate-900">Stay reachable</div>
+                  <p class="mt-1 text-sm leading-6 text-slate-500">Dispatchers may call right away to verify and coordinate response.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-6 grid gap-4 md:grid-cols-2">
+          <div class="h-full rounded-[26px] border border-slate-200 bg-[linear-gradient(145deg,#ffffff,#eff6ff)] p-5 shadow-sm">
+            <div class="mb-4 flex items-start gap-4">
+              <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
+                <svg class="h-5 w-5 stroke-current fill-none [stroke-width:1.8]" viewBox="0 0 24 24"><path d="M12 6v6l4 2.25"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+              </div>
+              <div>
+                <h3 class="font-bold text-slate-900">How to report</h3>
+                <p class="text-sm text-slate-500">Focus on the details that change response time.</p>
+              </div>
+            </div>
+            <div class="space-y-2.5">
+              <div class="flex items-start gap-3 text-sm text-slate-600"><div class="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-500"></div><span><strong>Pin location:</strong> Use GPS if safe.</span></div>
+              <div class="flex items-start gap-3 text-sm text-slate-600"><div class="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-500"></div><span><strong>Describe risk:</strong> Mention injuries or hazards.</span></div>
+              <div class="flex items-start gap-3 text-sm text-slate-600"><div class="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-500"></div><span><strong>Stay reachable:</strong> We may call you back.</span></div>
+            </div>
+          </div>
+          <div class="h-full rounded-[26px] border border-slate-200 bg-[linear-gradient(145deg,#ffffff,#fff7ed)] p-5 shadow-sm">
+            <div class="mb-4 flex items-start gap-4">
+              <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+                <svg class="h-5 w-5 stroke-current fill-none [stroke-width:1.8]" viewBox="0 0 24 24"><path d="M3.75 12h16.5M12 3.75v16.5"/><path d="M4.5 4.5h15v15h-15z"/></svg>
+              </div>
+              <div>
+                <h3 class="font-bold text-slate-900">What happens next</h3>
+                <p class="text-sm text-slate-500">Know what dispatchers will do with your report.</p>
+              </div>
+            </div>
+            <div class="space-y-2.5">
+              <div class="flex items-start gap-3 text-sm text-slate-600"><div class="mt-1.5 h-1.5 w-1.5 rounded-full bg-amber-500"></div><span><strong>Instant alert:</strong> Dispatchers see your report immediately.</span></div>
+              <div class="flex items-start gap-3 text-sm text-slate-600"><div class="mt-1.5 h-1.5 w-1.5 rounded-full bg-amber-500"></div><span><strong>Verification:</strong> We may call you to confirm details.</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+  <div class="mb-8 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
     <!-- Heroicon: exclamation-triangle -->
-    <svg viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+    <svg class="mt-0.5 h-5 w-5 shrink-0 stroke-red-600" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="currentColor"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
     <span><strong>For life-threatening emergencies, call 911 immediately.</strong><br>This form is for reporting incidents and requesting assistance through SVS.</span>
   </div>
 
-  <div class="card-stack dashboard-card-stack">
+  <div class="space-y-6">
   <!-- STEP 01 -->
-  <div class="card" id="step-reporter">
-    <div class="card-topline">
-      <div class="card-head">
-      <div class="card-icon">
+  <div class="scroll-mt-28 rounded-xl border border-slate-200 bg-white p-6 shadow-sm" id="step-reporter">
+    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-4">
+      <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 ring-4 ring-blue-50/50">
         <!-- Heroicon: user -->
-        <svg viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+        <svg class="h-6 w-6 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
       </div>
       <div>
-        <div class="card-step">Step 01</div>
-        <div class="card-title">Your Information</div>
-        <div class="card-sub">Who is making this report?</div>
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Step 01</div>
+        <h2 class="text-lg font-bold text-slate-900">Your Information</h2>
       </div>
       </div>
-      <div class="step-badge">Required</div>
+      <div class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Required</div>
     </div>
-    <div class="row2">
-      <div class="field">
-        <label>Full Name *</label>
-        <div class="input-wrap has-icon">
-          <svg class="field-icon" viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
-          <input type="text" id="iName" placeholder="Juan dela Cruz" required>
+    <div class="grid gap-6 sm:grid-cols-2">
+      <div class="space-y-2">
+        <label class="block text-sm font-semibold text-slate-700">Full Name *</label>
+        <div class="relative">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <svg class="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+          </div>
+          <input class="block w-full rounded-lg border-2 border-slate-300 bg-white/90 py-3 pl-10 text-slate-900 shadow focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition placeholder:text-slate-400" type="text" id="iName" placeholder="Juan dela Cruz" required>
         </div>
-        <div class="field-note">Use the name responders or dispatchers can ask for during verification.</div>
       </div>
-      <div class="field">
-        <label>Contact Number *</label>
-        <div class="input-wrap has-icon">
-          <svg class="field-icon" viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12L2.25 6.338Z"/></svg>
-          <input type="tel" id="iContact" placeholder="+63 917 123 4567" inputmode="tel" autocomplete="tel" maxlength="16" required>
+      <div class="space-y-2">
+        <label class="block text-sm font-semibold text-slate-700">Contact Number *</label>
+        <div class="relative">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <svg class="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12L2.25 6.338Z"/></svg>
+          </div>
+          <input class="block w-full rounded-lg border-2 border-slate-300 bg-white/90 py-3 pl-10 text-slate-900 shadow focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition placeholder:text-slate-400" type="tel" id="iContact" placeholder="+63 917 123 4567" inputmode="tel" autocomplete="tel" maxlength="16" required>
         </div>
         <div class="field-note">Use an active PH mobile number so dispatchers can call or text back immediately.</div>
         <div class="sos-save-row">
@@ -1973,327 +2036,361 @@
   </div>
 
   <!-- STEP 02 -->
-  <div class="card" id="step-type">
-    <div class="card-topline">
-      <div class="card-head">
-      <div class="card-icon">
+  <div class="scroll-mt-28 rounded-xl border border-slate-200 bg-white p-6 shadow-sm" id="step-type">
+    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-4">
+      <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600 ring-4 ring-amber-50/50">
         <!-- Heroicon: exclamation-circle -->
-        <svg viewBox="0 0 24 24"><path d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+        <svg class="h-6 w-6 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
       </div>
       <div>
-        <div class="card-step">Step 02</div>
-        <div class="card-title">Type of Emergency</div>
-        <div class="card-sub">Select the category that best describes the incident</div>
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Step 02</div>
+        <h2 class="text-lg font-bold text-slate-900">Type of Emergency</h2>
       </div>
       </div>
-      <div class="step-badge">Choose one</div>
+      <div class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Choose one</div>
     </div>
-    <div class="etype-grid" id="typeGrid">
-      <div class="etype-btn" onclick="selType(this,'Fire')">
-        <div class="etype-icon">
+    <div class="grid gap-4 md:grid-cols-2 2xl:grid-cols-3" id="typeGrid">
+      <div class="etype-btn group flex h-full cursor-pointer items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-sm" onclick="selType(this,'Fire')">
+        <div class="etype-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-rose-100 bg-rose-50 text-rose-600 transition">
           <!-- Heroicon: fire -->
-          <svg viewBox="0 0 24 24"><path d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/><path d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z"/></svg>
+          <svg class="h-6 w-6 stroke-current fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/><path d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z"/></svg>
         </div>
-        <div class="etype-copy"><strong>Fire</strong><span>House, building, grass, or electrical fire</span></div>
+        <div class="etype-copy min-w-0">
+          <strong class="block text-sm font-bold text-slate-900">Fire</strong>
+          <span class="mt-1 block text-xs leading-5 text-slate-500">Flames, smoke, electrical sparks, or explosion risk.</span>
+        </div>
       </div>
-      <div class="etype-btn" onclick="selType(this,'Flood')">
-        <div class="etype-icon">
+      <div class="etype-btn group flex h-full cursor-pointer items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-sm" onclick="selType(this,'Flood')">
+        <div class="etype-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-sky-100 bg-sky-50 text-sky-600 transition">
           <!-- Heroicon: cloud -->
-          <svg viewBox="0 0 24 24"><path d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/></svg>
+          <svg class="h-6 w-6 stroke-current fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/></svg>
         </div>
-        <div class="etype-copy"><strong>Flood</strong><span>Rising water, overflow, or stranded areas</span></div>
+        <div class="etype-copy min-w-0">
+          <strong class="block text-sm font-bold text-slate-900">Flood</strong>
+          <span class="mt-1 block text-xs leading-5 text-slate-500">Rising water, trapped residents, or fast-changing road access.</span>
+        </div>
       </div>
-      <div class="etype-btn" onclick="selType(this,'Medical')">
-        <div class="etype-icon">
+      <div class="etype-btn group flex h-full cursor-pointer items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-sm" onclick="selType(this,'Medical')">
+        <div class="etype-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-emerald-100 bg-emerald-50 text-emerald-600 transition">
           <!-- Heroicon: heart -->
-          <svg viewBox="0 0 24 24"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z"/></svg>
+          <svg class="h-6 w-6 stroke-current fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z"/></svg>
         </div>
-        <div class="etype-copy"><strong>Medical</strong><span>Injury, illness, collapse, or urgent rescue</span></div>
+        <div class="etype-copy min-w-0">
+          <strong class="block text-sm font-bold text-slate-900">Medical</strong>
+          <span class="mt-1 block text-xs leading-5 text-slate-500">Urgent illness, injury, unconscious person, or breathing issue.</span>
+        </div>
       </div>
-      <div class="etype-btn" onclick="selType(this,'Accident')">
-        <div class="etype-icon">
+      <div class="etype-btn group flex h-full cursor-pointer items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-sm" onclick="selType(this,'Accident')">
+        <div class="etype-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-amber-100 bg-amber-50 text-amber-600 transition">
           <!-- Heroicon: truck -->
-          <svg viewBox="0 0 24 24"><path d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M8.25 18.75V3.375c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v.75"/></svg>
+          <svg class="h-6 w-6 stroke-current fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M8.25 18.75V3.375c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v.75"/></svg>
         </div>
-        <div class="etype-copy"><strong>Accident</strong><span>Vehicle crash, impact, or road incident</span></div>
+        <div class="etype-copy min-w-0">
+          <strong class="block text-sm font-bold text-slate-900">Accident</strong>
+          <span class="mt-1 block text-xs leading-5 text-slate-500">Vehicular crash, road incident, or impact with possible injuries.</span>
+        </div>
       </div>
-      <div class="etype-btn" onclick="selType(this,'Landslide')">
-        <div class="etype-icon">
+      <div class="etype-btn group flex h-full cursor-pointer items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-sm" onclick="selType(this,'Landslide')">
+        <div class="etype-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-stone-200 bg-stone-100 text-stone-700 transition">
           <!-- Heroicon: chart-bar -->
-          <svg viewBox="0 0 24 24"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
+          <svg class="h-6 w-6 stroke-current fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
         </div>
-        <div class="etype-copy"><strong>Landslide</strong><span>Soil movement, collapse, or debris fall</span></div>
+        <div class="etype-copy min-w-0">
+          <strong class="block text-sm font-bold text-slate-900">Landslide</strong>
+          <span class="mt-1 block text-xs leading-5 text-slate-500">Slope movement, collapsed ground, or blocked evacuation routes.</span>
+        </div>
       </div>
-      <div class="etype-btn" onclick="selType(this,'Other')">
-        <div class="etype-icon">
+      <div class="etype-btn group flex h-full cursor-pointer items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-sm" onclick="selType(this,'Other')">
+        <div class="etype-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-100 text-slate-600 transition">
           <!-- Heroicon: ellipsis-horizontal-circle -->
-          <svg viewBox="0 0 24 24"><path d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+          <svg class="h-6 w-6 stroke-current fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
         </div>
-        <div class="etype-copy"><strong>Other</strong><span>Use when no listed category fits the incident</span></div>
+        <div class="etype-copy min-w-0">
+          <strong class="block text-sm font-bold text-slate-900">Other</strong>
+          <span class="mt-1 block text-xs leading-5 text-slate-500">Use this when the incident does not fit the listed categories.</span>
+        </div>
       </div>
     </div>
     <input type="hidden" id="iType">
   </div>
 
   <!-- STEP 03 -->
-  <div class="card" id="step-severity">
-    <div class="card-topline">
-      <div class="card-head">
-      <div class="card-icon">
+  <div class="scroll-mt-28 rounded-xl border border-slate-200 bg-white p-6 shadow-sm" id="step-severity">
+    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-4">
+      <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600 ring-4 ring-red-50/50">
         <!-- Heroicon: bolt -->
-        <svg viewBox="0 0 24 24"><path d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"/></svg>
+        <svg class="h-6 w-6 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"/></svg>
       </div>
       <div>
-        <div class="card-step">Step 03</div>
-        <div class="card-title">Severity Level</div>
-        <div class="card-sub">How serious is the situation right now?</div>
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Step 03</div>
+        <h2 class="text-lg font-bold text-slate-900">Severity Level</h2>
       </div>
       </div>
-      <div class="step-badge">Priority</div>
+      <div class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Priority</div>
     </div>
-    <div class="sev-row" id="sevGrid">
-      <button class="sev-btn low" type="button" onclick="selSev(this,'Low')">
-        <!-- Heroicon: check-circle -->
-        <svg viewBox="0 0 24 24"><path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>Low
+    <div class="grid gap-4 md:grid-cols-3" id="sevGrid">
+      <button class="sev-btn low flex h-full items-start gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm" type="button" onclick="selSev(this,'Low')">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+          <!-- Heroicon: check-circle -->
+          <svg class="h-5 w-5 stroke-current fill-none [stroke-width:1.9]" viewBox="0 0 24 24"><path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+        </span>
+        <span>
+          <span class="block text-sm font-bold text-slate-900">Low</span>
+          <span class="mt-1 block text-xs font-medium leading-5 text-slate-500">Stable situation. Verification and monitoring are still needed.</span>
+        </span>
       </button>
-      <button class="sev-btn med" type="button" onclick="selSev(this,'Medium')">
-        <!-- Heroicon: exclamation-circle -->
-        <svg viewBox="0 0 24 24"><path d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>Medium
+      <button class="sev-btn med flex h-full items-start gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm" type="button" onclick="selSev(this,'Medium')">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+          <!-- Heroicon: exclamation-circle -->
+          <svg class="h-5 w-5 stroke-current fill-none [stroke-width:1.9]" viewBox="0 0 24 24"><path d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
+        </span>
+        <span>
+          <span class="block text-sm font-bold text-slate-900">Medium</span>
+          <span class="mt-1 block text-xs font-medium leading-5 text-slate-500">Urgent response likely needed. Conditions may worsen if delayed.</span>
+        </span>
       </button>
-      <button class="sev-btn high" type="button" onclick="selSev(this,'High')">
-        <!-- Heroicon: exclamation-triangle -->
-        <svg viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>High
+      <button class="sev-btn high flex h-full items-start gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-sm" type="button" onclick="selSev(this,'High')">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+          <!-- Heroicon: exclamation-triangle -->
+          <svg class="h-5 w-5 stroke-current fill-none [stroke-width:1.9]" viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+        </span>
+        <span>
+          <span class="block text-sm font-bold text-slate-900">High</span>
+          <span class="mt-1 block text-xs font-medium leading-5 text-slate-500">Immediate danger to people or property. Rapid dispatch is critical.</span>
+        </span>
       </button>
-    </div>
-    <div class="severity-guide">
-      <div class="severity-note low"><strong>Low</strong><span>Stable incident, no immediate life threat, responders can approach normally.</span></div>
-      <div class="severity-note med"><strong>Medium</strong><span>Urgent situation with possible escalation or people needing prompt assistance.</span></div>
-      <div class="severity-note high"><strong>High</strong><span>Immediate danger to life, active hazard, trapped victims, or rapidly worsening conditions.</span></div>
     </div>
     <input type="hidden" id="iSev">
   </div>
 
   <!-- STEP 04 -->
-  <div class="card" id="step-location">
-    <div class="card-topline">
-      <div class="card-head">
-      <div class="card-icon">
+  <div class="scroll-mt-28 rounded-xl border border-slate-200 bg-white p-6 shadow-sm" id="step-location">
+    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-4">
+      <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-4 ring-emerald-50/50">
         <!-- Heroicon: map-pin -->
-        <svg viewBox="0 0 24 24"><path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+        <svg class="h-6 w-6 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
       </div>
       <div>
-        <div class="card-step">Step 04</div>
-        <div class="card-title">Location</div>
-        <div class="card-sub">Where is the emergency happening?</div>
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Step 04</div>
+        <h2 class="text-lg font-bold text-slate-900">Location</h2>
       </div>
       </div>
-      <div class="step-badge">GPS first</div>
+      <div class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-500">GPS First</div>
     </div>
-    <button class="gps-btn" id="gpsBtn" type="button" onclick="detectGPS()">
+    <button class="gps-btn mb-6 inline-flex w-full items-center justify-center gap-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-blue-400 hover:bg-white hover:text-blue-600 hover:shadow-sm" id="gpsBtn" type="button" onclick="detectGPS()">
       <!-- Heroicon: signal -->
-      <svg viewBox="0 0 24 24"><path d="M9.348 14.651a3.75 3.75 0 0 1 0-5.303m5.304-.001a3.75 3.75 0 0 1 0 5.304m-7.425 2.122a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79M12 12h.008v.007H12V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+      <svg class="h-4 w-4 stroke-current fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M9.348 14.651a3.75 3.75 0 0 1 0-5.303m5.304-.001a3.75 3.75 0 0 1 0 5.304m-7.425 2.122a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79M12 12h.008v.007H12V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
       Auto-detect My Location (GPS)
     </button>
-    <div class="gps-meta">
-      <div class="gps-meta-pill">
+    <div class="gps-meta mb-4 flex flex-wrap gap-3">
+      <div class="gps-meta-pill inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 [&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:stroke-current [&_svg]:fill-none [&_svg]:[stroke-width:1.8]">
         <svg viewBox="0 0 24 24"><path d="M12 6v6l4 2.25"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
         Best used at the scene
       </div>
-      <div class="gps-meta-pill">
+      <div class="gps-meta-pill inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 [&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:stroke-current [&_svg]:fill-none [&_svg]:[stroke-width:1.8]">
         <svg viewBox="0 0 24 24"><path d="M2.25 12.76c0 1.6 1.123 2.994 2.67 3.337l2.315.514a48.59 48.59 0 0 0 9.53 0l2.314-.514a3.417 3.417 0 0 0 2.671-3.337V9.24a3.417 3.417 0 0 0-2.67-3.337l-2.315-.514a48.591 48.591 0 0 0-9.53 0l-2.314.514A3.417 3.417 0 0 0 2.25 9.24v3.52Z"/><path d="M12 9v3.75"/></svg>
         Auto-fills nearby details when available
       </div>
     </div>
-    <div class="map-callout">
+    <div class="map-callout mb-4 flex items-start gap-3 rounded-2xl border border-blue-200 bg-[linear-gradient(135deg,#eff6ff,#ffffff)] px-4 py-4 [&_svg]:mt-0.5 [&_svg]:h-[18px] [&_svg]:w-[18px] [&_svg]:shrink-0 [&_svg]:stroke-blue-700 [&_svg]:fill-none [&_svg]:[stroke-width:1.8]">
       <svg viewBox="0 0 24 24"><path d="M12 2.25c-3.728 0-6.75 3.022-6.75 6.75 0 5.444 6.75 12.75 6.75 12.75S18.75 14.444 18.75 9c0-3.728-3.022-6.75-6.75-6.75Z"/><path d="M12 11.25a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Z"/></svg>
       <div>
-        <strong>Use the map on the right as a confirmation step</strong>
-        <span>After GPS detection, check whether the pin matches the actual incident scene before submitting. If it looks off, update the barangay, landmark, and street fields manually.</span>
+        <strong class="block text-sm font-extrabold text-blue-700">Use the map as a confirmation step</strong>
+        <span class="mt-1 block text-xs leading-6 text-slate-600">After GPS detection, check whether the pin matches the actual incident scene before submitting. If it looks off, update the barangay, landmark, and street fields manually.</span>
+      </div>
+    </div>
+    <div class="gps-map-wrap mb-4 hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" id="gpsMapWrap">
+      <div class="gps-map-head flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 font-['JetBrains_Mono'] text-[0.64rem] font-bold uppercase tracking-[0.16em] text-slate-500">
+        <span id="gpsMapLabel">Detected location</span>
+        <a class="font-semibold text-blue-700 hover:text-blue-800" id="gpsMapLink" href="#" target="_blank" rel="noopener noreferrer">Open map</a>
+      </div>
+      <div class="gps-map-canvas relative w-full overflow-hidden bg-slate-100">
+        <iframe class="gps-map-frame block h-[260px] w-full border-0 bg-slate-100" id="gpsMapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <div class="gps-map-view-toggle absolute left-3 top-3 z-10">
+          <button class="gps-map-control rounded-full border border-white/70 bg-white/95 px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50" id="gpsMapViewToggle" type="button" disabled title="Switch between standard and satellite imagery">
+            Show satellite image
+          </button>
+        </div>
+        <div class="gps-map-zoom absolute right-3 top-3 z-10 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/95 px-3 py-2 font-['JetBrains_Mono'] text-[0.68rem] uppercase tracking-[0.12em] text-slate-500 shadow-lg" id="gpsMapZoomGroup">
+          <button class="gps-map-control gps-map-control--compact inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-lg leading-none text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50" id="gpsMapZoomOut" type="button" aria-label="Zoom out" disabled>-</button>
+          <span class="min-w-[44px] text-center text-[0.78rem] font-bold text-slate-700" id="gpsMapZoomValue">16x</span>
+          <button class="gps-map-control gps-map-control--compact inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-lg leading-none text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50" id="gpsMapZoomIn" type="button" aria-label="Zoom in" disabled>+</button>
+        </div>
       </div>
     </div>
     <input type="hidden" id="iGPS">
     <input type="hidden" id="iGPSAt">
     <input type="hidden" id="iGPSAcc">
-    <div class="row2">
-      <div class="field">
-        <label>Barangay *</label>
-        <div class="input-wrap has-icon">
-          <svg class="field-icon" viewBox="0 0 24 24"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"/></svg>
-          <input type="text" id="iBarangay" placeholder="e.g. Barangay Rizal" required>
+    <div class="row2 grid gap-4 sm:grid-cols-2">
+      <div class="field mb-4 space-y-2.5">
+        <label class="block text-sm font-semibold text-slate-700">Barangay *</label>
+        <div class="input-wrap has-icon relative">
+          <svg class="field-icon pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 stroke-slate-400 fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"/></svg>
+          <input class="block w-full rounded-lg border-2 border-slate-300 bg-white/90 py-3 pl-10 text-slate-900 shadow focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition placeholder:text-slate-400" type="text" id="iBarangay" placeholder="e.g. Barangay Rizal" required>
         </div>
-        <div class="field-note">Keep this specific so responders can route the report to the correct area.</div>
       </div>
-      <div class="field">
-        <label>Nearest Landmark *</label>
-        <div class="input-wrap has-icon">
-          <svg class="field-icon" viewBox="0 0 24 24"><path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
-          <input type="text" id="iLandmark" placeholder="e.g. Near Municipal Hall" required>
+      <div class="field mb-4 space-y-2.5">
+        <label class="block text-sm font-semibold text-slate-700">Nearest Landmark *</label>
+        <div class="input-wrap has-icon relative">
+          <svg class="field-icon pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 stroke-slate-400 fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+          <input class="block w-full rounded-lg border-2 border-slate-300 bg-white/90 py-3 pl-10 text-slate-900 shadow focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition placeholder:text-slate-400" type="text" id="iLandmark" placeholder="e.g. Near Municipal Hall" required>
         </div>
-        <div class="field-note">Use a building, crossing, school, bridge, or any place responders can spot quickly.</div>
       </div>
     </div>
-    <div class="field">
-      <label>Street / Additional Details *</label>
-      <div class="input-wrap has-icon">
-        <svg class="field-icon" viewBox="0 0 24 24"><path d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5"/></svg>
-        <input type="text" id="iStreet" placeholder="Street name or additional details" required>
+    <div class="field mb-0 space-y-2.5">
+      <label class="block text-sm font-semibold text-slate-700">Street / Additional Details *</label>
+      <div class="input-wrap has-icon relative">
+        <svg class="field-icon pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 stroke-slate-400 fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5"/></svg>
+        <input class="block w-full rounded-lg border-2 border-slate-300 bg-white/90 py-3 pl-10 text-slate-900 shadow focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition placeholder:text-slate-400" type="text" id="iStreet" placeholder="Street name or additional details" required>
       </div>
-      <div class="field-note">Include purok, road direction, blocked access, or any detail that helps the team approach safely.</div>
     </div>
   </div>
 
   <!-- STEP 05 -->
-  <div class="card" id="step-details">
-    <div class="card-topline">
-      <div class="card-head">
-      <div class="card-icon">
+  <div class="scroll-mt-28 rounded-xl border border-slate-200 bg-white p-6 shadow-sm" id="step-details">
+    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-4">
+      <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-violet-50 text-violet-600 ring-4 ring-violet-50/50">
         <!-- Heroicon: pencil-square -->
-        <svg viewBox="0 0 24 24"><path d="M16.862 4.487 18.55 2.8a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
+        <svg class="h-6 w-6 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M16.862 4.487 18.55 2.8a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
       </div>
       <div>
-        <div class="card-step">Step 05</div>
-        <div class="card-title">Incident Details</div>
-        <div class="card-sub">Describe the situation and attach a photo if possible</div>
+        <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Step 05</div>
+        <h2 class="text-lg font-bold text-slate-900">Incident Details</h2>
       </div>
       </div>
-      <div class="step-badge">Context</div>
+      <div class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Context</div>
+    </div>
+    <div class="field mb-4 space-y-2.5">
+      <label class="block text-sm font-semibold text-slate-700">Key conditions (optional)</label>
+      <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3" id="tagGrid">
+        <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" data-tag="people_trapped" onclick="toggleTag('people_trapped')">People trapped</button>
+        <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" data-tag="injured" onclick="toggleTag('injured')">Injured</button>
+        <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" data-tag="road_blocked" onclick="toggleTag('road_blocked')">Road blocked</button>
+        <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" data-tag="power_out" onclick="toggleTag('power_out')">Power out</button>
+        <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" data-tag="rising_water" onclick="toggleTag('rising_water')">Rising water</button>
+        <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" data-tag="fire_spreading" onclick="toggleTag('fire_spreading')">Fire spreading</button>
+        <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" data-tag="hazmat" onclick="toggleTag('hazmat')">Chemical / HazMat</button>
+        <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" data-tag="structure_damage" onclick="toggleTag('structure_damage')">Structural damage</button>
+        <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" data-tag="blocked_access" onclick="toggleTag('blocked_access')">Access blocked</button>
+        <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" data-tag="missing_persons" onclick="toggleTag('missing_persons')">Missing persons</button>
+        <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" data-tag="medical_needed" onclick="toggleTag('medical_needed')">Medical needed</button>
+        <button type="button" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" data-tag="evac_needed" onclick="toggleTag('evac_needed')">Evac needed</button>
+      </div>
+    </div>
+    <div class="field mb-4 space-y-2">
+      <label class="block text-sm font-semibold text-slate-700">Description (optional)</label>
+      <textarea class="block min-h-[130px] w-full rounded-lg border-2 border-slate-300 bg-white/90 py-3 text-slate-900 shadow focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition placeholder:text-slate-400" id="iDesc" placeholder="Describe what is happening. Include: number of people affected, current situation, any danger present..."></textarea>
+    </div>
+    <div class="field mb-4 space-y-2">
+      <label class="block text-sm font-semibold text-slate-700">Attestation *</label>
+      <div class="input-wrap">
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700 transition hover:bg-white">
+          <input class="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" type="checkbox" id="iAttest">
+          <span class="font-medium">I confirm this report is truthful and not a prank.</span>
+        </label>
+      </div>
     </div>
     <div class="field">
-      <label>Description (optional)</label>
-      <textarea id="iDesc" placeholder="Describe what is happening. Include: number of people affected, current situation, any danger present..."></textarea>
-      <div class="field-note">Optional but helpful: injuries, trapped people, hazards, flooding depth, fire spread, or anything changing fast.</div>
+      <label>Upload Photo (Optional)</label>
+      <div class="upload-area" id="uploadArea">
+        <input type="file" accept="image/*" onchange="handlePhoto(this)">
+        <!-- Heroicon: camera -->
+        <svg class="h-10 w-10 stroke-slate-300 fill-none stroke-1 transition group-hover:stroke-blue-600" viewBox="0 0 24 24"><path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/><path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/></svg>
+        <div class="text-sm font-semibold text-slate-700">Upload Photo</div>
+        <div class="text-xs text-slate-500">Tap to attach evidence</div>
+      </div>
     </div>
   </div>
 
-  <div class="submit-panel">
-    <div class="submit-copy">
-      <div>
-        <h3>Ready to send the report?</h3>
-        <p>Check that your contact number, severity, and location are correct. The system will try to refresh GPS again before final submission.</p>
+  <section class="mt-8 overflow-hidden rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+      <div class="max-w-2xl">
+        <div class="font-['JetBrains_Mono'] text-[0.68rem] font-bold uppercase tracking-[0.18em] text-blue-600">Final Check</div>
+        <h3 class="mt-2 text-2xl font-bold tracking-tight text-slate-900">Ready to send this report?</h3>
+        <p class="mt-2 text-sm leading-6 text-slate-600">Review the contact number, selected emergency type, and exact incident location. Clear details here help the response team work faster.</p>
       </div>
-      <div class="required-pill">
-        <svg viewBox="0 0 24 24"><path d="M9 12.75 11.25 15 15 9.75"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-        Required fields only
+      <div class="flex w-full flex-wrap gap-2 lg:w-auto">
+        <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500">5 steps complete</span>
+        <span class="rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-700">Verification may follow by phone</span>
       </div>
     </div>
-    <button class="submit-btn" type="button" onclick="submitReport()">
-      <!-- Heroicon: paper-airplane -->
-      <svg viewBox="0 0 24 24"><path d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
-      Submit Emergency Report
+    <button class="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl bg-blue-600 px-6 py-4 text-base font-bold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-xl" type="button" onclick="submitReport()">
+      <svg class="h-5 w-5 stroke-current fill-none [stroke-width:1.9]" viewBox="0 0 24 24"><path d="M4.5 12.75l6 6 9-13.5"/></svg>
+      Submit Report
     </button>
-  </div>
-  </div>
-      </div>
+  </section>
     </div>
-  </div>
-  <div class="report-map-panel dashboard-map-panel">
-    <div class="dashboard-map-shell">
-      <div class="gps-map-wrap" id="gpsMapWrap">
-        <div class="gps-map-head">
-          <span id="gpsMapLabel">Mapandan, Pangasinan overview</span>
-          <a id="gpsMapLink" href="#" target="_blank" rel="noopener noreferrer">Open map</a>
-        </div>
-        <div class="gps-map-canvas">
-          <iframe class="gps-map-frame" id="gpsMapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-          <div class="gps-map-view-toggle">
-            <button class="gps-map-control" id="gpsMapViewToggle" type="button" disabled title="Switch between standard and satellite imagery">
-              Show satellite image
-            </button>
-          </div>
-          <div class="gps-map-zoom" id="gpsMapZoomGroup">
-          <button class="gps-map-control gps-map-control--compact" id="gpsMapZoomOut" type="button" aria-label="Zoom out" disabled>-</button>
-            <span id="gpsMapZoomValue">14x</span>
-            <button class="gps-map-control gps-map-control--compact" id="gpsMapZoomIn" type="button" aria-label="Zoom in" disabled>+</button>
-          </div>
-        </div>
-      </div>
-    </div>
+
+    <!-- Field Guide removed for clarity and focus -->
   </div>
 </div>
 </main>
 
 <!-- FOOTER -->
-<footer class="report-footer">
-  <div class="report-footer-inner">
-    <div>
-      <div class="rf-brand">
-        <img class="rf-logo" src="/images/logo.png" alt="MDRRMO SVS Logo">
-        <div class="rf-copy">
-          <div class="rf-name">Smart Verification System</div>
-          <div class="rf-sub">Emergency Reporting</div>
-        </div>
-      </div>
-      <p class="rf-text">Fast and reliable citizen incident reporting with real-time dispatcher visibility and location-aware alerts.</p>
-    </div>
-    <div class="rf-col">
-      <h4>Contact Us</h4>
-      <ul class="rf-list">
-        <li>Hotline: 911</li>
-        <li>Office: +63 917 000 0000</li>
-        <li>Email: support@svs.local</li>
-      </ul>
-    </div>
-  </div>
-  <div class="rf-bottom">
-    <span>&copy; <span id="footerYear"></span> SVS. All rights reserved.</span>
-    <span>Built for easy and fast emergency reporting.</span>
-  </div>
-</footer>
+<div class="relative left-1/2 w-screen -translate-x-1/2">
+  <%- include("partials/footer") %>
+</div>
 
 <!-- SUCCESS OVERLAY -->
-<div class="overlay" id="successOverlay">
-  <div class="success-ring">
-    <svg viewBox="0 0 24 24"><path d="M4.5 12.75l6 6 9-13.5"/></svg>
+<div class="overlay hidden fixed inset-0 z-[500] items-center justify-center bg-slate-950/35 p-4 backdrop-blur-md" id="successOverlay">
+  <div class="w-full max-w-[34rem] rounded-[32px] border border-blue-200 bg-white px-8 py-9 text-center shadow-[0_28px_80px_rgba(15,23,42,0.18)]">
+    <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-700 shadow-[0_8px_28px_rgba(37,99,235,0.18)] [&_svg]:h-7 [&_svg]:w-7 [&_svg]:stroke-current [&_svg]:fill-none [&_svg]:[stroke-width:2]">
+      <svg viewBox="0 0 24 24"><path d="M4.5 12.75l6 6 9-13.5"/></svg>
+    </div>
+    <h2 class="!mb-3 !text-3xl !font-black !tracking-tight !text-slate-900">Report Submitted</h2>
+    <p class="!max-w-md !text-sm !leading-7 !text-slate-600">Your emergency report has been received by SVS dispatchers. You will be contacted at your provided number for verification.</p>
+    <div class="rpt-id mt-6 rounded-2xl border border-blue-200 bg-blue-50 px-6 py-4 font-['JetBrains_Mono'] text-2xl font-bold tracking-[0.28em] text-blue-700" id="rptId">RPT-0000</div>
+    <button class="ghost-btn mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" onclick="closeSuccess()">Submit Another Report</button>
   </div>
-  <h2>Report Submitted</h2>
-  <p>Your emergency report has been received by SVS dispatchers. You will be contacted at your provided number for verification.</p>
-  <div class="rpt-id" id="rptId">RPT-0000</div>
-  <button class="ghost-btn" onclick="closeSuccess()">Submit Another Report</button>
 </div>
 
 <!-- PANIC SETUP MODAL -->
-<div class="overlay" id="panicModal">
-  <div class="modal-box">
-    <div class="modal-icon-wrap">
+<div class="overlay hidden fixed inset-0 z-[500] items-center justify-center bg-slate-950/35 p-4 backdrop-blur-md" id="panicModal">
+  <div class="modal-box w-full max-w-[420px] rounded-[30px] border border-slate-200 bg-white p-8 text-center shadow-[0_28px_80px_rgba(15,23,42,0.18)]">
+    <div class="modal-icon-wrap mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-600 [&_svg]:h-5 [&_svg]:w-5 [&_svg]:stroke-current [&_svg]:fill-none [&_svg]:[stroke-width:1.75]">
       <!-- Heroicon: lock-closed -->
       <svg viewBox="0 0 24 24"><path d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
     </div>
-    <h3>One-Time Setup</h3>
-    <p>Enter your phone number <strong>once</strong>. The Panic Button will remember it so you never need to type again in an emergency.</p>
-    <input type="tel" id="panicInput" placeholder="+63 917 123 4567" inputmode="tel" autocomplete="tel" maxlength="16">
-    <button class="modal-save" onclick="savePanic()">Save &amp; Activate Panic Button</button>
-    <button class="modal-cancel" onclick="closePanicModal()">Cancel</button>
+    <h3 class="!mb-2 !text-3xl !font-black !tracking-tight !text-slate-900">One-Time Setup</h3>
+    <p class="!mb-6 !text-sm !leading-7 !text-slate-600">Enter your phone number <strong class="text-slate-900">once</strong>. The Panic Button will remember it so you never need to type again in an emergency.</p>
+    <input class="mb-4 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3.5 text-center font-['JetBrains_Mono'] text-base tracking-[0.18em] text-slate-900 outline-none transition placeholder:tracking-normal placeholder:text-slate-400 focus:border-red-300 focus:bg-white focus:ring-4 focus:ring-red-100" type="tel" id="panicInput" placeholder="+63 917 123 4567" inputmode="tel" autocomplete="tel" maxlength="16">
+    <button class="modal-save w-full rounded-2xl bg-[linear-gradient(135deg,#ef4444,#dc2626)] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_18px_38px_rgba(220,38,38,0.25)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(220,38,38,0.3)]" onclick="savePanic()">Save &amp; Activate Panic Button</button>
+    <button class="modal-cancel mt-3 text-sm font-medium text-slate-500 transition hover:text-slate-700" onclick="closePanicModal()">Cancel</button>
   </div>
 </div>
 
 <!-- PANIC SENDING OVERLAY -->
-<div class="overlay" id="sendingOverlay">
-  <div id="sendingState">
-    <div class="sending-ring">
-      <svg viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+<div class="overlay hidden fixed inset-0 z-[500] items-center justify-center bg-slate-950/35 p-4 backdrop-blur-md" id="sendingOverlay">
+  <div id="sendingState" class="flex w-full max-w-[34rem] flex-col items-center rounded-[30px] border border-red-200 bg-white px-8 py-9 text-center shadow-[0_28px_80px_rgba(15,23,42,0.18)]">
+    <div class="sending-ring mb-6 flex h-[108px] w-[108px] animate-spin items-center justify-center rounded-full border-[3px] border-red-200 border-t-red-600 text-red-600 [&_svg]:h-9 [&_svg]:w-9 [&_svg]:stroke-current [&_svg]:fill-none [&_svg]:[stroke-width:1.6]">
+      <svg class="-rotate-[360deg]" viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
     </div>
-    <h2 class="red">Sending SOS…</h2>
-    <p class="sending-sub">Acquiring exact location and alerting dispatchers</p>
+    <h2 class="red mb-3 text-3xl font-black tracking-tight text-red-600">Sending SOS...</h2>
+    <p class="sending-sub max-w-md text-sm leading-7 text-slate-600">Acquiring exact location and alerting dispatchers</p>
   </div>
-  <div class="confirmed" id="confirmedState">
-    <div class="confirm-ring">
+  <div class="confirmed hidden w-full max-w-[34rem] flex-col items-center rounded-[30px] border border-blue-200 bg-white px-8 py-9 text-center shadow-[0_28px_80px_rgba(15,23,42,0.18)]" id="confirmedState">
+    <div class="confirm-ring mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-700 shadow-[0_8px_28px_rgba(37,99,235,0.18)] [&_svg]:h-7 [&_svg]:w-7 [&_svg]:stroke-current [&_svg]:fill-none [&_svg]:[stroke-width:2]">
       <svg viewBox="0 0 24 24"><path d="M4.5 12.75l6 6 9-13.5"/></svg>
     </div>
-    <h2 class="green-h" style="font-size:2rem;letter-spacing:-1px;margin-bottom:.55rem;">SOS Sent!</h2>
-    <p style="color:var(--text2);max-width:310px;line-height:1.7;font-size:.9rem;">
-      Dispatchers have been alerted. <strong style="color:var(--text);">Stay on the line — they will call you back immediately.</strong>
+    <h2 class="green-h !mb-3 !text-3xl !font-black !tracking-tight !text-blue-700">SOS Sent!</h2>
+    <p class="max-w-[310px] text-sm leading-7 text-slate-600">
+      Dispatchers have been alerted. <strong class="text-slate-900">Stay on the line - they will call you back immediately.</strong>
     </p>
-    <div style="margin-top:1.4rem;">
-      <div class="sos-id-label">Your SOS ID</div>
-      <div class="sos-id-box" id="sosId">SOS-0000</div>
+    <div class="mt-6">
+      <div class="sos-id-label font-['JetBrains_Mono'] text-[0.58rem] font-bold uppercase tracking-[0.22em] text-slate-500">Your SOS ID</div>
+      <div class="sos-id-box rounded-2xl border border-red-200 bg-red-50 px-6 py-4 font-['JetBrains_Mono'] text-2xl font-bold tracking-[0.28em] text-red-600" id="sosId">SOS-0000</div>
     </div>
-    <div class="gps-note" id="gpsNote"></div>
-    <button class="ghost-btn" onclick="closeSending()" style="margin-top:1.5rem;">Close</button>
+    <div class="gps-note mt-4 text-xs text-slate-500" id="gpsNote"></div>
+    <button class="ghost-btn mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" onclick="closeSending()">Close</button>
   </div>
 </div>
 
 <!-- TOAST -->
-<div class="toast" id="toast">
+<div class="toast pointer-events-none fixed bottom-7 right-7 z-[999] flex max-w-[320px] translate-x-[calc(100%+2rem)] items-start gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 opacity-0 shadow-[0_20px_50px_rgba(15,23,42,0.18)] transition duration-300 [&_svg]:mt-0.5 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:stroke-current [&_svg]:fill-none [&_svg]:[stroke-width:2] [&_strong]:block [&_strong]:text-sm [&_strong]:font-semibold [&_strong]:text-slate-900 [&_span]:mt-0.5 [&_span]:block [&_span]:text-xs [&_span]:leading-5 [&_span]:text-slate-600" id="toast">
   <svg viewBox="0 0 24 24"><path d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
   <div><strong id="toastTitle"></strong><span id="toastMsg"></span></div>
 </div>
@@ -2477,13 +2574,13 @@
 
   function showInvalid(el) {
     if (!el) return;
-    el.style.borderColor = 'var(--red)';
-    setTimeout(() => { el.style.borderColor = ''; }, 1800);
+    addClasses(el, REQUIRED_ERROR_CLASSES);
+    setTimeout(() => removeClasses(el, REQUIRED_ERROR_CLASSES), 1800);
   }
 
   function setRequiredError(el, missing) {
     if (!el) return;
-    el.classList.toggle('req-missing', !!missing);
+    toggleClasses(el, REQUIRED_ERROR_CLASSES, !!missing);
   }
 
   function hasValue(el) {
@@ -2507,7 +2604,8 @@
     const sub = document.getElementById('panicSublabel');
     if (!numEl || !pill || !sub) return;
     numEl.textContent = formatPhoneForDisplay(panicNum);
-    pill.style.display = 'inline-flex';
+    pill.classList.remove('hidden');
+    pill.classList.add('inline-flex');
     sub.innerHTML = '<strong>One tap sends instant SOS.</strong><br>Your exact location will be sent to dispatchers immediately.';
   }
 
@@ -2516,14 +2614,35 @@
   
   // Draft helper functions removed.
 function selType(el, t) {
-    document.querySelectorAll('.etype-btn').forEach(b => b.classList.remove('sel'));
-    el.classList.add('sel'); selType_ = t;
+    document.querySelectorAll('.etype-btn').forEach(b => removeClasses(b, TYPE_SELECTED_CLASSES));
+    addClasses(el, TYPE_SELECTED_CLASSES); selType_ = t;
     setRequiredError(document.getElementById('typeGrid'), false);
   }
   function selSev(el, s) {
-    document.querySelectorAll('.sev-btn').forEach(b => b.classList.remove('sel'));
-    el.classList.add('sel'); selSev_ = s;
+    document.querySelectorAll('.sev-btn').forEach(b => {
+      removeClasses(b, SEV_SELECTED.Low);
+      removeClasses(b, SEV_SELECTED.Medium);
+      removeClasses(b, SEV_SELECTED.High);
+    });
+    addClasses(el, SEV_SELECTED[s] || []); selSev_ = s;
     setRequiredError(document.getElementById('sevGrid'), false);
+  }
+
+  function toggleTag(tag) {
+    if (!TAG_OPTIONS.includes(tag)) return;
+    if (selectedTags.includes(tag)) {
+      selectedTags = selectedTags.filter(t => t !== tag);
+    } else {
+      selectedTags = [...selectedTags, tag].slice(0, 6);
+    }
+    syncTagUi();
+  }
+
+  function syncTagUi() {
+    document.querySelectorAll('#tagGrid [data-tag]').forEach(btn => {
+      const t = btn.getAttribute('data-tag');
+      toggleClasses(btn, TAG_SELECTED_CLASSES, selectedTags.includes(t));
+    });
   }
 
   function detectGPS() {
@@ -2622,7 +2741,7 @@ function selType(el, t) {
         return;
       }
       document.getElementById('rptId').textContent = d.id;
-      document.getElementById('successOverlay').classList.add('show');
+      showOverlay('successOverlay');
       resetForm();
       window.dispatchEvent(new Event('svs:report-submitted'));
       flushPendingQueue();
@@ -2652,15 +2771,15 @@ function selType(el, t) {
     updatePendingCount();
   }
 
-  function closeSuccess() { document.getElementById('successOverlay').classList.remove('show'); }
+  function closeSuccess() { hideOverlay('successOverlay'); }
 
   // panic
   function openPanicSetup() {
     document.getElementById('panicInput').value = formatPhoneForDisplay(panicNum);
-    document.getElementById('panicModal').classList.add('show');
+    showOverlay('panicModal');
     setTimeout(()=>document.getElementById('panicInput').focus(),150);
   }
-  function closePanicModal() { document.getElementById('panicModal').classList.remove('show'); }
+  function closePanicModal() { hideOverlay('panicModal'); }
   function savePanic() {
     const panicInputEl = document.getElementById('panicInput');
     const n = toIntlPhone(panicInputEl.value) || '';
@@ -2708,9 +2827,9 @@ function selType(el, t) {
   }
   function triggerPanic() {
     if (!panicNum) { openPanicSetup(); return; }
-    document.getElementById('sendingState').style.display='flex';
-    document.getElementById('confirmedState').classList.remove('show');
-    document.getElementById('sendingOverlay').classList.add('show');
+    showElement(document.getElementById('sendingState'), 'flex');
+    hideElement(document.getElementById('confirmedState'), 'flex');
+    showOverlay('sendingOverlay');
     const send = async loc => {
       const payload = {
         contact: panicNum,
@@ -2722,10 +2841,10 @@ function selType(el, t) {
       try {
         const { res, data: d } = await fetchJson('/api/panic',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
         if (!res.ok || !d.success) throw new Error(d.error || 'panic send failed');
-        document.getElementById('sendingState').style.display='none';
+        hideElement(document.getElementById('sendingState'), 'flex');
         document.getElementById('sosId').textContent = d.id;
         document.getElementById('gpsNote').textContent = loc.locationText || 'Location unavailable - dispatcher will call you';
-        document.getElementById('confirmedState').classList.add('show');
+        showElement(document.getElementById('confirmedState'), 'flex');
       } catch(e) { closeSending(); toast('Error','Could not send SOS.','warn'); }
     };
 
@@ -2762,21 +2881,22 @@ function selType(el, t) {
       );
     } else { void sendWithFallback(); }
   }
-  function closeSending() { document.getElementById('sendingOverlay').classList.remove('show'); }
+  function closeSending() { hideOverlay('sendingOverlay'); }
 
   function toast(title, msg, type='info') {
     const t=document.getElementById('toast');
     document.getElementById('toastTitle').textContent=title;
     document.getElementById('toastMsg').textContent=msg;
-    t.style.borderLeftColor = type==='warn' ? 'var(--orange)' : 'var(--green)';
-    t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'),3600);
+    t.classList.remove('border-blue-200', 'border-amber-200', 'text-blue-700', 'text-amber-600');
+    t.classList.add(type === 'warn' ? 'border-amber-200' : 'border-blue-200');
+    t.classList.add(type === 'warn' ? 'text-amber-600' : 'text-blue-700');
+    removeClasses(t, TOAST_HIDE_CLASSES);
+    addClasses(t, TOAST_SHOW_CLASSES);
+    setTimeout(() => {
+      removeClasses(t, TOAST_SHOW_CLASSES);
+      addClasses(t, TOAST_HIDE_CLASSES);
+    }, 3600);
   }
-
-  // add spin keyframe
-  const s=document.createElement('style');
-  s.textContent='@keyframes spin{to{transform:rotate(360deg)}}';
-  document.head.appendChild(s);
 
   function parseGps(gps) {
     if (!gps || typeof gps !== 'string') return null;
@@ -2811,8 +2931,7 @@ function selType(el, t) {
     if (!p || !wrap || !labelEl) return;
     mapState.lat = p.lat;
     mapState.lng = p.lng;
-    mapState.zoom = Math.max(MAP_STREET_ZOOM, mapState.zoom || MAP_STREET_ZOOM);
-    wrap.style.display = 'block';
+    showElement(wrap, 'block');
     labelEl.textContent = `${label}: ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
     if (mapState.zoom < MAP_MIN_ZOOM) mapState.zoom = MAP_MIN_ZOOM;
     if (mapState.zoom > MAP_MAX_ZOOM) mapState.zoom = MAP_MAX_ZOOM;
@@ -2857,7 +2976,7 @@ function selType(el, t) {
     if (!toggle) return;
     const showingSatellite = mapState.view === 'satellite';
     toggle.textContent = showingSatellite ? 'Show standard map' : 'Show satellite image';
-    toggle.classList.toggle('active', showingSatellite);
+    toggleClasses(toggle, MAP_TOGGLE_ACTIVE_CLASSES, showingSatellite);
     toggle.disabled = !mapState.lat;
   }
 
@@ -3009,7 +3128,7 @@ function selType(el, t) {
   async function detectGPS() {
     const btn = document.getElementById('gpsBtn');
     btn.disabled = true;
-    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;animation:spin .9s linear infinite"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> Detecting...`;
+    btn.innerHTML = loadingGpsButtonHtml();
     if (!navigator.geolocation) { btn.textContent = 'GPS not available on this device'; btn.disabled = false; return; }
     try {
       const pos = await acquireBestGpsPosition(14000, 25);
@@ -3019,8 +3138,8 @@ function selType(el, t) {
       }
       await applyDetectedCoords(pos, { overwriteExisting: true });
       setRequiredError(btn, false);
-      btn.classList.add('got');
-      btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4.5 12.75l6 6 9-13.5"/></svg> Detected: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} (+/-${Math.round(pos.coords.accuracy || 0)}m)`;
+      addClasses(btn, GPS_READY_CLASSES);
+      btn.innerHTML = detectedGpsButtonHtml(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy, '+/-');
     } catch (_e) {
       btn.textContent = 'Could not detect location - fill in manually.';
     } finally {

@@ -48,7 +48,7 @@ const ROLE_COOKIE_NAMES = {
 const REALTIME_CHANNEL = process.env.PUSHER_CHANNEL || 'mdrrmo-reports';
 const VALID_REPORT_STATUSES = new Set(['new', 'verifying', 'dispatched', 'resolved', 'false-report']);
 const VALID_EMERGENCY_TYPES = new Set(['Fire', 'Flood', 'Medical', 'Accident', 'Landslide', 'Other', 'PANIC SOS']);
-const VALID_SEVERITIES = new Set(['High', 'Medium', 'Low']);
+const VALID_SEVERITIES = new Set(['Zion','High', 'Medium', 'Low']);
 const VALID_REPORT_TAGS = [
   'people_trapped',
   'injured',
@@ -62,6 +62,7 @@ const VALID_REPORT_TAGS = [
   'missing_persons',
   'medical_needed',
   'evac_needed',
+  'missing_Zion',
 ];
 const SIGNED_SESSION_PREFIX = 'v1.';
 let dbInitPromise = null;
@@ -1278,7 +1279,7 @@ app.post('/api/report', async (req, res) => {
       isPanic:     false,
     });
 
-    const payload = report.toJSON();
+    const payload = ensureReportHasId(report.toJSON());
     await emitRealtime('new-report', payload);
     res.json({ success: true, id: reportId });
   } catch (err) {
@@ -1344,7 +1345,7 @@ app.post('/api/panic', async (req, res) => {
       timestamp:     new Date(),
     });
 
-    const payload = report.toJSON();
+    const payload = ensureReportHasId(report.toJSON());
     await emitRealtime('new-report', payload);
     res.json({ success: true, id: reportId });
   } catch (err) {
@@ -1471,6 +1472,7 @@ app.patch('/api/report/:id/details', requireRolesApi(['dispatcher', 'admin']), a
     });
 
     const payload = report.toJSON();
+    payload.id = payload.id || payload.reportId || String(report._id || '');
     await emitRealtime('report-details-updated', payload);
     res.json({ success: true, report: payload });
   } catch (err) {
@@ -1569,7 +1571,9 @@ app.get('/api/reports', requireRolesApi(['dispatcher', 'admin']), async (_req, r
   try {
     const query = buildReportVisibilityQuery(_req.auth);
     const reports = await Report.find(query).sort({ timestamp: -1 }).lean({ virtuals: true });
-    res.json(reports);
+    // Ensure every report has an id field
+    const reportsWithId = reports.map(ensureReportHasId);
+    res.json(reportsWithId);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Could not fetch reports' });
@@ -1633,6 +1637,7 @@ app.post('/api/report/:id/claim', requireRolesApi(['dispatcher', 'admin']), asyn
       details: `Claimed report by ${report.assignedToName || req.auth.username}`,
     });
     const payload = report.toJSON();
+    payload.id = payload.id || payload.reportId || String(report._id || '');
     await emitRealtime('report-assignment-updated', payload);
     return res.json({ success: true, report: payload });
   } catch (err) {
@@ -1694,6 +1699,7 @@ app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async
       details: `Passed report to ${nextAssignedName}`,
     });
     const payload = report.toJSON();
+    payload.id = payload.id || payload.reportId || String(report._id || '');
     await emitRealtime('report-assignment-updated', payload);
     return res.json({ success: true, report: payload });
   } catch (err) {
@@ -1754,6 +1760,14 @@ function normalizeBarangayLabel(value) {
   s = s.replace(/\s+/g, ' ');
   if (/^brgy\.?/i.test(s)) return s.replace(/^brgy\.?/i, 'Barangay').replace(/\s+/g, ' ').trim();
   return s;
+}
+
+function ensureReportHasId(report) {
+  if (!report || typeof report !== 'object') return report;
+  return {
+    ...report,
+    id: report.id || report.reportId || String(report._id || '')
+  };
 }
 
 function reportLookupQuery(id) {
