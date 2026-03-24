@@ -37,17 +37,17 @@
 <body>
   <%- include('partials/navbar', { active: 'faq', timeId: 'faqTime' }) %>
 
-  <main>
-    <h1>Frequently Asked Questions</h1>
+  <main style="background:linear-gradient(135deg,#fffaf4 0%,#f9f6f2 100%);min-height:100vh;padding-bottom:40px;">
+    <h1 style="margin-bottom:1.2rem;">Frequently Asked Questions</h1>
     <p class="intro">Everything you need to know about sending reports, staying verified, and keeping dispatchers focused on real emergencies.</p>
-    <div class="faq-meta">
+    <div class="faq-meta" style="margin-bottom:1.5rem;">
       <span class="faq-chip">Verified callers</span>
       <span class="faq-chip">GPS-first</span>
       <span class="faq-chip">Offline ready</span>
       <span class="faq-chip">Dispatcher-first UX</span>
     </div>
 
-    <div class="faq">
+    <div class="faq" style="margin-bottom:2rem;">
       <details open>
         <summary>What counts as an emergency?</summary>
         <p>Immediate threats to life, health, or critical infrastructure: fire, trapped or injured people, severe flooding, collapsed structures, major road blockages, chemical spills.</p>
@@ -70,9 +70,14 @@
       </details>
     </div>
 
-    <div class="cta">
-      <a class="btn primary" href="/report">Send a report</a>
-      <a class="btn" href="/about">Learn about SVS</a>
+    <div style="display:flex;justify-content:center;margin-top:2.5rem;">
+      <form class="feedback-form" method="post" action="/faq/feedback" style="width:100%;max-width:520px;background:#fff8f0;padding:2.3rem 2.7rem 2rem 2.7rem;border-radius:18px;box-shadow:0 6px 32px #0002;display:flex;flex-direction:column;align-items:center;">
+        <h3 style="font-size:1.4rem;margin-bottom:10px;font-weight:800;color:#b23b3b;letter-spacing:0.5px;text-align:center;">We value your feedback</h3>
+        <p style="margin-bottom:22px;color:#6a5a3a;font-size:1.08rem;text-align:center;max-width:95%;">Let us know how we can improve your experience or if you have any suggestions. Your input helps us serve you better.</p>
+        <label for="feedbackText" style="font-weight:600;margin-bottom:8px;align-self:flex-start;color:#4a3a1a;font-size:1.09rem;">Your Feedback</label>
+        <textarea id="feedbackText" name="feedback" rows="5" required style="width:100%;padding:16px 18px;border-radius:12px;border:1.7px solid #e0cdbd;margin-bottom:20px;font-size:1.09rem;resize:vertical;box-shadow:0 2px 8px #0001;min-height:120px;background:#fff;transition:border 0.2s;"></textarea>
+        <button class="btn primary" type="submit" style="width:100%;font-size:1.15rem;padding:14px 0;border-radius:10px;background:#b23b3b;box-shadow:0 2px 12px #b23b3b22;transition:background 0.2s;">Submit Feedback</button>
+      </form>
     </div>
   </main>
   <%- include('partials/footer') %>

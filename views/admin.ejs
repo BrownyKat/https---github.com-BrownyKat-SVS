@@ -848,142 +848,45 @@
           <p class="section-note"><strong>Use this when checking accountability.</strong> Increase rows only when needed to keep the table easier to scan on live operations.</p>
         </div>
         <div class="filters">
-          <form method="get" action="/admin" class="row-form" style="width:100%">
+          <form method="get" action="/admin" class="row-form" style="width:100%;align-items:flex-end;grid-template-columns:120px 120px 1fr;gap:12px;">
             <input type="hidden" name="tab" value="audit">
             <input type="hidden" name="reportPage" value="<%= (reportPager && reportPager.currentPage) || 1 %>">
             <input type="hidden" name="reportLimit" value="<%= reportLimit || 20 %>">
             <input type="hidden" name="from" value="<%= from || '' %>">
             <input type="hidden" name="to" value="<%= to || '' %>">
             <input type="hidden" name="auditPage" value="1">
-            <div class="f">
+            <div class="f" style="min-width:110px;">
               <label for="auditLimitSel">Rows</label>
-              <select id="auditLimitSel" name="auditLimit" class="btn">
+              <select id="auditLimitSel" name="auditLimit" class="btn" style="min-width:90px;">
                 <% [10,20,40,80,100,200].forEach(function(n){ %>
                   <option value="<%= n %>" <%= Number(auditLimit) === n ? 'selected' : '' %>><%= n %></option>
                 <% }) %>
               </select>
             </div>
-            <button class="btn primary" type="submit">Apply</button>
+            <div style="align-self:end;">
+              <button class="btn primary" type="submit" style="min-width:80px;">Apply</button>
+            </div>
           </form>
         </div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Timestamp</th><th>Dispatcher</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
             <tbody id="auditTableBody">
-              <% auditLogs.forEach(function(a){ %>
-                <tr>
-                  <td><%= new Date(a.timestamp).toLocaleString() %></td>
-                  <td><%= a.actorName || a.actorId || '-' %></td>
-                  <td><%= a.action || '-' %></td>
-                  <td><%= a.targetType || '-' %> <%= a.targetId || '' %></td>
-                  <td><%= a.details || '-' %></td>
-                </tr>
-              <% }) %>
+              <% if (auditLogs.length === 0) { %>
+                <tr><td colspan="5" style="text-align:center;color:#6f644f">No audit entries found.</td></tr>
+              <% } else { %>
+                <% auditLogs.slice(0, Number(auditLimit) || 20).forEach(function(a){ %>
+                  <tr>
+                    <td><%= new Date(a.timestamp).toLocaleString() %></td>
+                    <td><%= a.actorName || a.actorId || '-' %></td>
+                    <td><%= a.action || '-' %></td>
+                    <td><%= a.targetType || '-' %> <%= a.targetId || '' %></td>
+                    <td><%= a.details || '-' %></td>
+                  </tr>
+                <% }) %>
+              <% } %>
             </tbody>
-          </table>
-        </div>
-        <% const ap = auditPagination || { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false }; %>
-        <% const auditBase = '/admin?tab=audit&reportPage=' + encodeURIComponent((reportPagination && reportPagination.page) || 1); %>
-        <div class="pager" id="auditPager">
-          <div id="auditPagerSummary">Showing page <strong><%= ap.page %></strong> of <strong><%= ap.totalPages %></strong> (<%= ap.totalCount %> audit entries)</div>
-          <div class="pager-actions">
-            <a class="btn" id="auditPrevLink" href="<%= auditBase %>&auditPage=<%= ap.page - 1 %>" aria-disabled="<%= ap.hasPrev ? 'false' : 'true' %>">Previous</a>
-            <a class="btn" id="auditNextLink" href="<%= auditBase %>&auditPage=<%= ap.page + 1 %>" aria-disabled="<%= ap.hasNext ? 'false' : 'true' %>">Next</a>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <div id="addDispatcherModal" class="modal-backdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addDispatcherTitle">
-      <div class="modal-head">
-        <h3 class="modal-title" id="addDispatcherTitle">Add Dispatcher</h3>
-        <button class="modal-close" type="button" data-close-modal="#addDispatcherModal">Close</button>
-      </div>
-      <form class="modal-form" method="post" action="/admin/dispatchers">
-        <input type="hidden" name="tab" value="dispatchers">
-        <input type="hidden" name="reportPage" value="<%= (reportPagination && reportPagination.page) || 1 %>">
-        <input type="hidden" name="auditPage" value="<%= (auditPagination && auditPagination.page) || 1 %>">
-        <div class="modal-field">
-          <label for="addUsername">Username</label>
-          <input id="addUsername" name="username" required>
-        </div>
-        <div class="modal-field">
-          <label for="addFullName">Full name</label>
-          <input id="addFullName" name="fullName">
-        </div>
-        <div class="modal-field">
-          <label for="addPhone">Phone</label>
-          <input id="addPhone" name="phone">
-        </div>
-        <div class="modal-field">
-          <label for="addPassword">Password</label>
-          <input id="addPassword" name="password" type="password" minlength="6" required>
-        </div>
-        <div class="modal-actions">
-          <button class="btn" type="button" data-close-modal="#addDispatcherModal">Cancel</button>
-          <button class="btn primary" type="submit">Add Dispatcher</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="editDispatcherModal" class="modal-backdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editDispatcherTitle">
-      <div class="modal-head">
-        <h3 class="modal-title" id="editDispatcherTitle">Edit Dispatcher</h3>
-        <button class="modal-close" type="button" data-close-modal="#editDispatcherModal">Close</button>
-      </div>
-      <form id="editDispatcherForm" class="modal-form" method="post" action="/admin/dispatchers/__id__/update">
-        <input type="hidden" name="tab" value="dispatchers">
-        <input type="hidden" name="reportPage" value="<%= (reportPagination && reportPagination.page) || 1 %>">
-        <input type="hidden" name="auditPage" value="<%= (auditPagination && auditPagination.page) || 1 %>">
-        <div class="modal-field">
-          <label for="editUsername">Username</label>
-          <input id="editUsername" name="username" required>
-        </div>
-        <div class="modal-field">
-          <label for="editFullName">Full name</label>
-          <input id="editFullName" name="fullName">
-        </div>
-        <div class="modal-field">
-          <label for="editPhone">Phone</label>
-          <input id="editPhone" name="phone">
-        </div>
-        <div class="modal-field">
-          <label for="editNewPassword">New password (optional)</label>
-          <input id="editNewPassword" name="newPassword" type="password" minlength="6">
-        </div>
-        <label class="modal-check"><input id="editIsActive" type="checkbox" name="isActive"> Active dispatcher</label>
-        <div class="modal-actions">
-          <button class="btn" type="button" data-close-modal="#editDispatcherModal">Cancel</button>
-          <button class="btn primary" type="submit">Save Changes</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="deleteDispatcherModal" class="modal-backdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteDispatcherTitle">
-      <div class="modal-head">
-        <h3 class="modal-title" id="deleteDispatcherTitle">Delete Dispatcher</h3>
-        <button class="modal-close" type="button" data-close-modal="#deleteDispatcherModal">Close</button>
-      </div>
-      <div class="delete-body">
-        <p>You are about to delete <span id="deleteDispatcherName" class="delete-username">this dispatcher</span>. This action cannot be undone.</p>
-        <form id="deleteDispatcherForm" method="post" action="/admin/dispatchers/__id__/delete">
-          <input type="hidden" name="tab" value="dispatchers">
-          <input type="hidden" name="reportPage" value="<%= (reportPagination && reportPagination.page) || 1 %>">
-          <input type="hidden" name="auditPage" value="<%= (auditPagination && auditPagination.page) || 1 %>">
-          <div class="modal-actions" style="padding-top:0">
-            <button class="btn" type="button" data-close-modal="#deleteDispatcherModal">Cancel</button>
-            <button class="btn warn" type="submit">Delete Dispatcher</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
+             
   <script id="reportsSeed" type="application/json"><%- JSON.stringify(reports) %></script>
   <script id="auditSeed" type="application/json"><%- JSON.stringify(auditLogs) %></script>
   <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>

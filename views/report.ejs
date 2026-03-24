@@ -8,6 +8,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
+<style>
+  .tag-glow {
+    box-shadow: 0 0 0 4px #93c5fd, 0 2px 8px 0 rgba(59,130,246,0.15);
+    border-color: #3b82f6 !important;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+</style>
+</head>
 <body class="overflow-x-hidden bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.08),_transparent_35%),linear-gradient(180deg,#f8fafc_0%,#eef4ff_100%)] font-['Outfit'] text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-800">
 
 <!-- HEADER -->
@@ -134,7 +142,7 @@
           <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             <svg class="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
           </div>
-          <input class="block w-full rounded-lg border-slate-300 py-2.5 pl-10 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" type="text" id="iName" placeholder="Juan dela Cruz" required>
+          <input class="block w-full rounded-lg border-2 border-slate-300 bg-white/90 py-3 pl-10 text-slate-900 shadow focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition placeholder:text-slate-400" type="text" id="iName" placeholder="Juan dela Cruz" required>
         </div>
       </div>
       <div class="space-y-2">
@@ -143,11 +151,11 @@
           <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             <svg class="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12L2.25 6.338Z"/></svg>
           </div>
-          <input class="block w-full rounded-lg border-slate-300 py-2.5 pl-10 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" type="tel" id="iContact" placeholder="+63 917 123 4567" inputmode="tel" autocomplete="tel" maxlength="16" required>
+          <input class="block w-full rounded-lg border-2 border-slate-300 bg-white/90 py-3 pl-10 text-slate-900 shadow focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition placeholder:text-slate-400" type="tel" id="iContact" placeholder="+63 917 123 4567" inputmode="tel" autocomplete="tel" maxlength="16" required>
         </div>
         <div class="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
           <label class="text-xs font-bold uppercase tracking-wide text-slate-500" for="iPanicContact">Quick SOS #</label>
-          <input class="w-[160px] max-w-full rounded-md border-slate-300 px-3 py-1.5 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" type="tel" id="iPanicContact" placeholder="+63 9XX" inputmode="tel" maxlength="16">
+          <input class="w-[160px] max-w-full rounded-md border-2 border-slate-300 bg-white/90 px-3 py-2 text-sm text-slate-900 shadow focus:border-blue-600 focus:ring-2 focus:ring-blue-200 placeholder:text-slate-400" type="tel" id="iPanicContact" placeholder="+63 9XX" inputmode="tel" maxlength="16">
           <button class="rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-blue-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 hover:text-blue-800" type="button" onclick="savePanicNumber()">Save</button>
           <span class="pill-status text-sm font-semibold text-slate-500" id="panicSavedStatus"></span>
         </div>
@@ -349,14 +357,14 @@
         <label class="block text-sm font-semibold text-slate-700">Barangay *</label>
         <div class="input-wrap has-icon relative">
           <svg class="field-icon pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 stroke-slate-400 fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"/></svg>
-          <input class="block w-full rounded-lg border-slate-300 py-2.5 pl-10 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" type="text" id="iBarangay" placeholder="e.g. Barangay Rizal" required>
+          <input class="block w-full rounded-lg border-2 border-slate-300 bg-white/90 py-3 pl-10 text-slate-900 shadow focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition placeholder:text-slate-400" type="text" id="iBarangay" placeholder="e.g. Barangay Rizal" required>
         </div>
       </div>
       <div class="field mb-4 space-y-2.5">
         <label class="block text-sm font-semibold text-slate-700">Nearest Landmark *</label>
         <div class="input-wrap has-icon relative">
           <svg class="field-icon pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 stroke-slate-400 fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
-          <input class="block w-full rounded-lg border-slate-300 py-2.5 pl-10 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" type="text" id="iLandmark" placeholder="e.g. Near Municipal Hall" required>
+          <input class="block w-full rounded-lg border-2 border-slate-300 bg-white/90 py-3 pl-10 text-slate-900 shadow focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition placeholder:text-slate-400" type="text" id="iLandmark" placeholder="e.g. Near Municipal Hall" required>
         </div>
       </div>
     </div>
@@ -364,7 +372,7 @@
       <label class="block text-sm font-semibold text-slate-700">Street / Additional Details *</label>
       <div class="input-wrap has-icon relative">
         <svg class="field-icon pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 stroke-slate-400 fill-none [stroke-width:1.75]" viewBox="0 0 24 24"><path d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5"/></svg>
-        <input class="block w-full rounded-lg border-slate-300 py-2.5 pl-10 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" type="text" id="iStreet" placeholder="Street name or additional details" required>
+        <input class="block w-full rounded-lg border-2 border-slate-300 bg-white/90 py-3 pl-10 text-slate-900 shadow focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition placeholder:text-slate-400" type="text" id="iStreet" placeholder="Street name or additional details" required>
       </div>
     </div>
   </div>
@@ -403,7 +411,7 @@
     </div>
     <div class="field mb-4 space-y-2">
       <label class="block text-sm font-semibold text-slate-700">Description (optional)</label>
-      <textarea class="block min-h-[130px] w-full rounded-lg border-slate-300 py-3 text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" id="iDesc" placeholder="Describe what is happening. Include: number of people affected, current situation, any danger present..."></textarea>
+      <textarea class="block min-h-[130px] w-full rounded-lg border-2 border-slate-300 bg-white/90 py-3 text-slate-900 shadow focus:border-blue-600 focus:ring-2 focus:ring-blue-200 transition placeholder:text-slate-400" id="iDesc" placeholder="Describe what is happening. Include: number of people affected, current situation, any danger present..."></textarea>
     </div>
     <div class="field mb-4 space-y-2">
       <label class="block text-sm font-semibold text-slate-700">Attestation *</label>
@@ -415,7 +423,7 @@
       </div>
     </div>
     <div class="field mb-0 space-y-2">
-      <label class="block text-sm font-semibold text-slate-700">Upload Photo (Optional)</label>
+      <label class="block text-sm font-semibold text-slate-700">Upload Photo<span style="color: red;">(Do Not Use, Under Construction)</span></label>
       <div class="group relative flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 py-8 text-center text-slate-500 transition hover:border-blue-400 hover:bg-blue-50" id="uploadArea">
         <input class="absolute inset-0 cursor-pointer opacity-0" id="uploadFile" type="file" accept="image/*" onchange="handlePhoto(this)">
         <!-- Heroicon: camera -->
@@ -445,81 +453,7 @@
   </section>
     </div>
 
-    <aside class="grid w-full max-w-5xl gap-4 lg:grid-cols-2" aria-label="Reporting help">
-      <div class="h-full overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
-        <div class="border-b border-slate-200 bg-slate-50 px-6 py-4">
-          <div class="text-xs font-bold uppercase tracking-wider text-blue-600">Field Guide</div>
-          <h3 class="mt-1 text-lg font-bold text-slate-900">Complete the report in order</h3>
-          <p class="mt-2 text-sm leading-6 text-slate-600">Use this as a quick checklist while moving through the form.</p>
-        </div>
-        <div class="space-y-3 p-6">
-          <a class="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3 text-sm transition hover:border-blue-200 hover:bg-white" href="#step-reporter">
-            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
-              <svg class="h-4 w-4 stroke-current fill-none [stroke-width:1.8]" viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
-            </span>
-            <span>
-              <span class="block font-semibold text-slate-900">1. Your details</span>
-              <span class="mt-1 block text-xs leading-5 text-slate-500">Name and callback number.</span>
-            </span>
-          </a>
-          <a class="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3 text-sm transition hover:border-blue-200 hover:bg-white" href="#step-type">
-            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
-              <svg class="h-4 w-4 stroke-current fill-none [stroke-width:1.8]" viewBox="0 0 24 24"><path d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
-            </span>
-            <span>
-              <span class="block font-semibold text-slate-900">2. Emergency type</span>
-              <span class="mt-1 block text-xs leading-5 text-slate-500">Choose the closest incident category.</span>
-            </span>
-          </a>
-          <a class="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3 text-sm transition hover:border-blue-200 hover:bg-white" href="#step-severity">
-            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-700">
-              <svg class="h-4 w-4 stroke-current fill-none [stroke-width:1.8]" viewBox="0 0 24 24"><path d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"/></svg>
-            </span>
-            <span>
-              <span class="block font-semibold text-slate-900">3. Severity</span>
-              <span class="mt-1 block text-xs leading-5 text-slate-500">Mark how urgent and dangerous the scene is.</span>
-            </span>
-          </a>
-          <a class="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3 text-sm transition hover:border-blue-200 hover:bg-white" href="#step-location">
-            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-              <svg class="h-4 w-4 stroke-current fill-none [stroke-width:1.8]" viewBox="0 0 24 24"><path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
-            </span>
-            <span>
-              <span class="block font-semibold text-slate-900">4. Location</span>
-              <span class="mt-1 block text-xs leading-5 text-slate-500">Use GPS first, then confirm landmarks manually.</span>
-            </span>
-          </a>
-          <a class="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3 text-sm transition hover:border-blue-200 hover:bg-white" href="#step-details">
-            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-violet-100 text-violet-700">
-              <svg class="h-4 w-4 stroke-current fill-none [stroke-width:1.8]" viewBox="0 0 24 24"><path d="M16.862 4.487 18.55 2.8a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
-            </span>
-            <span>
-              <span class="block font-semibold text-slate-900">5. Details</span>
-              <span class="mt-1 block text-xs leading-5 text-slate-500">Add hazards, supporting notes, and optional photos.</span>
-            </span>
-          </a>
-        </div>
-      </div>
-      <div class="h-full rounded-[28px] border border-red-200 bg-[linear-gradient(155deg,#ffffff,#fff1f2)] p-6 shadow-sm">
-        <div class="text-xs font-bold uppercase tracking-wider text-red-600">Panic SOS</div>
-        <h3 class="mt-2 text-lg font-bold text-slate-900">Need an instant alert instead?</h3>
-        <p class="mt-2 text-sm leading-6 text-slate-600" id="panicSublabel">Save your number once and send an SOS with your live location if the incident becomes immediately dangerous.</p>
-        <div class="mt-4 hidden items-center gap-2 rounded-full border border-red-200 bg-white/90 px-3 py-2 text-xs font-semibold text-red-700" id="panicPill">
-          <span>Saved number</span>
-          <span class="font-['JetBrains_Mono'] text-[0.72rem] tracking-[0.12em]" id="savedNum"></span>
-        </div>
-        <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-          <button class="inline-flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#ef4444,#dc2626)] px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_38px_rgba(220,38,38,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(220,38,38,0.3)]" type="button" onclick="triggerPanic()">
-            <svg class="h-4 w-4 stroke-current fill-none [stroke-width:2]" viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
-            Send Panic SOS
-          </button>
-          <button class="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white px-4 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-50" type="button" onclick="openPanicSetup()">
-            <svg class="h-4 w-4 stroke-current fill-none [stroke-width:1.9]" viewBox="0 0 24 24"><path d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/></svg>
-            Save or change number
-          </button>
-        </div>
-      </div>
-    </aside>
+    <!-- Field Guide removed for clarity and focus -->
   </div>
 </div>
 
@@ -594,7 +528,7 @@
 <script>
   let selType_ = '', selSev_ = '', photoDataList = [];
   let selectedTags = [];
-  const TAG_OPTIONS = ['people_trapped','injured','road_blocked','power_out','rising_water','fire_spreading','hazmat','structure_damage','blocked_access','missing_persons','medical_needed','evac_needed'];
+  const TAG_OPTIONS = ['people_trapped','injured','road_blocked','power_out','rising_water','fire_spreading','hazmat','structure_damage','blocked_access','missing_persons','medical_needed','evac_needed','Zion_B.'];
   let panicNum = '';
   const MAP_MIN_ZOOM = 6;
   const MAP_MAX_ZOOM = 20;
@@ -623,7 +557,7 @@
     Medium: ['border-amber-300', 'bg-amber-50', 'ring-4', 'ring-amber-100', 'shadow-md', '-translate-y-0.5'],
     High: ['border-red-300', 'bg-red-50', 'ring-4', 'ring-red-100', 'shadow-md', '-translate-y-0.5'],
   };
-  const TAG_SELECTED_CLASSES = ['border-blue-200', 'bg-blue-50', 'text-blue-700', 'shadow-md'];
+  const TAG_SELECTED_CLASSES = ['border-blue-200', 'bg-blue-50', 'text-blue-700', 'shadow-md', 'tag-glow'];
   const GPS_READY_CLASSES = ['border-blue-300', 'bg-blue-50', 'text-blue-700', 'shadow-md'];
   const MAP_TOGGLE_ACTIVE_CLASSES = ['border-blue-200', 'bg-blue-50', 'text-blue-700'];
   const TOAST_SHOW_CLASSES = ['translate-x-0', 'opacity-100', 'pointer-events-auto'];
