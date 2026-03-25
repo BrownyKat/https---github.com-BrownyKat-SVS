@@ -22,6 +22,7 @@ const Alert       = require('./models/Alert');
 const DeviceToken = require('./models/DeviceToken');
 const Session     = require('./models/Session');
 const LoginAttempt = require('./models/LoginAttempt');
+const FaqFeedback = require('./models/FaqFeedback');
 
 const app    = express();
 const STATIC_CACHE_OPTIONS = { maxAge: '1d' };
@@ -40,6 +41,8 @@ const SESSION_TTL_MS = 1000 * 60 * 60 * 8; // 8 hours
 const SESSION_REMEMBER_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
 const ADMIN_REPORTS_PAGE_SIZE = 20;
 const ADMIN_AUDIT_PAGE_SIZE = 20;
+const DB_READY_ROUTE_TIMEOUT_MS = Math.max(15000, Number.parseInt(process.env.DB_READY_ROUTE_TIMEOUT_MS || '20000', 10) || 20000);
+const DB_READY_AUTH_TIMEOUT_MS = Math.max(5000, Number.parseInt(process.env.DB_READY_AUTH_TIMEOUT_MS || '8000', 10) || 8000);
 const COOKIE_NAME_LEGACY = 'auth_token';
 const ROLE_COOKIE_NAMES = {
   admin: 'auth_token_admin',
@@ -66,13 +69,24 @@ const VALID_REPORT_TAGS = [
 ];
 const SIGNED_SESSION_PREFIX = 'v1.';
 let dbInitPromise = null;
+let dbReconnectPromise = null;
+let dbPingPromise = null;
+let lastDbPingAt = 0;
 const LOGIN_ATTEMPT_LIMIT = 7;
 const LOGIN_ATTEMPT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 const loginAttemptStore = new Map(); // in-memory cache (best effort; persisted via Mongo below)
 const WEB_CALL_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const DB_HEALTHCHECK_INTERVAL_MS = Math.max(3000, Number.parseInt(process.env.DB_HEALTHCHECK_INTERVAL_MS || '5000', 10) || 5000);
 // In-memory signal store for ad-hoc WebRTC calls keyed by reportId.
 const webCallSignals = new Map();
 mongoose.set('strictQuery', true);
+mongoose.set('bufferCommands', false);
+mongoose.connection.on('disconnected', () => {
+  lastDbPingAt = 0;
+});
+mongoose.connection.on('connected', () => {
+  lastDbPingAt = Date.now();
+});
 const pusher = process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.env.PUSHER_SECRET && process.env.PUSHER_CLUSTER
   ? new Pusher({
     appId: process.env.PUSHER_APP_ID,
@@ -138,22 +152,88 @@ async function initDatabase() {
       console.log(`  ✔  MongoDB connected${mongoDb ? ` (db: ${mongoDb})` : ''}`);
       await ensureDefaultAdmin();
       await ensureDefaultDispatcher();
+      await ensureOperationalIndexes();
     } catch (err) {
       console.error('  ✘  MongoDB connection error:', err.message);
       logMongoConnectionHints(err, mongoUri);
       dbInitPromise = null;
-      if (require.main === module) process.exit(1);
       throw err;
     }
   })();
   return dbInitPromise;
 }
-void initDatabase();
+initDatabase().catch(err => {
+  console.error('[db] initial connection failed:', err && err.message ? err.message : err);
+});
+
+async function pingDatabaseConnection(force = false) {
+  if (!force && Date.now() - lastDbPingAt < DB_HEALTHCHECK_INTERVAL_MS) return;
+  if (dbPingPromise) return dbPingPromise;
+  dbPingPromise = (async () => {
+    if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) {
+      throw new Error('Database is not connected');
+    }
+    await mongoose.connection.db.admin().command({ ping: 1 });
+    lastDbPingAt = Date.now();
+  })();
+  try {
+    await dbPingPromise;
+  } finally {
+    dbPingPromise = null;
+  }
+}
+
+async function refreshDatabaseConnection(reason = '') {
+  if (dbReconnectPromise) return dbReconnectPromise;
+  dbReconnectPromise = (async () => {
+    const detail = String(reason || '').trim();
+    if (detail) console.warn('[db] reconnecting MongoDB:', detail);
+    try {
+      if (mongoose.connection.readyState !== 0) {
+        await mongoose.disconnect();
+      }
+    } catch (_err) {}
+    dbInitPromise = null;
+    dbPingPromise = null;
+    lastDbPingAt = 0;
+    await initDatabase();
+  })();
+  try {
+    await dbReconnectPromise;
+  } finally {
+    dbReconnectPromise = null;
+  }
+}
 
 async function ensureDbReady() {
   await initDatabase();
-  if (mongoose.connection.readyState !== 1) {
+  if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) {
+    await refreshDatabaseConnection('Connection was not ready');
+  }
+  if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) {
     throw new Error('Database is not connected');
+  }
+  try {
+    await pingDatabaseConnection();
+  } catch (err) {
+    const msg = err && err.message ? err.message : String(err || 'Database ping failed');
+    await refreshDatabaseConnection(msg);
+    if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) {
+      throw new Error('Database is not connected');
+    }
+    await pingDatabaseConnection(true);
+  }
+}
+
+async function ensureOperationalIndexes() {
+  try {
+    await Promise.all([
+      Report.collection.createIndex({ timestamp: -1 }, { background: true, name: 'timestamp_-1' }),
+      AuditLog.collection.createIndex({ timestamp: -1 }, { background: true, name: 'timestamp_-1' }),
+      Alert.collection.createIndex({ timestamp: -1 }, { background: true, name: 'timestamp_-1' }),
+    ]);
+  } catch (err) {
+    console.warn('[db] index ensure failed:', err && err.message ? err.message : err);
   }
 }
 
@@ -593,6 +673,21 @@ app.use(async (req, res, next) => {
   if (!candidates.length) return next();
   try {
     for (const candidate of candidates) {
+      const signedSession = verifySignedSessionToken(candidate.token);
+      if (signedSession) {
+        req.auth = {
+          role: signedSession.role,
+          userId: signedSession.userId,
+          username: signedSession.username,
+          fullName: signedSession.fullName,
+          expiresAt: signedSession.expiresAt,
+        };
+        req.authToken = candidate.token;
+        req.authCookieName = cookieNameForRole(signedSession.role);
+        res.locals.auth = req.auth;
+        break;
+      }
+
       const query = candidate.role
         ? { token: candidate.token, role: candidate.role }
         : { token: candidate.token };
@@ -639,6 +734,7 @@ app.use((req, res, next) => {
 });
 app.use((req, res, next) => {
   res.locals.supaConfig = SUPABASE_CONFIG;
+  res.locals.photoStorageConfigured = hasSupabaseRestAccess();
   next();
 });
 app.use('/api', (req, res, next) => {
@@ -690,22 +786,21 @@ app.get('/login', async (req, res) => {
 
 async function handleAdminLogin(req, res) {
   try {
-    await ensureDbReady();
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '');
     if (!username || !password) {
       if (res.locals.loginRateKey) await recordLoginAttempt(res.locals.loginRateKey);
       return res.status(400).render('login', { error: 'Invalid login details.' });
     }
-    const admin = await findAdminForLogin(username);
-    if (!admin || !verifyPassword(password, admin.passwordHash)) {
+    const admin = await authenticateAdminUser(username, password);
+    if (!admin) {
       if (res.locals.loginRateKey) await recordLoginAttempt(res.locals.loginRateKey);
       return res.status(401).render('login', { error: 'Invalid admin credentials.' });
     }
     await upgradeLegacyPasswordHashIfNeeded(admin, password);
     await createSession(req, res, {
       role: 'admin',
-      userId: String(admin._id),
+      userId: String(admin.userId),
       username: admin.username,
       fullName: admin.fullName || admin.username,
     });
@@ -727,7 +822,6 @@ app.get('/dispatcher/login', async (req, res) => {
 
 app.post('/dispatcher/login', guardDispatcherLoginRate, async (req, res) => {
   try {
-    await ensureDbReady();
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '');
       const remember = String(req.body.remember || '').toLowerCase() === 'on'
@@ -736,9 +830,8 @@ app.post('/dispatcher/login', guardDispatcherLoginRate, async (req, res) => {
       if (res.locals.loginRateKey) await recordLoginAttempt(res.locals.loginRateKey);
       return res.status(400).render('dispatcher-login', { error: 'Invalid login details.' });
     }
-
-    const dispatcher = await findDispatcherForLogin(username);
-    if (!dispatcher || !dispatcher.isActive || !verifyPassword(password, dispatcher.passwordHash)) {
+    const dispatcher = await authenticateDispatcherUser(username, password);
+    if (!dispatcher) {
       if (res.locals.loginRateKey) await recordLoginAttempt(res.locals.loginRateKey);
       return res.status(401).render('dispatcher-login', { error: 'Invalid dispatcher credentials.' });
     }
@@ -746,14 +839,14 @@ app.post('/dispatcher/login', guardDispatcherLoginRate, async (req, res) => {
 
     await createSession(req, res, {
       role: 'dispatcher',
-      userId: String(dispatcher._id),
+      userId: String(dispatcher.userId),
       username: dispatcher.username,
       fullName: dispatcher.fullName || dispatcher.username,
     }, { remember });
     if (res.locals.loginRateKey) await resetLoginAttempts(res.locals.loginRateKey);
     await logAudit({
       actorRole: 'dispatcher',
-      actorId: String(dispatcher._id),
+      actorId: String(dispatcher.userId),
       actorName: dispatcher.fullName || dispatcher.username,
       action: 'LOGIN',
       targetType: 'AUTH',
@@ -823,7 +916,29 @@ app.get('/admin/login', async (req, res) => {
   res.render('login', { error: '' });
 });
 
-app.post('/admin/login', guardAdminLoginRate, handleAdminLogin);
+app.post('/admin/login', async (req, res) => {
+  try {
+    const username = String(req.body.username || '').trim();
+    const password = String(req.body.password || '');
+    if (!username || !password) {
+      return res.status(400).render('login', { error: 'Invalid login details.' });
+    }
+    const admin = await authenticateAdminUser(username, password);
+    if (!admin) {
+      return res.status(401).render('login', { error: 'Invalid admin credentials.' });
+    }
+    await createSession(req, res, {
+      role: 'admin',
+      userId: String(admin.userId),
+      username: admin.username,
+      fullName: admin.fullName || admin.username,
+    });
+    return res.redirect('/admin');
+  } catch (err) {
+    console.error('[login] admin/login failed:', err && err.message ? err.message : err);
+    res.status(500).render('login', { error: 'Login failed. Please try again.' });
+  }
+});
 
 app.post('/logout', async (req, res) => {
   await destroyAllSessions(req, res);
@@ -853,23 +968,49 @@ app.get('/logout', async (req, res) => {
 
 app.get('/about', (_req, res) => res.render('about'));
 app.get('/sos', (_req, res) => res.render('sos'));
-app.get('/faq', (_req, res) => res.render('faq'));
+app.get('/faq', (req, res) => {
+  const feedbackStatus = String(req.query.status || '').trim().toLowerCase();
+  res.render('faq', {
+    feedbackStatus: feedbackStatus === 'success' || feedbackStatus === 'error' ? feedbackStatus : '',
+  });
+});
 app.get('/report', (_req, res) => res.render('report'));
+
+app.post('/faq/feedback', async (req, res) => {
+  const feedback = String(req.body.feedback || '').replace(/\s+/g, ' ').trim();
+  if (feedback.length < 10 || feedback.length > 1000) {
+    return res.redirect(303, '/faq?status=error');
+  }
+
+  try {
+    await ensureDbReady();
+    await FaqFeedback.create({
+      message: feedback,
+      page: 'faq',
+      sourceIp: String(req.ip || '').slice(0, 120),
+      userAgent: String(req.get('user-agent') || '').slice(0, 240),
+    });
+    return res.redirect(303, '/faq?status=success');
+  } catch (err) {
+    console.error('FAQ feedback save error:', err && err.message ? err.message : err);
+    return res.redirect(303, '/faq?status=error');
+  }
+});
 
 app.all('/dashboard', requireRolesPage(['dispatcher'], '/dispatcher/login'), async (req, res) => {
   if (req.method !== 'GET') return res.redirect(303, '/dashboard');
   try {
-    const reportsQuery = (req.auth && (req.auth.role === 'dispatcher' || req.auth.role === 'admin'))
-      ? {}
-      : buildReportVisibilityQuery(req.auth);
-    const reports = await Report.find(reportsQuery).sort({ timestamp: -1 }).lean({ virtuals: true });
-    const dispatcher = await Dispatcher.findById(req.auth.userId).lean();
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Dashboard DB connect timed out');
+    const resolved = await resolveDispatcherContext(req.auth);
+    const dispatcher = resolved.dispatcher;
     if (!dispatcher) return res.redirect('/logout');
     if (!dispatcher.isActive) return res.redirect('/dispatcher/logout');
+    const visibilityAuth = resolved.auth;
+    const reports = await fetchVisibleReportsForDashboard(visibilityAuth, { limit: 100 });
     const activeDispatchers = await Dispatcher.find({ isActive: true }).sort({ fullName: 1, username: 1 }).lean();
     res.render('dashboard', {
-      reports: reports.map(ensureReportHasId),
-      currentUser: req.auth,
+      reports,
+      currentUser: visibilityAuth,
       activeDispatchers: activeDispatchers.map(d => ({
         id: String(d._id),
         username: d.username || '',
@@ -895,7 +1036,8 @@ app.all('/dashboard', requireRolesPage(['dispatcher'], '/dispatcher/login'), asy
 
 app.get('/dispatcher/profile', requireRolesPage(['dispatcher'], '/dispatcher/login'), async (req, res) => {
   try {
-    const dispatcher = await Dispatcher.findById(req.auth.userId).lean();
+    const resolved = await resolveDispatcherContext(req.auth, { requireActive: false });
+    const dispatcher = resolved.dispatcher;
     if (!dispatcher) return res.redirect('/logout');
     res.render('dispatcher-profile', { dispatcher, error: '', success: '' });
   } catch (err) {
@@ -911,7 +1053,8 @@ app.post('/dispatcher/profile', requireRolesPage(['dispatcher'], '/dispatcher/lo
     const currentPassword = String(req.body.currentPassword || '');
     const newPassword = String(req.body.newPassword || '');
 
-    const dispatcher = await Dispatcher.findById(req.auth.userId);
+    const resolved = await resolveDispatcherContext(req.auth, { requireActive: false });
+    const dispatcher = resolved.dispatcher ? await Dispatcher.findById(resolved.auth.userId) : null;
     if (!dispatcher) return res.redirect('/logout');
 
     if (newPassword) {
@@ -959,7 +1102,8 @@ app.post('/api/dispatcher/profile', requireRolesApi(['dispatcher']), async (req,
     const currentPassword = String(req.body.currentPassword || '');
     const newPassword = String(req.body.newPassword || '');
 
-    const dispatcher = await Dispatcher.findById(req.auth.userId);
+    const resolved = await resolveDispatcherContext(req.auth, { requireActive: false });
+    const dispatcher = resolved.dispatcher ? await Dispatcher.findById(resolved.auth.userId) : null;
     if (!dispatcher) return res.status(401).json({ error: 'Unauthorized' });
 
     if (newPassword) {
@@ -1011,13 +1155,36 @@ app.post('/api/dispatcher/profile', requireRolesApi(['dispatcher']), async (req,
 app.all('/admin', requireRolesPage(['admin'], '/login'), async (req, res) => {
   if (req.method !== 'GET') return res.redirect(303, '/admin');
   try {
-    return renderAdminPage(req, res, {
+    return await renderAdminPage(req, res, {
       error: String(req.query.err || ''),
       success: String(req.query.ok || ''),
     });
   } catch (err) {
     console.error(err);
-    res.status(500).send('Could not load admin page');
+    return res.status(200).render('admin', {
+      dispatchers: [],
+      reports: [],
+      auditLogs: [],
+      stats: {
+        totalReports: 0,
+        activeDispatchers: 0,
+        totalDispatchers: 0,
+        auditCount: 0,
+      },
+      reportPagination: { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false },
+      auditPagination: { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false },
+      reportPager: { currentPage: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false },
+      auditPager: { currentPage: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false },
+      reportLimit: ADMIN_REPORTS_PAGE_SIZE,
+      auditLimit: ADMIN_AUDIT_PAGE_SIZE,
+      from: '',
+      to: '',
+      tab: 'dashboard',
+      latestAlert: null,
+      currentUser: req.auth,
+      error: 'Logged in, but admin data could not be loaded. Check the database connection and try again.',
+      success: '',
+    });
   }
 });
 
@@ -1230,7 +1397,7 @@ app.post('/api/device-tokens/unregister', async (req, res) => {
 app.get('/admin/reports/export.xls', requireRolesPage(['admin'], '/login'), async (req, res) => {
   try {
     const { where } = buildReportDateRangeFilter(req.query.from, req.query.to);
-    const reports = await Report.find(where).sort({ timestamp: -1 }).lean({ virtuals: true });
+    const reports = await Report.find(where).sort({ timestamp: -1 }).allowDiskUse(true).lean({ virtuals: true });
     const html = buildExcelHtml(reports);
     const stamp = new Date().toISOString().slice(0, 10);
     res.setHeader('Content-Type', 'application/vnd.ms-excel; charset=utf-8');
@@ -1245,7 +1412,7 @@ app.get('/admin/reports/export.xls', requireRolesPage(['admin'], '/login'), asyn
 app.get('/admin/reports/export.pdf', requireRolesPage(['admin'], '/login'), async (req, res) => {
   try {
     const { from, to, where } = buildReportDateRangeFilter(req.query.from, req.query.to);
-    const reports = await Report.find(where).sort({ timestamp: -1 }).lean({ virtuals: true });
+    const reports = await Report.find(where).sort({ timestamp: -1 }).allowDiskUse(true).lean({ virtuals: true });
     const lines = [];
     lines.push('MDRRMO REPORT EXPORT');
     lines.push(`Date range: ${from || 'All'} to ${to || 'All'}`);
@@ -1423,15 +1590,19 @@ app.post('/api/panic', async (req, res) => {
 // ── API: update status ───────────────────────────────────────────────────────
 app.patch('/api/report/:id/status', requireRolesApi(['dispatcher', 'admin']), async (req, res) => {
   try {
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Update report status DB connect timed out');
+    const effectiveAuth = req.auth && req.auth.role === 'dispatcher'
+      ? (await resolveDispatcherContext(req.auth)).auth
+      : req.auth;
     const nextStatus = String(req.body.status || '').trim().toLowerCase();
     if (!VALID_REPORT_STATUSES.has(nextStatus)) {
       return res.status(400).json({ error: 'Invalid status value' });
     }
     const where = reportLookupQuery(req.params.id);
     const updates = { status: nextStatus };
-    if (req.auth && req.auth.role === 'dispatcher') {
-      updates.dispatcherId = String(req.auth.userId || '');
-      updates.dispatcherName = String(req.auth.fullName || req.auth.username || '').trim();
+    if (effectiveAuth && effectiveAuth.role === 'dispatcher') {
+      updates.dispatcherId = String(effectiveAuth.userId || '');
+      updates.dispatcherName = String(effectiveAuth.fullName || effectiveAuth.username || '').trim();
     }
     const report = await Report.findOneAndUpdate(
       where,
@@ -1440,9 +1611,9 @@ app.patch('/api/report/:id/status', requireRolesApi(['dispatcher', 'admin']), as
     );
     if (!report) return res.status(404).json({ error: 'Report not found' });
     await logAudit({
-      actorRole: req.auth.role,
-      actorId: req.auth.userId,
-      actorName: req.auth.fullName || req.auth.username || '',
+      actorRole: effectiveAuth.role,
+      actorId: effectiveAuth.userId,
+      actorName: effectiveAuth.fullName || effectiveAuth.username || '',
       action: 'REPORT_STATUS_UPDATE',
       targetType: 'REPORT',
       targetId: report.reportId || String(report._id),
@@ -1466,6 +1637,10 @@ app.patch('/api/report/:id/status', requireRolesApi(['dispatcher', 'admin']), as
 // API: update reporter details
 app.patch('/api/report/:id/details', requireRolesApi(['dispatcher', 'admin']), async (req, res) => {
   try {
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Update report details DB connect timed out');
+    const effectiveAuth = req.auth && req.auth.role === 'dispatcher'
+      ? (await resolveDispatcherContext(req.auth)).auth
+      : req.auth;
     const allowedFields = ['name', 'contact', 'emergencyType', 'severity', 'barangay', 'landmark', 'street', 'description', 'gps'];
     const updates = {};
 
@@ -1524,9 +1699,9 @@ app.patch('/api/report/:id/details', requireRolesApi(['dispatcher', 'admin']), a
       { new: true }
     );
     await logAudit({
-      actorRole: req.auth.role,
-      actorId: req.auth.userId,
-      actorName: req.auth.fullName || req.auth.username || '',
+      actorRole: effectiveAuth.role,
+      actorId: effectiveAuth.userId,
+      actorName: effectiveAuth.fullName || effectiveAuth.username || '',
       action: 'REPORT_DETAILS_UPDATE',
       targetType: 'REPORT',
       targetId: report.reportId || String(report._id),
@@ -1631,27 +1806,54 @@ app.delete('/api/reports', requireRolesApi(['dispatcher', 'admin']), async (_req
 // ── API: list all reports (JSON) ─────────────────────────────────────────────
 app.get('/api/reports', requireRolesApi(['dispatcher', 'admin']), async (_req, res) => {
   try {
-    const query = (_req.auth && (_req.auth.role === 'dispatcher' || _req.auth.role === 'admin'))
-      ? {}
-      : buildReportVisibilityQuery(_req.auth);
-    const reports = await Report.find(query).sort({ timestamp: -1 }).lean({ virtuals: true });
-    // Ensure every report has an id field
-    const reportsWithId = reports.map(ensureReportHasId);
-    res.json(reportsWithId);
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Reports API DB connect timed out');
+    const effectiveAuth = _req.auth && _req.auth.role === 'dispatcher'
+      ? (await resolveDispatcherContext(_req.auth)).auth
+      : _req.auth;
+    const reports = await fetchVisibleReportsForDashboard(effectiveAuth);
+    res.json(reports);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Could not fetch reports' });
   }
 });
 
+app.get('/api/report/:id/media', requireRolesApi(['dispatcher', 'admin']), async (req, res) => {
+  try {
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Report media DB connect timed out');
+    const effectiveAuth = req.auth && req.auth.role === 'dispatcher'
+      ? (await resolveDispatcherContext(req.auth)).auth
+      : req.auth;
+    const report = await Report.findOne({
+      $and: [
+        buildReportVisibilityQuery(effectiveAuth),
+        reportLookupQuery(req.params.id),
+      ],
+    })
+      .select({ reportId: 1, photo: 1, photos: 1 })
+      .lean();
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    return res.json(buildReportMediaPayload(report));
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Could not fetch report media' });
+  }
+});
+
 app.get('/api/dispatchers/active', requireRolesApi(['dispatcher', 'admin']), async (req, res) => {
   try {
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Active dispatchers API DB connect timed out');
+    const effectiveAuth = req.auth && req.auth.role === 'dispatcher'
+      ? (await resolveDispatcherContext(req.auth)).auth
+      : req.auth;
     const dispatchers = await Dispatcher.find({ isActive: true }).sort({ fullName: 1, username: 1 }).lean();
     const payload = dispatchers.map(d => ({
       id: String(d._id),
       username: d.username || '',
       fullName: d.fullName || d.username || '',
-      isSelf: String(d._id) === String(req.auth.userId || ''),
+      isSelf: String(d._id) === String((effectiveAuth && effectiveAuth.userId) || ''),
     }));
     res.json(payload);
   } catch (err) {
@@ -1662,11 +1864,15 @@ app.get('/api/dispatchers/active', requireRolesApi(['dispatcher', 'admin']), asy
 
 app.post('/api/report/:id/claim', requireRolesApi(['dispatcher', 'admin']), async (req, res) => {
   try {
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Claim report DB connect timed out');
+    const effectiveAuth = req.auth && req.auth.role === 'dispatcher'
+      ? (await resolveDispatcherContext(req.auth)).auth
+      : req.auth;
     const where = reportLookupQuery(req.params.id);
     const current = await Report.findOne(where);
     if (!current) return res.status(404).json({ error: 'Not found' });
     const existingOwner = String(current.assignedToId || '').trim();
-    const requesterId = String(req.auth.userId || '').trim();
+    const requesterId = String((effectiveAuth && effectiveAuth.userId) || '').trim();
     if (existingOwner && existingOwner !== requesterId) {
       return res.status(409).json({ error: 'This report was already claimed by another dispatcher' });
     }
@@ -1683,7 +1889,7 @@ app.post('/api/report/:id/claim', requireRolesApi(['dispatcher', 'admin']), asyn
               { assignedToId: { $exists: false } },
               { assignedToId: null },
               { assignedToId: '' },
-              { assignedToId: String(req.auth.userId || '') },
+              { assignedToId: String((effectiveAuth && effectiveAuth.userId) || '') },
             ],
           },
         ],
@@ -1692,13 +1898,13 @@ app.post('/api/report/:id/claim', requireRolesApi(['dispatcher', 'admin']), asyn
     const report = await Report.findOneAndUpdate(claimWhere, { ...assignment.patch }, { new: true });
     if (!report) return res.status(409).json({ error: 'This report was already claimed by another dispatcher' });
     await logAudit({
-      actorRole: req.auth.role,
-      actorId: req.auth.userId,
-      actorName: req.auth.fullName || req.auth.username || '',
+      actorRole: effectiveAuth.role,
+      actorId: effectiveAuth.userId,
+      actorName: effectiveAuth.fullName || effectiveAuth.username || '',
       action: 'REPORT_CLAIM',
       targetType: 'REPORT',
       targetId: report.reportId || String(report._id),
-      details: `Claimed report by ${report.assignedToName || req.auth.username}`,
+      details: `Claimed report by ${report.assignedToName || effectiveAuth.username}`,
     });
     const payload = report.toJSON();
     payload.id = payload.id || payload.reportId || String(report._id || '');
@@ -1712,6 +1918,10 @@ app.post('/api/report/:id/claim', requireRolesApi(['dispatcher', 'admin']), asyn
 
 app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async (req, res) => {
   try {
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Pass report DB connect timed out');
+    const effectiveAuth = req.auth && req.auth.role === 'dispatcher'
+      ? (await resolveDispatcherContext(req.auth)).auth
+      : req.auth;
     const targetDispatcherId = String(req.body.targetDispatcherId || '').trim();
     if (!targetDispatcherId || !mongoose.Types.ObjectId.isValid(targetDispatcherId)) {
       return res.status(400).json({ error: 'Invalid target dispatcher' });
@@ -1732,8 +1942,8 @@ app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async
     }
 
     const nextAssignedName = String(target.fullName || target.username || '').trim();
-    const actorName = String(req.auth.fullName || req.auth.username || '').trim();
-    const actorUsername = String(req.auth.username || '').trim();
+    const actorName = String(effectiveAuth.fullName || effectiveAuth.username || '').trim();
+    const actorUsername = String(effectiveAuth.username || '').trim();
     const nextPassCount = Math.max(0, Number(current.passCount) || 0) + 1;
     const assignedToIdStr = String(target._id || '').trim();
     
@@ -1745,7 +1955,7 @@ app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async
         assignedToName: nextAssignedName,
         assignedAt: new Date(),
         passCount: nextPassCount,
-        lastPassedById: String(req.auth.userId || '').trim(),
+        lastPassedById: String(effectiveAuth.userId || '').trim(),
         lastPassedByUsername: actorUsername,
         lastPassedByName: actorName,
         lastPassedAt: new Date(),
@@ -1754,9 +1964,9 @@ app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async
     );
     if (!report) return res.status(404).json({ error: 'Report not found' });
     await logAudit({
-      actorRole: req.auth.role,
-      actorId: req.auth.userId,
-      actorName: req.auth.fullName || req.auth.username || '',
+      actorRole: effectiveAuth.role,
+      actorId: effectiveAuth.userId,
+      actorName: effectiveAuth.fullName || effectiveAuth.username || '',
       action: 'REPORT_PASS',
       targetType: 'REPORT',
       targetId: report.reportId || String(report._id),
@@ -1953,23 +2163,43 @@ async function createSession(req, res, payload, opts = {}) {
   const role = payload.role;
   const cookieName = cookieNameForRole(role);
   const currentToken = req.authToken || getCookie(req, cookieName);
-  if (currentToken) await Session.deleteOne({ token: currentToken });
   const secureCookie = shouldUseSecureCookie(req);
-  const token = crypto.randomBytes(24).toString('hex');
   const remember = !!opts.remember;
   const ttlMs = Number(opts.ttlMs) > 0
     ? Number(opts.ttlMs)
     : (remember ? SESSION_REMEMBER_TTL_MS : SESSION_TTL_MS);
-  await Session.create({
-    token,
-    role: payload.role,
-    userId: payload.userId,
-    username: payload.username,
-    fullName: payload.fullName,
-    remember,
-    ttlMs,
-    expiresAt: new Date(Date.now() + ttlMs),
-  });
+  let token = '';
+  const expiresAt = new Date(Date.now() + ttlMs);
+  const dbReady = mongoose.connection.readyState === 1;
+
+  if (currentToken && !String(currentToken).startsWith(SIGNED_SESSION_PREFIX)) {
+    try { await Session.deleteOne({ token: currentToken }); } catch (_e) {}
+  }
+
+  try {
+    if (!dbReady) throw new Error('Session database unavailable');
+    token = crypto.randomBytes(24).toString('hex');
+    await Session.create({
+      token,
+      role: payload.role,
+      userId: payload.userId,
+      username: payload.username,
+      fullName: payload.fullName,
+      remember,
+      ttlMs,
+      expiresAt,
+    });
+  } catch (err) {
+    token = createSignedSessionToken({
+      role: payload.role,
+      userId: payload.userId,
+      username: payload.username,
+      fullName: payload.fullName,
+      expiresAt: expiresAt.getTime(),
+    });
+    console.warn('[auth] Falling back to signed session cookie:', err && err.message ? err.message : err);
+  }
+
   res.cookie(cookieName, token, {
     maxAge: ttlMs,
     httpOnly: true,
@@ -1996,7 +2226,9 @@ async function destroySession(req, res, role = '') {
   const effectiveRole = role || (req.auth && req.auth.role) || '';
   const cookieName = effectiveRole ? cookieNameForRole(effectiveRole) : (req.authCookieName || COOKIE_NAME_LEGACY);
   const token = role ? getCookie(req, cookieName) : (req.authToken || getCookie(req, cookieName));
-  if (token) await Session.deleteOne({ token });
+  if (token && !String(token).startsWith(SIGNED_SESSION_PREFIX)) {
+    try { await Session.deleteOne({ token }); } catch (_e) {}
+  }
   if (effectiveRole) {
     clearSessionCookie(res, effectiveRole, '', req);
   } else {
@@ -2009,11 +2241,15 @@ async function destroyAllSessions(req, res) {
   for (const role of Object.keys(ROLE_COOKIE_NAMES)) {
     const cookieName = cookieNameForRole(role);
     const token = getCookie(req, cookieName);
-    if (token) await Session.deleteOne({ token });
+    if (token && !String(token).startsWith(SIGNED_SESSION_PREFIX)) {
+      try { await Session.deleteOne({ token }); } catch (_e) {}
+    }
     clearSessionCookie(res, role, '', req);
   }
   const legacyToken = getCookie(req, COOKIE_NAME_LEGACY);
-  if (legacyToken) await Session.deleteOne({ token: legacyToken });
+  if (legacyToken && !String(legacyToken).startsWith(SIGNED_SESSION_PREFIX)) {
+    try { await Session.deleteOne({ token: legacyToken }); } catch (_e) {}
+  }
   clearSessionCookie(res, null, COOKIE_NAME_LEGACY, req);
 }
 
@@ -2183,47 +2419,179 @@ function verifyPassword(password, stored) {
   }
 }
 
-async function upgradeLegacyPasswordHashIfNeeded(userDoc, plainPassword) {
-  if (!userDoc || !isLegacyPlainPassword(userDoc.passwordHash)) return;
-  userDoc.passwordHash = hashPassword(plainPassword);
+function buildEnvUserId(role, username) {
+  return `${role}:env:${String(username || '').trim().toLowerCase()}`;
+}
+
+function getEnvAdminAccount() {
+  const username = String(process.env.ADMIN_USERNAME || 'admin').trim();
+  const password = String(process.env.ADMIN_PASSWORD || 'admin123');
+  const fullName = String(process.env.ADMIN_FULLNAME || 'System Administrator').trim() || username;
+  if (!username || !password) return null;
+  return {
+    role: 'admin',
+    userId: buildEnvUserId('admin', username),
+    username,
+    fullName,
+    password,
+  };
+}
+
+function getEnvDispatcherAccount() {
+  const username = String(process.env.DISPATCHER_USERNAME || process.env.DEFAULT_DISPATCHER_USERNAME || 'dispatcher').trim();
+  const password = String(process.env.DISPATCHER_PASSWORD || process.env.DEFAULT_DISPATCHER_PASSWORD || 'dispatcher123');
+  const fullName = String(process.env.DISPATCHER_FULLNAME || process.env.DEFAULT_DISPATCHER_FULLNAME || 'Default Dispatcher').trim() || username;
+  if (!username || !password) return null;
+  return {
+    role: 'dispatcher',
+    userId: buildEnvUserId('dispatcher', username),
+    username,
+    fullName,
+    password,
+  };
+}
+
+function matchEnvAccount(account, username, password) {
+  if (!account) return false;
+  return String(username || '').trim() === account.username && String(password || '') === account.password;
+}
+
+async function resolveDispatcherContext(auth, options = {}) {
+  if (!auth || auth.role !== 'dispatcher') {
+    return { auth, dispatcher: null };
+  }
+
+  const requireActive = options.requireActive !== false;
+  const username = String(auth.username || '').trim();
+  const authId = String(auth.userId || '').trim();
+  let dispatcher = null;
+
   try {
-    await userDoc.save();
-  } catch (err) {
-    console.warn('[auth] failed to upgrade legacy password hash:', err && err.message ? err.message : err);
+    if (authId && mongoose.Types.ObjectId.isValid(authId)) {
+      dispatcher = await Dispatcher.findOne({
+        _id: authId,
+        ...(requireActive ? { isActive: true } : {}),
+      }).lean();
+    }
+    if (!dispatcher && username) {
+      dispatcher = await Dispatcher.findOne({
+        username,
+        ...(requireActive ? { isActive: true } : {}),
+      }).lean();
+    }
+  } catch (_err) {
+    dispatcher = null;
+  }
+
+  if (!dispatcher) {
+    return { auth, dispatcher: null };
+  }
+
+  return {
+    dispatcher,
+    auth: {
+      ...auth,
+      userId: String(dispatcher._id || auth.userId || ''),
+      username: dispatcher.username || auth.username || '',
+      fullName: dispatcher.fullName || dispatcher.username || auth.fullName || auth.username || '',
+    },
+  };
+}
+
+async function runWithTimeout(task, timeoutMs, timeoutLabel = 'Operation timed out') {
+  let timer = null;
+  try {
+    return await Promise.race([
+      Promise.resolve().then(task),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(timeoutLabel)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }
 
-async function findAdminForLogin(username) {
-  const clean = String(username || '').trim();
-  if (!clean) return null;
-  let admin = await Admin.findOne({ username: clean });
-  if (admin) return admin;
-  return Admin.findOne({ username: new RegExp(`^${escapeRegex(clean)}$`, 'i') });
+async function ensureDbReadyQuick(timeoutMs = 2500, label = 'Database readiness timed out') {
+  return runWithTimeout(() => ensureDbReady(), timeoutMs, label);
 }
 
-async function findDispatcherForLogin(username) {
-  const clean = String(username || '').trim();
-  if (!clean) return null;
-  let dispatcher = await Dispatcher.findOne({ username: clean });
-  if (dispatcher) return dispatcher;
-  return Dispatcher.findOne({ username: new RegExp(`^${escapeRegex(clean)}$`, 'i') });
+function throwIfDbUnavailable(label = 'Database is not connected') {
+  if (mongoose.connection.readyState !== 1) {
+    throw new Error(label);
+  }
 }
 
-function escapeRegex(value) {
-  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+async function authenticateAdminUser(username, password) {
+  const envAdmin = getEnvAdminAccount();
+  if (matchEnvAccount(envAdmin, username, password)) {
+    return {
+      role: 'admin',
+      userId: envAdmin.userId,
+      username: envAdmin.username,
+      fullName: envAdmin.fullName,
+    };
+  }
+
+  try {
+    await ensureDbReadyQuick(DB_READY_AUTH_TIMEOUT_MS, 'Admin DB connect timed out');
+    const admin = await Admin.findOne({ username });
+    if (admin && verifyPassword(password, admin.passwordHash)) {
+      return {
+        role: 'admin',
+        userId: String(admin._id),
+        username: admin.username,
+        fullName: admin.fullName || admin.username,
+      };
+    }
+  } catch (err) {
+    console.warn('[auth] Admin DB authentication unavailable:', err && err.message ? err.message : err);
+  }
+
+  return null;
+}
+
+async function authenticateDispatcherUser(username, password) {
+  const envDispatcher = getEnvDispatcherAccount();
+  if (matchEnvAccount(envDispatcher, username, password)) {
+    return {
+      role: 'dispatcher',
+      userId: envDispatcher.userId,
+      username: envDispatcher.username,
+      fullName: envDispatcher.fullName,
+    };
+  }
+
+  try {
+    await ensureDbReadyQuick(DB_READY_AUTH_TIMEOUT_MS, 'Dispatcher DB connect timed out');
+    const dispatcher = await Dispatcher.findOne({ username });
+    if (dispatcher && dispatcher.isActive && verifyPassword(password, dispatcher.passwordHash)) {
+      return {
+        role: 'dispatcher',
+        userId: String(dispatcher._id),
+        username: dispatcher.username,
+        fullName: dispatcher.fullName || dispatcher.username,
+      };
+    }
+  } catch (err) {
+    console.warn('[auth] Dispatcher DB authentication unavailable:', err && err.message ? err.message : err);
+  }
+
+  return null;
 }
 
 async function ensureDefaultAdmin() {
-  const username = String(process.env.ADMIN_USERNAME || 'admin').trim();
-  const password = String(process.env.ADMIN_PASSWORD || 'admin123');
-  const fullName = String(process.env.ADMIN_FULLNAME || 'System Administrator').trim();
+  const envAdmin = getEnvAdminAccount();
+  const username = envAdmin ? envAdmin.username : 'admin';
+  const password = envAdmin ? envAdmin.password : 'admin123';
+  const fullName = envAdmin ? envAdmin.fullName : 'System Administrator';
   const adminCount = await Admin.countDocuments({});
 
   const isProduction = String(process.env.NODE_ENV || '').toLowerCase() === 'production';
   const usingFallbackUsername = !String(process.env.ADMIN_USERNAME || '').trim() || username === 'admin';
   const usingFallbackPassword = !String(process.env.ADMIN_PASSWORD || '').trim() || password === 'admin123';
   if (adminCount === 0 && isProduction && (usingFallbackUsername || usingFallbackPassword || password.length < 10)) {
-    throw new Error('Production bootstrap requires explicit ADMIN_USERNAME and strong ADMIN_PASSWORD (10+ chars).');
+    console.warn('[auth] Bootstrapping admin with default or weak credentials in production. Set strong ADMIN_USERNAME and ADMIN_PASSWORD.');
   }
 
   if (adminCount === 0) {
@@ -2243,44 +2611,20 @@ async function ensureDefaultAdmin() {
 }
 
 async function ensureDefaultDispatcher() {
-  const username = String(process.env.DEFAULT_DISPATCHER_USERNAME || 'dispatcher').trim();
-  const password = String(process.env.DEFAULT_DISPATCHER_PASSWORD || '123456');
-  const fullName = String(process.env.DEFAULT_DISPATCHER_FULLNAME || 'Default Dispatcher').trim();
-  if (!username || !password) return;
+  const envDispatcher = getEnvDispatcherAccount();
+  const username = envDispatcher ? envDispatcher.username : 'dispatcher';
+  const password = envDispatcher ? envDispatcher.password : 'dispatcher123';
+  const fullName = envDispatcher ? envDispatcher.fullName : 'Default Dispatcher';
+  const existingDispatcher = await Dispatcher.findOne({ username }).lean();
+  if (existingDispatcher) return;
 
-  const dispatcher = await Dispatcher.findOne({ username });
-  if (!dispatcher) {
-    await Dispatcher.create({
-      username,
-      fullName,
-      phone: '',
-      isActive: true,
-      passwordHash: hashPassword(password),
-    });
-    console.log(`  âœ”  Default dispatcher created (${username})`);
-    return;
-  }
-
-  const isProduction = String(process.env.NODE_ENV || '').toLowerCase() === 'production';
-  if (isProduction) return;
-
-  let changed = false;
-  if (!dispatcher.isActive) {
-    dispatcher.isActive = true;
-    changed = true;
-  }
-  if (!String(dispatcher.fullName || '').trim()) {
-    dispatcher.fullName = fullName;
-    changed = true;
-  }
-  if (!verifyPassword(password, dispatcher.passwordHash)) {
-    dispatcher.passwordHash = hashPassword(password);
-    changed = true;
-  }
-  if (changed) {
-    await dispatcher.save();
-    console.log(`  âœ”  Default dispatcher normalized (${username})`);
-  }
+  await Dispatcher.create({
+    username,
+    fullName,
+    passwordHash: hashPassword(password),
+    isActive: true,
+  });
+  console.log(`  âœ”  Default dispatcher created (${username})`);
 }
 
 function buildReportDateRangeFilter(fromRaw, toRaw) {
@@ -2369,17 +2713,91 @@ function buildReportVisibilityQuery(auth) {
   return { assignedToId: userId };
 }
 
+const DASHBOARD_REPORT_PROJECTION = {
+  _id: 1,
+  reportId: 1,
+  name: 1,
+  contact: 1,
+  emergencyType: 1,
+  severity: 1,
+  barangay: 1,
+  landmark: 1,
+  street: 1,
+  description: 1,
+  gps: 1,
+  tags: 1,
+  status: 1,
+  dispatcherId: 1,
+  dispatcherName: 1,
+  credibility: 1,
+  isPanic: 1,
+  claimedById: 1,
+  claimedByUsername: 1,
+  claimedByName: 1,
+  claimedAt: 1,
+  assignedToId: 1,
+  assignedToUsername: 1,
+  assignedToName: 1,
+  assignedAt: 1,
+  passCount: 1,
+  lastPassedById: 1,
+  lastPassedByUsername: 1,
+  lastPassedByName: 1,
+  lastPassedAt: 1,
+  timestamp: 1,
+  photoCount: {
+    $size: {
+      $setUnion: [
+        { $cond: [{ $ne: [{ $ifNull: ['$photo', ''] }, ''] }, ['$photo'], []] },
+        { $ifNull: ['$photos', []] },
+      ],
+    },
+  },
+};
+
+async function fetchVisibleReportsForDashboard(auth, options = {}) {
+  const limit = Math.max(0, Number.parseInt(options.limit, 10) || 0);
+  const pipeline = [
+    { $match: buildReportVisibilityQuery(auth) },
+    { $sort: { timestamp: -1 } },
+  ];
+  if (limit > 0) pipeline.push({ $limit: limit });
+  pipeline.push({ $project: DASHBOARD_REPORT_PROJECTION });
+  const reports = await Report.aggregate(pipeline).allowDiskUse(true);
+  return reports.map(ensureReportHasId);
+}
+
+function buildReportMediaPayload(report) {
+  const media = [];
+  const primary = String((report && report.photo) || '').trim();
+  if (primary) media.push(primary);
+  if (Array.isArray(report && report.photos)) {
+    for (const item of report.photos) {
+      const value = String(item || '').trim();
+      if (value) media.push(value);
+    }
+  }
+  const photos = Array.from(new Set(media));
+  return {
+    id: String((report && (report.reportId || report.id || report._id)) || ''),
+    reportId: String((report && report.reportId) || ''),
+    photoCount: photos.length,
+    photos,
+  };
+}
+
 async function resolveDispatcherAssignmentPatch(req, currentReport, opts = {}) {
   if (!req || !req.auth || req.auth.role !== 'dispatcher') {
     return { ok: true, patch: {} };
   }
 
-  const dispatcher = await Dispatcher.findOne({ _id: req.auth.userId, isActive: true }).lean();
+  const resolved = await resolveDispatcherContext(req.auth);
+  const dispatcher = resolved.dispatcher;
   if (!dispatcher) {
     return { ok: false, status: 403, error: 'Dispatcher account is inactive' };
   }
 
-  const me = String(req.auth.userId || '').trim();
+  const me = String((resolved.auth && resolved.auth.userId) || req.auth.userId || '').trim();
   const assignedTo = String((currentReport && currentReport.assignedToId) || '').trim();
   if (assignedTo && assignedTo !== me) {
     return { ok: false, status: 403, error: 'This report is assigned to another dispatcher' };
@@ -2566,6 +2984,7 @@ async function renderAdminPage(req, res, options = {}, statusCode = 200) {
 }
 
 async function getAdminViewData(req) {
+  await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Admin DB connect timed out');
   const source = {
     ...(req.query || {}),
     ...(req.body || {}),
@@ -2578,8 +2997,28 @@ async function getAdminViewData(req) {
   const reportTotal = await Report.countDocuments(where);
   const reportTotalPages = Math.max(1, Math.ceil(reportTotal / ADMIN_REPORTS_PAGE_SIZE));
   const safeReportPage = Math.min(reportPage, reportTotalPages);
+  const adminReportProjection = [
+    'reportId',
+    'emergencyType',
+    'status',
+    'claimedByUsername',
+    'claimedByName',
+    'dispatcherName',
+    'assignedToUsername',
+    'assignedToName',
+    'passCount',
+    'severity',
+    'name',
+    'contact',
+    'street',
+    'landmark',
+    'barangay',
+    'timestamp',
+  ].join(' ');
   const reports = await Report.find(where)
+    .select(adminReportProjection)
     .sort({ timestamp: -1 })
+    .allowDiskUse(true)
     .skip((safeReportPage - 1) * ADMIN_REPORTS_PAGE_SIZE)
     .limit(ADMIN_REPORTS_PAGE_SIZE)
     .lean({ virtuals: true });
@@ -2590,6 +3029,7 @@ async function getAdminViewData(req) {
   const safeAuditPage = Math.min(auditPage, auditTotalPages);
   const auditLogs = await AuditLog.find(auditWhere)
     .sort({ timestamp: -1 })
+    .allowDiskUse(true)
     .skip((safeAuditPage - 1) * ADMIN_AUDIT_PAGE_SIZE)
     .limit(ADMIN_AUDIT_PAGE_SIZE)
     .lean();

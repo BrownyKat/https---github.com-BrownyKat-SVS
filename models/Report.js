@@ -38,6 +38,8 @@ const reportSchema = new mongoose.Schema(
   { versionKey: false }
 );
 
+reportSchema.index({ timestamp: -1 });
+
 // Virtual so every lean() doc exposes `.id = reportId` (with fallback to _id)
 reportSchema.virtual('id').get(function () {
   return this.reportId || String(this._id || '');

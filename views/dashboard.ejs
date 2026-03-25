@@ -630,6 +630,7 @@
     .photo-stack{display:flex;gap:6px;align-items:center;}
     .photo-thumb{width:48px;height:48px;border-radius:10px;object-fit:cover;border:1.5px solid var(--border);box-shadow:var(--shadow-sm);cursor:pointer;}
     .photo-more{padding:.4rem .6rem;border:1.5px dashed var(--border);border-radius:10px;font-weight:800;color:var(--muted2);background:#fff;}
+    button.photo-more{cursor:pointer;font:inherit;}
     .photo-count{font-size:.78rem;font-weight:700;color:var(--muted2);}
 
     .rcard-loc{
@@ -1963,8 +1964,13 @@
       : 'Claim or call to take ownership before verification and sensitive actions unlock.';
     const ownershipTag = isMine ? 'Owned' : 'Open';
     const photos = Array.isArray(r.photos) && r.photos.length ? r.photos : (r.photo ? [r.photo] : []);
+    const photoCount = Math.max(Number(r.photoCount || 0), photos.length);
     const photosJson = photos.length ? JSON.stringify(photos).replace(/&/g,'&amp;').replace(/"/g,'&quot;') : '';
-    const photoHtml = photos.length ? `<div class="photo-stack" data-photos="${photosJson}" data-report="${esc(rid)}" data-name="${esc(r.name)}">${photos.slice(0,3).map((p,i)=>`<img src="${p}" class="photo-thumb" alt="Photo ${i+1}" data-index="${i}">`).join('')}${photos.length>3 ? `<span class="photo-more" data-index="0">+${photos.length-3}</span>` : ''}</div><span class="photo-count">${photos.length} photo${photos.length>1?'s':''}</span>` : '';
+    const photoHtml = photos.length
+      ? `<div class="photo-stack" data-photos="${photosJson}" data-report="${esc(rid)}" data-name="${esc(r.name)}">${photos.slice(0,3).map((p,i)=>`<img src="${p}" class="photo-thumb" alt="Photo ${i+1}" data-index="${i}">`).join('')}${photos.length>3 ? `<span class="photo-more" data-index="0">+${photos.length-3}</span>` : ''}</div><span class="photo-count">${photos.length} photo${photos.length>1?'s':''}</span>`
+      : photoCount
+        ? `<button type="button" class="photo-more photo-launch" data-report="${esc(rid)}" data-name="${esc(r.name)}">View ${photoCount} photo${photoCount>1?'s':''}</button>`
+        : '';
     const tags = Array.isArray(r.tags) ? r.tags.filter(Boolean) : [];
     const tagsHtml = tags.length ? `<div class="tag-list">${tags.map(t => `<span class="tag-pill">${esc(String(t).replace(/_/g,' '))}</span>`).join('')}</div>` : '';
     return `
@@ -2190,10 +2196,18 @@
   function normalizeReport(r) {
     if (!r || typeof r !== 'object') return r;
     const status = String(r.status || 'new');
+    const primaryPhoto = String(r.photo || '').trim();
+    const photos = Array.isArray(r.photos)
+      ? r.photos.map(x => String(x || '').trim()).filter(Boolean)
+      : [];
+    const photoCount = Math.max(Number.parseInt(r.photoCount, 10) || 0, photos.length + (primaryPhoto ? 1 : 0));
     return {
       ...r,
       id: r.id || r.reportId || r._id || '',
       status,
+      photo: primaryPhoto,
+      photos,
+      photoCount,
       assignedToId: String(r.assignedToId || '').trim(),
       assignedToName: String(r.assignedToName || '').trim(),
       assignedAt: r.assignedAt || null,
@@ -2270,6 +2284,38 @@
   }
 
   let lastReportsSig = reportsSignature(reports);
+  const mediaLoads = new Map();
+
+  async function loadReportMedia(reportId) {
+    const id = normalizeId(reportId);
+    if (!id) return [];
+    const existing = reports.find(x => normalizeId(x.id || x.reportId || x._id || '') === id);
+    const cached = existing && Array.isArray(existing.photos) && existing.photos.length
+      ? existing.photos.filter(Boolean)
+      : [];
+    if (cached.length) return cached;
+    if (mediaLoads.has(id)) return mediaLoads.get(id);
+    const job = (async () => {
+      const res = await fetch(`/api/report/${encodeURIComponent(id)}/media?_=${Date.now()}`, { cache: 'no-store' });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        handleUnauthorized(data);
+        return [];
+      }
+      if (!res.ok) throw new Error(data.error || 'Could not load report photos.');
+      const photos = Array.isArray(data.photos) ? data.photos.map(x => String(x || '').trim()).filter(Boolean) : [];
+      const idx = reports.findIndex(x => normalizeId(x.id || x.reportId || x._id || '') === id);
+      if (idx >= 0) {
+        reports[idx].photos = photos;
+        reports[idx].photo = photos[0] || '';
+        reports[idx].photoCount = Math.max(Number(data.photoCount || 0), photos.length);
+        render();
+      }
+      return photos;
+    })().finally(() => mediaLoads.delete(id));
+    mediaLoads.set(id, job);
+    return job;
+  }
 
   async function syncReportsFromServer(forceRender = false) {
     if (webCallReportId || (permModal && permModal.classList.contains('show'))) return; // pause while in call or permission dialog
@@ -2950,6 +2996,23 @@
   }
 
   document.addEventListener('click', (e)=>{
+    const launch = e.target.closest('.photo-launch');
+    if (launch) {
+      const reportId = launch.dataset.report || '';
+      const reportName = launch.dataset.name || '';
+      loadReportMedia(reportId)
+        .then(photos => {
+          if (!Array.isArray(photos) || !photos.length) {
+            toast_('No photos', 'No report photos are available right now.', 'warn');
+            return;
+          }
+          openImgModal(photos, 0, reportId, reportName);
+        })
+        .catch(err => {
+          toast_('Photos unavailable', err && err.message ? err.message : 'Could not load report photos.', 'warn');
+        });
+      return;
+    }
     const stack = e.target.closest('.photo-stack');
     if (stack) {
       let photos = [];
