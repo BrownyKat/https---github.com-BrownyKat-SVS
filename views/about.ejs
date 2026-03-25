@@ -48,14 +48,28 @@
     .card{background:linear-gradient(180deg,#f8fbff,#eef4ff);border:1.6px solid #bed6fa;border-radius:18px;padding:1.4rem 1.5rem;box-shadow:0 16px 36px rgba(15,23,42,.12);}
     .card.step{position:relative;padding-left:5rem;}
     .hotline-section{max-width:1180px;margin:0 auto 2.8rem;padding:1.25rem;}
-    .hotline-section h3{font-size:1.65rem;color:#0c1a36;margin-bottom:.9rem;}
-    .hotline-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;}
-    .hotline-card{display:flex;align-items:center;gap:.75rem;border:1.5px solid #c8d7f3;border-radius:14px;background:linear-gradient(180deg,#f8fbff,#fff);padding:.9rem;box-shadow:0 10px 22px rgba(15,23,42,.12);}
-    .hotline-card img{width:42px;height:42px;object-fit:contain;border-radius:8px;}
-    .hotline-card .hotline-link{flex:1;display:grid;gap:.25rem;}
-    .hotline-card .hotline-link a{font-weight:800;color:#1d4ed8;}
-    .hotline-card .hotline-link p{margin:0;color:#0f172a;font-size:.94rem;}
-    .hotline-phonenumber{font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:700;color:#dc2626;}    .card.step::before{
+    .hotline-section h3{font-size:1.65rem;color:#0c1a36;margin-bottom:1.5rem;}
+    .hotline-tabs{display:flex;gap:.75rem;margin-bottom:1.8rem;flex-wrap:wrap;}
+    .tab-btn{padding:.75rem 1.25rem;border:1.8px solid #97BDE9;border-radius:12px;background:#fff;color:#1D4ED8;font-weight:800;font-size:1rem;cursor:pointer;transition:.18s;box-shadow:0 8px 18px rgba(15,23,42,.08);}
+    .tab-btn:hover{border-color:#1D4ED8;box-shadow:0 12px 24px rgba(29,78,216,.15);}
+    .tab-btn.active{background:linear-gradient(135deg,#1D4ED8,#2563EB);color:#fff;border-color:transparent;box-shadow:0 12px 28px rgba(29,78,216,.25);}
+    .hotline-container{animation:fadeIn .3s ease-in;}
+    @keyframes fadeIn{from{opacity:.8;} to{opacity:1;}}
+    .hotline-category{display:grid;gap:1.2rem;}
+    
+    .featured-hotline{display:grid;grid-template-columns:100px 1fr;gap:1.5rem;align-items:center;padding:1.5rem;background:linear-gradient(135deg,rgba(29,78,216,.08),rgba(238,246,255,.9));border:1.8px solid #bed6fa;border-radius:16px;box-shadow:0 12px 28px rgba(15,23,42,.1);}
+    .featured-hotline img{width:100px;height:100px;object-fit:contain;border-radius:12px;background:#fff;padding:.75rem;box-shadow:0 6px 16px rgba(15,23,42,.08);}
+    .featured-content h4{font-size:1.35rem;color:#0c1a36;margin-bottom:.8rem;font-weight:900;}
+    .phone-list{display:flex;flex-direction:column;gap:.5rem;}
+    .phone-link{display:inline-flex;align-items:center;gap:.5rem;font-family:'JetBrains Mono',monospace;font-size:1.05rem;font-weight:800;color:#dc2626;text-decoration:none;transition:.18s;}
+    .phone-link:hover{color:#b91c1c;transform:translateX(4px);}
+    
+    .service-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.2rem;}
+    .service-card{display:flex;flex-direction:column;align-items:center;text-align:center;padding:1.4rem;background:linear-gradient(180deg,#f8fbff,#eef4ff);border:1.6px solid #bed6fa;border-radius:16px;box-shadow:0 10px 24px rgba(15,23,42,.1);transition:.2s;}
+    .service-card:hover{transform:translateY(-4px);box-shadow:0 16px 32px rgba(15,23,42,.15);border-color:#97BDE9;}
+    .service-card img{width:56px;height:56px;object-fit:contain;margin-bottom:.75rem;border-radius:10px;background:#fff;padding:.5rem;box-shadow:0 4px 12px rgba(15,23,42,.08);}
+    .service-card h4{font-size:1.1rem;color:#0c1a36;margin-bottom:.8rem;font-weight:900;}
+    .service-card .phone-link{color:#dc2626;font-size:1rem;margin-bottom:.4rem;}    .card.step::before{
       content: attr(data-step);
       position:absolute;left:1rem;top:1.1rem;
       width:38px;height:38px;border-radius:12px;
@@ -159,80 +173,105 @@
 
   <section class="hotline-section">
     <h3>Emergency Hotlines</h3>
-    <div class="hotline-grid">
-      <div class="hotline-card">
-        <img src="/images/logo1.png" alt="Hotline 1 logo" onerror="this.onerror=null;this.src='/images/logo1.png';">
-        <div class="hotline-link">
-          <span>Hotline 1</span>
-          <p class="hotline-phonenumber">Phone: +63 911 000 0001</p>
+    <div class="hotline-tabs">
+      <button class="tab-btn active" data-category="urgent">🚨 Most Urgent</button>
+      <button class="tab-btn" data-category="services">🛟 Services</button>
+      <button class="tab-btn" data-category="utilities">⚡ Utilities</button>
+    </div>
+    
+    <div class="hotline-container">
+      <!-- Urgent Services -->
+      <div class="hotline-category active" data-category="urgent">
+        <div class="featured-hotline">
+          <img src="/images/bfp-logo.png" alt="BFP Mapandan" onerror="this.onerror=null;this.src='/images/logo2.png';">
+          <div class="featured-content">
+            <h4>🚒 BFP Mapandan</h4>
+            <div class="phone-list">
+              <a href="tel:+639434242810" class="phone-link">📱 0943 424 2810</a>
+              <a href="tel:+639171866611" class="phone-link">📱 0917 186 6611</a>
+              <a href="tel:+6375636432" class="phone-link">☎️ (075) 636 4321</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="featured-hotline">
+          <img src="/images/pnp-logo.png" alt="PNP Mapandan" onerror="this.onerror=null;this.src='/images/logo3.png';">
+          <div class="featured-content">
+            <h4>👮 PNP Mapandan</h4>
+            <div class="phone-list">
+              <a href="tel:+639985985117" class="phone-link">📱 0998 598 5117</a>
+              <a href="tel:+6375632175" class="phone-link">☎️ (075) 632 1754</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="featured-hotline">
+          <img src="/images/water-logo.png" alt="Ambulance" onerror="this.onerror=null;this.src='/images/logo9.png';">
+          <div class="featured-content">
+            <h4>🚑 Ambulance</h4>
+            <div class="phone-list">
+              <a href="tel:+639101311110" class="phone-link">📱 0910 131 1110</a>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="hotline-card">
-        <img src="/images/logo2.png" alt="Hotline 2 logo" onerror="this.onerror=null;this.src='/images/logo2.png';">
-        <div class="hotline-link">
-          <span>Hotline 2</span>
-          <p class="hotline-phonenumber">Phone: +63 911 000 0002</p>
+
+      <!-- Services -->
+      <div class="hotline-category" data-category="services" style="display:none;">
+        <div class="service-grid">
+          <div class="service-card">
+            <img src="/images/hospital-logo.png" alt="Community Hospital" onerror="this.onerror=null;this.src='/images/logo8.png';">
+            <h4>Community Hospital</h4>
+            <a href="tel:+6375632049" class="phone-link">☎️ (075) 632 0491</a>
+          </div>
+
+          <div class="service-card">
+            <img src="/images/rhu-logo.png" alt="RHU Mapandan" onerror="this.onerror=null;this.src='/images/logo7.png';">
+            <h4>RHU Mapandan</h4>
+            <a href="tel:+639126798036" class="phone-link">📱 0912 679 8036</a>
+            <a href="tel:+6375632187" class="phone-link">☎️ (075) 632 1874</a>
+          </div>
+
+          <div class="service-card">
+            <img src="/images/mdrrmo-logo.png" alt="MDRRMO Mapandan" onerror="this.onerror=null;this.src='/images/logo6.png';">
+            <h4>MDRRMO Mapandan</h4>
+            <a href="tel:+639692236912" class="phone-link">📱 0969 223 6912</a>
+            <a href="tel:+6375600256" class="phone-link">☎️ (075) 600 2564</a>
+          </div>
+
+          <div class="service-card">
+            <img src="/images/mswd-logo.png" alt="MSWD Mapandan" onerror="this.onerror=null;this.src='/images/logo10.png';">
+            <h4>MSWD Mapandan</h4>
+            <a href="tel:+6375632175" class="phone-link">☎️ (075) 632 1751</a>
+          </div>
+
+          <div class="service-card">
+            <img src="/images/mayor-logo.png" alt="Mayor's Office" onerror="this.onerror=null;this.src='/images/logo1.png';">
+            <h4>Mayor's Office</h4>
+            <a href="tel:+6375632175" class="phone-link">☎️ (075) 632 1757</a>
+          </div>
         </div>
       </div>
-      <div class="hotline-card">
-        <img src="/images/logo3.png" alt="Hotline 3 logo" onerror="this.onerror=null;this.src='/images/logo3.png';">
-        <div class="hotline-link">
-          <span>Hotline 3</span>
-          <p class="hotline-phonenumber">Phone: +63 911 000 0003</p>
-        </div>
-      </div>
-      <div class="hotline-card">
-        <img src="/images/logo4.png" alt="Hotline 4 logo" onerror="this.onerror=null;this.src='/images/logo4.png';">
-        <div class="hotline-link">
-          <span>Hotline 4</span>
-          <p class="hotline-phonenumber">Phone: +63 911 000 0004</p>
-        </div>
-      </div>
-      <div class="hotline-card">
-        <img src="/images/logo5.png" alt="Hotline 5 logo" onerror="this.onerror=null;this.src='/images/logo5.png';">
-        <div class="hotline-link">
-          <span>Hotline 5</span>
-          <p class="hotline-phonenumber">Phone: +63 911 000 0005</p>
-        </div>
-      </div>
-      <div class="hotline-card">
-        <img src="/images/logo6.png" alt="Hotline 6 logo" onerror="this.onerror=null;this.src='/images/logo6.png';">
-        <div class="hotline-link">
-          <span>Hotline 6</span>
-          <p class="hotline-phonenumber">Phone: +63 911 000 0006</p>
-        </div>
-      </div>
-      <div class="hotline-card">
-        <img src="/images/logo7.png" alt="Hotline 7 logo" onerror="this.onerror=null;this.src='/images/logo7.png';">
-        <div class="hotline-link">
-          <span>Hotline 7</span>
-          <p class="hotline-phonenumber">Phone: +63 911 000 0007</p>
-        </div>
-      </div>
-      <div class="hotline-card">
-        <img src="/images/logo8.png" alt="Hotline 8 logo" onerror="this.onerror=null;this.src='/images/logo8.png';">
-        <div class="hotline-link">
-          <span>Hotline 8</span>
-          <p class="hotline-phonenumber">Phone: +63 911 000 0008</p>
-        </div>
-      </div>
-      <div class="hotline-card">
-        <img src="/images/logo-9.png" alt="Hotline 9 logo" onerror="this.onerror=null;this.src='/images/logo9.png';">
-        <div class="hotline-link">
-          <span>Hotline 9</span>
-          <p class="hotline-phonenumber">Phone: +63 911 000 0009</p>
-        </div>
-      </div>
-      <div class="hotline-card">
-        <img src="/images/logo10.png" alt="Hotline 10 logo" onerror="this.onerror=null;this.src='/images/logo10.png';">
-        <div class="hotline-link">
-          <span>Hotline 10</span>
-          <p class="hotline-phonenumber">Phone: +63 911 000 0010</p>
+
+      <!-- Utilities -->
+      <div class="hotline-category" data-category="utilities" style="display:none;">
+        <div class="service-grid">
+          <div class="service-card">
+            <img src="/images/panelco-logo.png" alt="PANELCO III" onerror="this.onerror=null;this.src='/images/logo4.png';">
+            <h4>PANELCO III</h4>
+            <a href="tel:+639154481608" class="phone-link">📱 0915 448 1608</a>
+            <a href="tel:+639427009417" class="phone-link">📱 0942 700 9417</a>
+          </div>
+
+          <div class="service-card">
+            <img src="/images/Mawadi-Primewater-logo.png" alt="MAWADI-PRIMEWATER" onerror="this.onerror=null;this.src='/images/logo5.png';">
+            <h4>MAWADI-PRIMEWATER</h4>
+            <a href="tel:+639493003375" class="phone-link">📱 0949 300 3375</a>
+          </div>
         </div>
       </div>
     </div>
-  </section>
-
+</section>
   <div class="footer" style="text-align:center;font-weight:700;font-size:1.02rem;letter-spacing:-.1px;">Need immediate help? Go to the <a href="/sos">SOS page</a> or file a <a href="/report">report</a>.</div>
 
   <%- include('partials/footer') %>
@@ -253,6 +292,21 @@
     }
     updateTime('aboutTime'); setInterval(()=>updateTime('aboutTime'),1000);
 
+    // Hotline tabs functionality
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const category = btn.dataset.category;
+        
+        // Update active button
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Update visible category
+        document.querySelectorAll('.hotline-category').forEach(cat => {
+          cat.style.display = cat.dataset.category === category ? 'grid' : 'none';
+        });
+      });
+    });
   </script>
 </body>
 </html>
