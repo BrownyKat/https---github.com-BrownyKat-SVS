@@ -2622,6 +2622,19 @@ function selType(el, t) {
     return `${value} B`;
   }
 
+  function shortenFileName(name, maxLen = 42) {
+    const value = String(name || '').trim();
+    if (!value || value.length <= maxLen) return value || 'Selected image';
+    const dot = value.lastIndexOf('.');
+    if (dot <= 0 || dot === value.length - 1) {
+      return `${value.slice(0, maxLen - 3)}...`;
+    }
+    const ext = value.slice(dot);
+    const base = value.slice(0, dot);
+    const keep = Math.max(12, maxLen - ext.length - 3);
+    return `${base.slice(0, keep)}...${ext}`;
+  }
+
   function updateReportPhotoUi(file = null) {
     const meta = document.getElementById('uploadMeta');
     const thumb = document.getElementById('uploadThumb');
@@ -2640,7 +2653,8 @@ function selType(el, t) {
 
     meta.classList.add('show');
     thumb.src = reportPhotoData;
-    nameEl.textContent = file.name || 'Selected image';
+    nameEl.textContent = shortenFileName(file.name, 42);
+    nameEl.title = file.name || 'Selected image';
     hintEl.textContent = `${file.type.replace('image/', '').toUpperCase()} - ${bytesToReadableSize(file.size)}`;
   }
 
@@ -2939,6 +2953,16 @@ function selType(el, t) {
     return `https://maps.google.com/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
   }
 
+  function toQueryEmbedUrl(query, view = 'map', zoom = 14) {
+    const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
+    return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=${type}&z=${zoom}&output=embed`;
+  }
+
+  function toCenterEmbedUrl(lat, lng, view = 'map', zoom = 14) {
+    const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
+    return `https://maps.google.com/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
+  }
+
   function renderReporterMap(gps, label = 'Detected location') {
     const p = parseGps(gps);
     const wrap = document.getElementById('gpsMapWrap');
@@ -2976,6 +3000,7 @@ function selType(el, t) {
       updateZoomDisplay();
       updateZoomButtons();
       updateViewToggle();
+      updateMapPin();
       refreshMapLink();
       return;
     }
@@ -2984,7 +3009,20 @@ function selType(el, t) {
     updateZoomDisplay();
     updateZoomButtons();
     updateViewToggle();
+    updateMapPin();
     refreshMapLink();
+  }
+
+  function updateMapPin() {
+    const pin = document.getElementById('gpsMapPin');
+    const badge = document.getElementById('gpsMapBadge');
+    const coords = document.getElementById('gpsMapCoords');
+    const hasLocation = Number.isFinite(mapState.lat) && Number.isFinite(mapState.lng);
+    if (pin) pin.hidden = !hasLocation;
+    if (badge) badge.hidden = !hasLocation;
+    if (coords && hasLocation) {
+      coords.textContent = `${mapState.lat.toFixed(5)}, ${mapState.lng.toFixed(5)}`;
+    }
   }
 
   function updateViewToggle() {
