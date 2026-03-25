@@ -3,83 +3,158 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SVS — FAQ</title>
+  <title>SVS - FAQ</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    :root{--blue:#1D4ED8;--bg:#e9f0ff;--bg-2:#fff7ef;--muted:#475569;--muted2:#64748B;--border:#c8d7f3;--text:#0F172A;}
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Outfit',sans-serif;background:linear-gradient(180deg,#f2f6ff 0%,#fff9ef 78%,#ffffff 100%);color:#0F172A;line-height:1.65;-webkit-font-smoothing:antialiased;}
-    main a{color:var(--blue);text-decoration:none;}
-    main a:visited{color:var(--blue);}
-    main a:hover{color:#0f3fb5;}
-    main{max-width:1080px;margin:2.4rem auto 2.8rem;padding:0 1.5rem;}
-    h1{font-size:2.65rem;letter-spacing:-1px;margin-bottom:.5rem;color:#0c1a36;}
-    .intro{color:#1e293b;margin-bottom:1.8rem;line-height:1.75;font-size:1.05rem;max-width:820px;}
-    .faq{background:linear-gradient(135deg,#f7faff,#eef3ff);border:1.6px solid #d3e2ff;border-radius:20px;box-shadow:0 20px 40px rgba(15,23,42,.14);padding:1.35rem;display:grid;gap:.85rem;}
-    details{background:#fff;border:1.4px solid #dbe7ff;border-radius:14px;padding:1rem 1.1rem;box-shadow:0 8px 20px rgba(15,23,42,.08);transition:.15s ease;}
-    details[open]{border-color:#1D4ED8;box-shadow:0 14px 28px rgba(29,78,216,.16);}
-    summary{font-weight:820;color:#0f1d3a;cursor:pointer;list-style:none;display:flex;align-items:center;gap:.75rem;font-size:1.05rem;}
-    summary::marker, summary::-webkit-details-marker{display:none;}
-    summary::before{content:'?';width:28px;height:28px;border-radius:10px;background:linear-gradient(135deg,#1D4ED8,#2563EB);color:#fff;display:grid;place-items:center;font-weight:900;font-size:.9rem;box-shadow:0 6px 12px rgba(29,78,216,.25);}
-    summary::after{content:'+';margin-left:auto;font-weight:900;color:#1D4ED8;transition:.15s;}
-    details[open] summary::after{content:'−';color:#dc2626;}
-    details p{margin-top:.6rem;color:#1f2937;line-height:1.7;font-size:1.02rem;}
-    .cta{margin-top:1.5rem;display:flex;gap:.8rem;flex-wrap:wrap;}
-    .faq-meta{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.1rem;}
-    .faq-chip{background:#fff;border:1px solid #dbe7ff;color:#0f3fb5;font-weight:800;border-radius:999px;padding:.4rem .85rem;font-size:.85rem;box-shadow:0 6px 14px rgba(15,23,42,.08);}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:.75rem 1.15rem;border-radius:12px;border:1.5px solid #97BDE9;font-weight:800;color:var(--blue);background:#fff;transition:.16s;text-decoration:none;}
-    .btn.primary{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border-color:transparent;}
-    .btn:hover{transform:translateY(-1px);}
-  </style>
 </head>
-<body>
+<body class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.1),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(239,68,68,0.09),_transparent_30%),linear-gradient(180deg,#f4f8ff_0%,#fff8ef_82%,#ffffff_100%)] text-slate-900 antialiased [font-family:'Outfit',sans-serif]">
+  <%
+    const faqs = [
+      {
+        q: 'What counts as an emergency?',
+        a: 'Immediate threats to life, safety, health, or critical infrastructure such as fire, major flooding, serious injuries, trapped people, road crashes, collapsed structures, hazardous spills, or urgent evacuation needs.',
+      },
+      {
+        q: 'How does SVS reduce prank or low-quality reports?',
+        a: 'SVS encourages validated contact numbers, structured fields, location capture, photos, and dispatcher review so responders receive clearer, more credible reports.',
+      },
+      {
+        q: 'Can I submit without GPS?',
+        a: 'Yes. You can still report using barangay, street, and landmark details. If GPS becomes available later, the platform can add it to help dispatch locate the scene faster.',
+      },
+      {
+        q: 'What if my connection drops while reporting?',
+        a: 'The report flow is built to be retry-friendly. If the request cannot send immediately, the client can keep the report queued locally and try again when the connection returns.',
+      },
+      {
+        q: 'When should I use SOS instead of the report form?',
+        a: 'Use SOS for the fastest one-tap alert when you need immediate dispatcher attention. Use the full report form when you can safely provide more details, landmarks, or a photo.',
+      },
+    ];
+    const feedbackState = (typeof feedbackStatus === 'string' ? feedbackStatus : '').trim();
+    const faqCount = faqs.length;
+  %>
+
   <%- include('partials/navbar', { active: 'faq', timeId: 'faqTime' }) %>
 
-  <main style="background:linear-gradient(135deg,#fffaf4 0%,#f9f6f2 100%);min-height:100vh;padding-bottom:40px;">
-    <h1 style="margin-bottom:1.2rem;">Frequently Asked Questions</h1>
-    <p class="intro">Everything you need to know about sending reports, staying verified, and keeping dispatchers focused on real emergencies.</p>
-    <div class="faq-meta" style="margin-bottom:1.5rem;">
-      <span class="faq-chip">Verified callers</span>
-      <span class="faq-chip">GPS-first</span>
-      <span class="faq-chip">Offline ready</span>
-      <span class="faq-chip">Dispatcher-first UX</span>
-    </div>
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <section class="overflow-hidden rounded-[2.2rem] border border-slate-200/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.94),rgba(238,246,255,0.9))] shadow-[0_28px_70px_rgba(15,23,42,0.12)]">
+      <div class="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)] lg:items-center">
+        <div>
+          <div class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/90 px-3 py-1 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-blue-700">
+            Frequently Asked Questions
+          </div>
+          <h1 class="mt-5 max-w-3xl text-3xl font-black leading-[1.02] tracking-tight text-slate-950 sm:text-[3.3rem]">
+            Straight answers for urgent reporting, GPS, and dispatch flow.
+          </h1>
+          <p class="mt-5 max-w-3xl text-base leading-8 text-slate-700 sm:text-lg">
+            This page covers the most common questions about emergency reporting in SVS so users can move with confidence and dispatchers can receive clearer incident information.
+          </p>
+          <div class="mt-6 flex flex-wrap gap-2">
+            <span class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-black text-blue-700"><%= faqCount %> key questions</span>
+            <span class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">Verified callers</span>
+            <span class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">GPS-first</span>
+            <span class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">Retry-friendly</span>
+          </div>
+        </div>
 
-    <div class="faq" style="margin-bottom:2rem;">
-      <details open>
-        <summary>What counts as an emergency?</summary>
-        <p>Immediate threats to life, health, or critical infrastructure: fire, trapped or injured people, severe flooding, collapsed structures, major road blockages, chemical spills.</p>
-      </details>
-      <details>
-        <summary>How does SVS reduce prank calls?</summary>
-        <p>We use attestation, phone validation, rate limits, dispatcher review, and pattern checks on repeat offenders. Photos and GPS improve verification.</p>
-      </details>
-      <details>
-        <summary>Can I submit without GPS?</summary>
-        <p>Yes. Fill in barangay, landmark, and street. If GPS later appears, we append it to help dispatch find you faster.</p>
-      </details>
-      <details>
-        <summary>What if I lose connection mid-report?</summary>
-        <p>Your submission is stored in the offline queue and automatically re-sent when connectivity returns. You can also call the hotline.</p>
-      </details>
-      <details>
-        <summary>Who can access the dashboard?</summary>
-        <p>Only authenticated dispatchers and admins with role-based access. Login attempts are rate-limited and monitored.</p>
-      </details>
-    </div>
+        <div class="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur">
+          <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-slate-500">Need help now?</div>
+          <div class="mt-4 space-y-4">
+            <a href="/sos" class="flex items-start justify-between gap-4 rounded-[1.4rem] border border-red-200 bg-red-50 px-5 py-4 transition hover:border-red-300 hover:bg-red-100">
+              <div>
+                <div class="text-sm font-black uppercase tracking-[0.18em] text-red-600">Immediate action</div>
+                <p class="mt-2 text-sm leading-7 text-slate-700">Use SOS for the fastest one-tap emergency alert.</p>
+              </div>
+              <span class="shrink-0 rounded-full bg-white px-3 py-1 text-sm font-black text-red-600">SOS</span>
+            </a>
+            <a href="/report" class="flex items-start justify-between gap-4 rounded-[1.4rem] border border-blue-200 bg-blue-50 px-5 py-4 transition hover:border-blue-300 hover:bg-blue-100">
+              <div>
+                <div class="text-sm font-black uppercase tracking-[0.18em] text-blue-700">Detailed report</div>
+                <p class="mt-2 text-sm leading-7 text-slate-700">Add location details, scene context, and a photo when safe.</p>
+              </div>
+              <span class="shrink-0 rounded-full bg-white px-3 py-1 text-sm font-black text-blue-700">Report</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <div style="display:flex;justify-content:center;margin-top:2.5rem;">
-      <form class="feedback-form" method="post" action="/faq/feedback" style="width:100%;max-width:520px;background:#fff8f0;padding:2.3rem 2.7rem 2rem 2.7rem;border-radius:18px;box-shadow:0 6px 32px #0002;display:flex;flex-direction:column;align-items:center;">
-        <h3 style="font-size:1.4rem;margin-bottom:10px;font-weight:800;color:#b23b3b;letter-spacing:0.5px;text-align:center;">We value your feedback</h3>
-        <p style="margin-bottom:22px;color:#6a5a3a;font-size:1.08rem;text-align:center;max-width:95%;">Let us know how we can improve your experience or if you have any suggestions. Your input helps us serve you better.</p>
-        <label for="feedbackText" style="font-weight:600;margin-bottom:8px;align-self:flex-start;color:#4a3a1a;font-size:1.09rem;">Your Feedback</label>
-        <textarea id="feedbackText" name="feedback" rows="5" required style="width:100%;padding:16px 18px;border-radius:12px;border:1.7px solid #e0cdbd;margin-bottom:20px;font-size:1.09rem;resize:vertical;box-shadow:0 2px 8px #0001;min-height:120px;background:#fff;transition:border 0.2s;"></textarea>
-        <button class="btn primary" type="submit" style="width:100%;font-size:1.15rem;padding:14px 0;border-radius:10px;background:#b23b3b;box-shadow:0 2px 12px #b23b3b22;transition:background 0.2s;">Submit Feedback</button>
-      </form>
-    </div>
+    <% if (feedbackState === 'success') { %>
+      <div class="mt-6 rounded-[1.6rem] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-bold text-emerald-700 shadow-[0_14px_28px_rgba(16,185,129,0.08)]">
+        Feedback received. Thank you for helping improve SVS.
+      </div>
+    <% } else if (feedbackState === 'error') { %>
+      <div class="mt-6 rounded-[1.6rem] border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700 shadow-[0_14px_28px_rgba(239,68,68,0.08)]">
+        We could not save your feedback right now. Please try again in a moment.
+      </div>
+    <% } %>
+
+    <section class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+      <div class="rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#eff6ff_0%,#ffffff_100%)] p-5 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-6">
+        <div class="space-y-4">
+          <% faqs.forEach(function(item, index) { %>
+            <details class="group rounded-[1.6rem] border border-slate-200 bg-white px-5 py-4 shadow-[0_12px_24px_rgba(15,23,42,0.06)] open:border-blue-200 open:shadow-[0_18px_34px_rgba(37,99,235,0.12)]" <%= index === 0 ? 'open' : '' %>>
+              <summary class="flex cursor-pointer list-none items-center gap-4 text-left">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-sm font-black text-white">?</span>
+                <span class="text-base font-black text-slate-950 sm:text-lg"><%= item.q %></span>
+                <span class="ml-auto text-xl font-black text-blue-600 transition group-open:rotate-45">+</span>
+              </summary>
+              <p class="mt-4 pl-14 text-sm leading-7 text-slate-700 sm:text-base"><%= item.a %></p>
+            </details>
+          <% }) %>
+        </div>
+      </div>
+
+      <aside class="space-y-6">
+        <section class="rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)]">
+          <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-amber-600">Best practice</div>
+          <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950">How to help dispatch faster</h2>
+          <div class="mt-4 space-y-3 text-sm leading-7 text-slate-700">
+            <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-3">Keep your callback number accurate and reachable.</div>
+            <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-3">Use barangay, street, and landmark details even if GPS is present.</div>
+            <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-3">Attach a photo only when it is safe to do so.</div>
+          </div>
+          <div class="mt-4 rounded-[1.4rem] border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-7 text-slate-700">
+            If the answer you need is not here, the fastest paths are still <a href="/sos" class="font-black text-red-600">SOS</a> for immediate attention and <a href="/report" class="font-black text-blue-700">Report</a> for detailed incident context.
+          </div>
+        </section>
+
+        <section class="rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#fff8ef_0%,#ffffff_100%)] p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)]">
+          <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-red-600">Feedback</div>
+          <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950">Tell us what needs work.</h2>
+          <p class="mt-3 text-sm leading-7 text-slate-700 sm:text-base">
+            If something felt unclear or hard to use, send feedback here. Short, specific notes are the most helpful.
+          </p>
+
+          <form class="mt-5 space-y-4" method="post" action="/faq/feedback">
+            <div>
+              <label class="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-slate-500" for="feedbackText">Your feedback</label>
+              <textarea
+                id="feedbackText"
+                name="feedback"
+                rows="6"
+                required
+                maxlength="1000"
+                class="w-full rounded-[1.4rem] border border-slate-300 bg-white px-4 py-4 text-sm leading-7 text-slate-900 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                placeholder="Example: The map was clear, but the GPS button text felt too long on mobile."
+              ></textarea>
+              <div class="mt-2 text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Short, specific feedback is easiest to act on.</div>
+            </div>
+            <button class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-white transition hover:-translate-y-0.5" type="submit">
+              Submit feedback
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 2 11 13"/>
+                <path d="m22 2-7 20-4-9-9-4Z"/>
+              </svg>
+            </button>
+          </form>
+        </section>
+      </aside>
+    </section>
   </main>
+
   <%- include('partials/footer') %>
 
   <script>
@@ -95,4 +170,3 @@
   </script>
 </body>
 </html>
-
