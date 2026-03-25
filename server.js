@@ -137,6 +137,7 @@ async function initDatabase() {
       await mongoose.connect(mongoUri, connectOptions);
       console.log(`  ✔  MongoDB connected${mongoDb ? ` (db: ${mongoDb})` : ''}`);
       await ensureDefaultAdmin();
+      await ensureDefaultDispatcher();
     } catch (err) {
       console.error('  ✘  MongoDB connection error:', err.message);
       logMongoConnectionHints(err, mongoUri);
@@ -687,7 +688,7 @@ app.get('/login', async (req, res) => {
   res.render('login', { error: '' });
 });
 
-app.post('/login', guardAdminLoginRate, async (req, res) => {
+async function handleAdminLogin(req, res) {
   try {
     await ensureDbReady();
     const username = String(req.body.username || '').trim();
@@ -696,11 +697,12 @@ app.post('/login', guardAdminLoginRate, async (req, res) => {
       if (res.locals.loginRateKey) await recordLoginAttempt(res.locals.loginRateKey);
       return res.status(400).render('login', { error: 'Invalid login details.' });
     }
-    const admin = await Admin.findOne({ username });
+    const admin = await findAdminForLogin(username);
     if (!admin || !verifyPassword(password, admin.passwordHash)) {
       if (res.locals.loginRateKey) await recordLoginAttempt(res.locals.loginRateKey);
       return res.status(401).render('login', { error: 'Invalid admin credentials.' });
     }
+    await upgradeLegacyPasswordHashIfNeeded(admin, password);
     await createSession(req, res, {
       role: 'admin',
       userId: String(admin._id),
@@ -713,7 +715,9 @@ app.post('/login', guardAdminLoginRate, async (req, res) => {
     console.error('[login] admin login failed:', err && err.message ? err.message : err);
     return res.status(500).render('login', { error: 'Login failed. Please try again.' });
   }
-});
+}
+
+app.post('/login', guardAdminLoginRate, handleAdminLogin);
 
 app.get('/dispatcher/login', async (req, res) => {
   // Clear dispatcher session cookie to avoid auto-login on cached tokens
@@ -733,11 +737,12 @@ app.post('/dispatcher/login', guardDispatcherLoginRate, async (req, res) => {
       return res.status(400).render('dispatcher-login', { error: 'Invalid login details.' });
     }
 
-    const dispatcher = await Dispatcher.findOne({ username });
+    const dispatcher = await findDispatcherForLogin(username);
     if (!dispatcher || !dispatcher.isActive || !verifyPassword(password, dispatcher.passwordHash)) {
       if (res.locals.loginRateKey) await recordLoginAttempt(res.locals.loginRateKey);
       return res.status(401).render('dispatcher-login', { error: 'Invalid dispatcher credentials.' });
     }
+    await upgradeLegacyPasswordHashIfNeeded(dispatcher, password);
 
     await createSession(req, res, {
       role: 'dispatcher',
@@ -813,35 +818,12 @@ app.post('/dispatcher/reset', async (req, res) => {
   }
 });
 
-app.get('/admin/login', (req, res) => {
-  const suffix = String(req.query.force || '') === '1' ? '?force=1' : '';
-  return res.redirect(`/login${suffix}`);
+app.get('/admin/login', async (req, res) => {
+  await destroySession(req, res, 'admin');
+  res.render('login', { error: '' });
 });
 
-app.post('/admin/login', async (req, res) => {
-  try {
-    await ensureDbReady();
-    const username = String(req.body.username || '').trim();
-    const password = String(req.body.password || '');
-    if (!username || !password) {
-      return res.status(400).render('login', { error: 'Invalid login details.' });
-    }
-    const admin = await Admin.findOne({ username });
-    if (!admin || !verifyPassword(password, admin.passwordHash)) {
-      return res.status(401).render('login', { error: 'Invalid admin credentials.' });
-    }
-    await createSession(req, res, {
-      role: 'admin',
-      userId: String(admin._id),
-      username: admin.username,
-      fullName: admin.fullName || admin.username,
-    });
-    return res.redirect('/admin');
-  } catch (err) {
-    console.error('[login] admin/login failed:', err && err.message ? err.message : err);
-    res.status(500).render('login', { error: 'Login failed. Please try again.' });
-  }
-});
+app.post('/admin/login', guardAdminLoginRate, handleAdminLogin);
 
 app.post('/logout', async (req, res) => {
   await destroyAllSessions(req, res);
@@ -877,13 +859,16 @@ app.get('/report', (_req, res) => res.render('report'));
 app.all('/dashboard', requireRolesPage(['dispatcher'], '/dispatcher/login'), async (req, res) => {
   if (req.method !== 'GET') return res.redirect(303, '/dashboard');
   try {
-    const reports = await Report.find(buildReportVisibilityQuery(req.auth)).sort({ timestamp: -1 }).lean({ virtuals: true });
+    const reportsQuery = (req.auth && (req.auth.role === 'dispatcher' || req.auth.role === 'admin'))
+      ? {}
+      : buildReportVisibilityQuery(req.auth);
+    const reports = await Report.find(reportsQuery).sort({ timestamp: -1 }).lean({ virtuals: true });
     const dispatcher = await Dispatcher.findById(req.auth.userId).lean();
     if (!dispatcher) return res.redirect('/logout');
     if (!dispatcher.isActive) return res.redirect('/dispatcher/logout');
     const activeDispatchers = await Dispatcher.find({ isActive: true }).sort({ fullName: 1, username: 1 }).lean();
     res.render('dashboard', {
-      reports,
+      reports: reports.map(ensureReportHasId),
       currentUser: req.auth,
       activeDispatchers: activeDispatchers.map(d => ({
         id: String(d._id),
@@ -1646,7 +1631,9 @@ app.delete('/api/reports', requireRolesApi(['dispatcher', 'admin']), async (_req
 // ── API: list all reports (JSON) ─────────────────────────────────────────────
 app.get('/api/reports', requireRolesApi(['dispatcher', 'admin']), async (_req, res) => {
   try {
-    const query = buildReportVisibilityQuery(_req.auth);
+    const query = (_req.auth && (_req.auth.role === 'dispatcher' || _req.auth.role === 'admin'))
+      ? {}
+      : buildReportVisibilityQuery(_req.auth);
     const reports = await Report.find(query).sort({ timestamp: -1 }).lean({ virtuals: true });
     // Ensure every report has an id field
     const reportsWithId = reports.map(ensureReportHasId);
@@ -2174,8 +2161,19 @@ function hashPassword(password) {
   return `${salt}:${digest}`;
 }
 
+function isLegacyPlainPassword(stored) {
+  const value = String(stored || '').trim();
+  if (!value) return false;
+  return !value.includes(':');
+}
+
 function verifyPassword(password, stored) {
-  const [salt, oldHash] = String(stored || '').split(':');
+  const raw = String(stored || '');
+  if (!raw) return false;
+  if (isLegacyPlainPassword(raw)) {
+    return raw === String(password || '');
+  }
+  const [salt, oldHash] = raw.split(':');
   if (!salt || !oldHash) return false;
   const digest = crypto.scryptSync(String(password), salt, 64).toString('hex');
   try {
@@ -2183,6 +2181,36 @@ function verifyPassword(password, stored) {
   } catch (_e) {
     return false;
   }
+}
+
+async function upgradeLegacyPasswordHashIfNeeded(userDoc, plainPassword) {
+  if (!userDoc || !isLegacyPlainPassword(userDoc.passwordHash)) return;
+  userDoc.passwordHash = hashPassword(plainPassword);
+  try {
+    await userDoc.save();
+  } catch (err) {
+    console.warn('[auth] failed to upgrade legacy password hash:', err && err.message ? err.message : err);
+  }
+}
+
+async function findAdminForLogin(username) {
+  const clean = String(username || '').trim();
+  if (!clean) return null;
+  let admin = await Admin.findOne({ username: clean });
+  if (admin) return admin;
+  return Admin.findOne({ username: new RegExp(`^${escapeRegex(clean)}$`, 'i') });
+}
+
+async function findDispatcherForLogin(username) {
+  const clean = String(username || '').trim();
+  if (!clean) return null;
+  let dispatcher = await Dispatcher.findOne({ username: clean });
+  if (dispatcher) return dispatcher;
+  return Dispatcher.findOne({ username: new RegExp(`^${escapeRegex(clean)}$`, 'i') });
+}
+
+function escapeRegex(value) {
+  return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 async function ensureDefaultAdmin() {
@@ -2211,6 +2239,47 @@ async function ensureDefaultAdmin() {
       passwordHash: hashPassword('123456'),
     });
     console.log('  ✔  Secondary admin created (admin1)');
+  }
+}
+
+async function ensureDefaultDispatcher() {
+  const username = String(process.env.DEFAULT_DISPATCHER_USERNAME || 'dispatcher').trim();
+  const password = String(process.env.DEFAULT_DISPATCHER_PASSWORD || '123456');
+  const fullName = String(process.env.DEFAULT_DISPATCHER_FULLNAME || 'Default Dispatcher').trim();
+  if (!username || !password) return;
+
+  const dispatcher = await Dispatcher.findOne({ username });
+  if (!dispatcher) {
+    await Dispatcher.create({
+      username,
+      fullName,
+      phone: '',
+      isActive: true,
+      passwordHash: hashPassword(password),
+    });
+    console.log(`  âœ”  Default dispatcher created (${username})`);
+    return;
+  }
+
+  const isProduction = String(process.env.NODE_ENV || '').toLowerCase() === 'production';
+  if (isProduction) return;
+
+  let changed = false;
+  if (!dispatcher.isActive) {
+    dispatcher.isActive = true;
+    changed = true;
+  }
+  if (!String(dispatcher.fullName || '').trim()) {
+    dispatcher.fullName = fullName;
+    changed = true;
+  }
+  if (!verifyPassword(password, dispatcher.passwordHash)) {
+    dispatcher.passwordHash = hashPassword(password);
+    changed = true;
+  }
+  if (changed) {
+    await dispatcher.save();
+    console.log(`  âœ”  Default dispatcher normalized (${username})`);
   }
 }
 
@@ -2295,17 +2364,9 @@ function buildPagerView(baseQuery, tab, pageKey, meta) {
 function buildReportVisibilityQuery(auth) {
   if (!auth) return { _id: null };
   if (auth.role === 'admin') return {};
+  if (auth.role === 'dispatcher') return {};
   const userId = String(auth.userId || '').trim();
-  // Dispatchers can see unassigned reports and reports assigned to them
-  // Use explicit string comparison to handle both ObjectId and string formats
-  return {
-    $or: [
-      { assignedToId: { $exists: false } },
-      { assignedToId: null },
-      { assignedToId: '' },
-      { assignedToId: userId },
-    ],
-  };
+  return { assignedToId: userId };
 }
 
 async function resolveDispatcherAssignmentPatch(req, currentReport, opts = {}) {

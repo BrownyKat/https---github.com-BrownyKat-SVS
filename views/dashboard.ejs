@@ -1788,10 +1788,7 @@
   }
 
   function canSeeReport(r) {
-    if (!r) return false;
-    const owner = String(r.assignedToId || '').trim();
-    if (!owner) return true;
-    return owner === currentUserId;
+    return !!r;
   }
 
   function assignmentLabel(r) {
@@ -1878,6 +1875,30 @@
       .replace(/'/g, '&#39;');
   }
 
+  function toDialablePhone(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    const keepPlus = raw.startsWith('+');
+    const digits = raw.replace(/[^\d]/g, '');
+    if (!digits) return '';
+    return `${keepPlus ? '+' : ''}${digits}`;
+  }
+
+  function openPhoneDialer(number) {
+    if (!number) return false;
+    try {
+      const a = document.createElement('a');
+      a.href = `tel:${number}`;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      return true;
+    } catch (_e) {
+      return false;
+    }
+  }
+
   function confirmFalseReportById(id) {
     const report = reports.find(x => x.id === id);
     confirmFalseReport(id, report ? report.emergencyType : '');
@@ -1898,7 +1919,17 @@
       report = reports.find(x => x.id === id) || claimed;
     }
 
-    toast_('Calling...', `Initiating call to ${report && report.contact ? report.contact : 'unknown number'}`);
+    const dialNumber = toDialablePhone(report && report.contact ? report.contact : '');
+    if (!dialNumber) {
+      toast_('Call unavailable', 'This report does not have a valid callback number yet.', 'warn');
+      return;
+    }
+
+    const dialStarted = openPhoneDialer(dialNumber);
+    toast_('Calling...', `Initiating call to ${report && report.contact ? report.contact : dialNumber}`);
+    if (!dialStarted) {
+      toast_('Call action blocked', `Dial manually: ${dialNumber}`, 'warn');
+    }
 
     const isMineNow = String(report.assignedToId || '').trim() === currentUserId;
     if (isMineNow && String(report.status || '') === 'new') {
