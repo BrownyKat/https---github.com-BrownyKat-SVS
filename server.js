@@ -1484,6 +1484,7 @@ app.all('/api/report', (req, res, next) => {
 });
 app.post('/api/report', async (req, res) => {
   try {
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Report create DB connect timed out');
     const clean = sanitizeNormalReportInput(req.body || {});
     const seq      = await Counter.nextSeq('report');
     const reportId = `RPT-${String(seq).padStart(4, '0')}`;
@@ -1528,6 +1529,7 @@ app.all('/api/panic', (req, res, next) => {
 });
 app.post('/api/panic', async (req, res) => {
   try {
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Panic DB connect timed out');
     const panicInput = sanitizePanicInput(req.body || {});
     const seq      = await Counter.nextSeq('panic');
     const reportId = `SOS-${String(seq).padStart(4, '0')}`;
@@ -1599,13 +1601,28 @@ app.patch('/api/report/:id/status', requireRolesApi(['dispatcher', 'admin']), as
       return res.status(400).json({ error: 'Invalid status value' });
     }
     const where = reportLookupQuery(req.params.id);
-    const updates = { status: nextStatus };
+    const current = await Report.findOne(where);
+    if (!current) return res.status(404).json({ error: 'Report not found' });
+    const assignment = await resolveDispatcherAssignmentPatch(req, current, { auth: effectiveAuth });
+    if (!assignment.ok) return res.status(assignment.status).json({ error: assignment.error });
+    const scopedWhere = effectiveAuth && effectiveAuth.role === 'dispatcher'
+      ? {
+        $and: [
+          where,
+          buildReportVisibilityQuery(effectiveAuth),
+        ],
+      }
+      : where;
+    const updates = {
+      status: nextStatus,
+      ...assignment.patch,
+    };
     if (effectiveAuth && effectiveAuth.role === 'dispatcher') {
       updates.dispatcherId = String(effectiveAuth.userId || '');
       updates.dispatcherName = String(effectiveAuth.fullName || effectiveAuth.username || '').trim();
     }
     const report = await Report.findOneAndUpdate(
-      where,
+      scopedWhere,
       updates,
       { new: true }
     );
@@ -1877,10 +1894,14 @@ app.post('/api/report/:id/claim', requireRolesApi(['dispatcher', 'admin']), asyn
       return res.status(409).json({ error: 'This report was already claimed by another dispatcher' });
     }
 
-    const assignment = await resolveDispatcherAssignmentPatch(req, current, { requireClaimWhenUnassigned: true });
+    const assignment = await resolveDispatcherAssignmentPatch(req, current, {
+      requireClaimWhenUnassigned: true,
+      auth: effectiveAuth,
+    });
     if (!assignment.ok) return res.status(assignment.status).json({ error: assignment.error });
 
-    const claimWhere = req.auth.role === 'dispatcher'
+    const isDispatcher = !!(effectiveAuth && effectiveAuth.role === 'dispatcher');
+    const claimWhere = isDispatcher
       ? {
         $and: [
           where,
@@ -1935,7 +1956,10 @@ app.post('/api/report/:id/pass', requireRolesApi(['dispatcher', 'admin']), async
     const isClosed = ['resolved', 'false-report'].includes(String(current.status || '').toLowerCase());
     if (isClosed) return res.status(400).json({ error: 'Closed reports cannot be passed' });
 
-    const assignment = await resolveDispatcherAssignmentPatch(req, current, { requireClaimWhenUnassigned: false });
+    const assignment = await resolveDispatcherAssignmentPatch(req, current, {
+      requireClaimWhenUnassigned: false,
+      auth: effectiveAuth,
+    });
     if (!assignment.ok) return res.status(assignment.status).json({ error: assignment.error });
     if (String(current.assignedToId || '').trim() === String(target._id)) {
       return res.status(400).json({ error: 'Report is already assigned to that dispatcher' });
@@ -2424,8 +2448,8 @@ function buildEnvUserId(role, username) {
 }
 
 function getEnvAdminAccount() {
-  const username = String(process.env.ADMIN_USERNAME || 'admin').trim();
-  const password = String(process.env.ADMIN_PASSWORD || 'admin123');
+  const username = String(process.env.ADMIN_USERNAME || '').trim();
+  const password = String(process.env.ADMIN_PASSWORD || '');
   const fullName = String(process.env.ADMIN_FULLNAME || 'System Administrator').trim() || username;
   if (!username || !password) return null;
   return {
@@ -2438,8 +2462,8 @@ function getEnvAdminAccount() {
 }
 
 function getEnvDispatcherAccount() {
-  const username = String(process.env.DISPATCHER_USERNAME || process.env.DEFAULT_DISPATCHER_USERNAME || 'dispatcher').trim();
-  const password = String(process.env.DISPATCHER_PASSWORD || process.env.DEFAULT_DISPATCHER_PASSWORD || 'dispatcher123');
+  const username = String(process.env.DISPATCHER_USERNAME || process.env.DEFAULT_DISPATCHER_USERNAME || '').trim();
+  const password = String(process.env.DISPATCHER_PASSWORD || process.env.DEFAULT_DISPATCHER_PASSWORD || '');
   const fullName = String(process.env.DISPATCHER_FULLNAME || process.env.DEFAULT_DISPATCHER_FULLNAME || 'Default Dispatcher').trim() || username;
   if (!username || !password) return null;
   return {
@@ -2454,6 +2478,23 @@ function getEnvDispatcherAccount() {
 function matchEnvAccount(account, username, password) {
   if (!account) return false;
   return String(username || '').trim() === account.username && String(password || '') === account.password;
+}
+
+function isWeakBootstrapPassword(value) {
+  const raw = String(value || '');
+  const normalized = raw.trim().toLowerCase();
+  if (!normalized) return true;
+  if (raw.length < 12) return true;
+  const blocked = new Set([
+    'admin123',
+    'dispatcher123',
+    '123456',
+    'password',
+    'password123',
+    'changeme',
+    'change_this_to_a_long_random_secret',
+  ]);
+  return blocked.has(normalized);
 }
 
 async function resolveDispatcherContext(auth, options = {}) {
@@ -2582,49 +2623,41 @@ async function authenticateDispatcherUser(username, password) {
 
 async function ensureDefaultAdmin() {
   const envAdmin = getEnvAdminAccount();
-  const username = envAdmin ? envAdmin.username : 'admin';
-  const password = envAdmin ? envAdmin.password : 'admin123';
-  const fullName = envAdmin ? envAdmin.fullName : 'System Administrator';
   const adminCount = await Admin.countDocuments({});
-
-  const isProduction = String(process.env.NODE_ENV || '').toLowerCase() === 'production';
-  const usingFallbackUsername = !String(process.env.ADMIN_USERNAME || '').trim() || username === 'admin';
-  const usingFallbackPassword = !String(process.env.ADMIN_PASSWORD || '').trim() || password === 'admin123';
-  if (adminCount === 0 && isProduction && (usingFallbackUsername || usingFallbackPassword || password.length < 10)) {
-    console.warn('[auth] Bootstrapping admin with default or weak credentials in production. Set strong ADMIN_USERNAME and ADMIN_PASSWORD.');
+  if (adminCount > 0) return;
+  if (!envAdmin) {
+    console.warn('[auth] No admin accounts found and ADMIN_USERNAME/ADMIN_PASSWORD are not configured. Skipping automatic admin bootstrap.');
+    return;
   }
-
-  if (adminCount === 0) {
-    await Admin.create({ username, fullName, passwordHash: hashPassword(password) });
-    console.log(`  ✔  Default admin created (${username})`);
+  if (isWeakBootstrapPassword(envAdmin.password)) {
+    console.warn('[auth] Skipping admin bootstrap because ADMIN_PASSWORD is too weak. Use at least 12 characters and avoid default credentials.');
+    return;
   }
-
-  const secondaryAdmin = await Admin.findOne({ username: 'admin1' }).lean();
-  if (!secondaryAdmin) {
-    await Admin.create({
-      username: 'admin1',
-      fullName: 'Admin One',
-      passwordHash: hashPassword('123456'),
-    });
-    console.log('  ✔  Secondary admin created (admin1)');
-  }
+  await Admin.create({
+    username: envAdmin.username,
+    fullName: envAdmin.fullName,
+    passwordHash: hashPassword(envAdmin.password),
+  });
+  console.log(`  [auth] Bootstrap admin created (${envAdmin.username})`);
 }
 
 async function ensureDefaultDispatcher() {
   const envDispatcher = getEnvDispatcherAccount();
-  const username = envDispatcher ? envDispatcher.username : 'dispatcher';
-  const password = envDispatcher ? envDispatcher.password : 'dispatcher123';
-  const fullName = envDispatcher ? envDispatcher.fullName : 'Default Dispatcher';
-  const existingDispatcher = await Dispatcher.findOne({ username }).lean();
+  if (!envDispatcher) return;
+  if (isWeakBootstrapPassword(envDispatcher.password)) {
+    console.warn('[auth] Skipping dispatcher bootstrap because DISPATCHER_PASSWORD is too weak. Use at least 12 characters and avoid default credentials.');
+    return;
+  }
+  const existingDispatcher = await Dispatcher.findOne({ username: envDispatcher.username }).lean();
   if (existingDispatcher) return;
 
   await Dispatcher.create({
-    username,
-    fullName,
-    passwordHash: hashPassword(password),
+    username: envDispatcher.username,
+    fullName: envDispatcher.fullName,
+    passwordHash: hashPassword(envDispatcher.password),
     isActive: true,
   });
-  console.log(`  âœ”  Default dispatcher created (${username})`);
+  console.log(`  [auth] Bootstrap dispatcher created (${envDispatcher.username})`);
 }
 
 function buildReportDateRangeFilter(fromRaw, toRaw) {
@@ -2787,17 +2820,18 @@ function buildReportMediaPayload(report) {
 }
 
 async function resolveDispatcherAssignmentPatch(req, currentReport, opts = {}) {
-  if (!req || !req.auth || req.auth.role !== 'dispatcher') {
+  const auth = opts && opts.auth ? opts.auth : (req && req.auth);
+  if (!auth || auth.role !== 'dispatcher') {
     return { ok: true, patch: {} };
   }
 
-  const resolved = await resolveDispatcherContext(req.auth);
+  const resolved = await resolveDispatcherContext(auth);
   const dispatcher = resolved.dispatcher;
   if (!dispatcher) {
     return { ok: false, status: 403, error: 'Dispatcher account is inactive' };
   }
 
-  const me = String((resolved.auth && resolved.auth.userId) || req.auth.userId || '').trim();
+  const me = String((resolved.auth && resolved.auth.userId) || auth.userId || '').trim();
   const assignedTo = String((currentReport && currentReport.assignedToId) || '').trim();
   if (assignedTo && assignedTo !== me) {
     return { ok: false, status: 403, error: 'This report is assigned to another dispatcher' };
