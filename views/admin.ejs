@@ -1728,10 +1728,11 @@
     setInterval(updateAdminDateTime, 1000);
     refreshAdminVisuals();
     void syncAdminLiveData(true);
+    const ADMIN_LIVE_POLL_MS = 3000;
     setInterval(() => {
       if (document.hidden) return;
       void syncAdminLiveData(false);
-    }, 15000);
+    }, ADMIN_LIVE_POLL_MS);
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) scheduleAdminSync(250);
     });
