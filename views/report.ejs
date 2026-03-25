@@ -391,7 +391,6 @@
     }
     .gps-map-head{
       display:flex;align-items:center;justify-content:space-between;gap:.65rem;
-      flex-wrap:wrap;
       padding:.55rem .75rem;
       border-bottom:1px solid var(--border);
       background:var(--surface2);
@@ -409,7 +408,6 @@
     .gps-map-canvas{
       position:relative;
       width:100%;
-      min-height:260px;
       background:#EEF2FF;
       border-radius:0 0 10px 10px;
       overflow:hidden;
@@ -422,82 +420,6 @@
       background:#F3F4F6;
       position:relative;
       z-index:1;
-    }
-    .gps-map-pin{
-      position:absolute;
-      top:50%;
-      left:50%;
-      z-index:2;
-      width:30px;
-      height:30px;
-      transform:translate(-50%,-100%);
-      pointer-events:none;
-    }
-    .gps-map-pin[hidden]{
-      display:none !important;
-    }
-    .gps-map-pin-pulse{
-      position:absolute;
-      left:50%;
-      bottom:-18px;
-      width:52px;
-      height:52px;
-      border-radius:999px;
-      background:rgba(239,68,68,.18);
-      transform:translateX(-50%);
-      animation:gpsMapPulse 1.8s ease-out infinite;
-    }
-    .gps-map-pin-dot{
-      position:absolute;
-      inset:0;
-      border-radius:999px 999px 999px 0;
-      background:linear-gradient(180deg,#ef4444,#b91c1c);
-      transform:rotate(-45deg);
-      box-shadow:0 10px 24px rgba(185,28,28,.35);
-    }
-    .gps-map-pin-dot::after{
-      content:'';
-      position:absolute;
-      inset:8px;
-      border-radius:999px;
-      background:#fff;
-    }
-    .gps-map-badge{
-      position:absolute;
-      left:12px;
-      bottom:12px;
-      z-index:3;
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-      max-width:min(240px,calc(100% - 24px));
-      padding:.65rem .8rem;
-      border-radius:14px;
-      background:rgba(15,23,42,.78);
-      color:#fff;
-      box-shadow:0 12px 28px rgba(15,23,42,.24);
-      pointer-events:none;
-    }
-    .gps-map-badge[hidden]{
-      display:none !important;
-    }
-    .gps-map-badge-label{
-      font-family:'JetBrains Mono',monospace;
-      font-size:.58rem;
-      font-weight:700;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color:rgba(255,255,255,.72);
-    }
-    .gps-map-badge strong{
-      font-size:.78rem;
-      line-height:1.4;
-      overflow-wrap:anywhere;
-    }
-    @keyframes gpsMapPulse{
-      0%{opacity:.9;transform:translateX(-50%) scale(.35);}
-      70%{opacity:0;transform:translateX(-50%) scale(1.15);}
-      100%{opacity:0;transform:translateX(-50%) scale(1.15);}
     }
     .gps-map-view-toggle{
       position:absolute;
@@ -574,46 +496,27 @@
       background:var(--bg);color:var(--muted);font-size:.88rem;
       transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:.5rem;
     }
-    .upload-area{
-      width:100%;
-      min-width:0;
-      max-width:100%;
-    }
     .upload-area svg{width:34px;height:34px;stroke:var(--muted2);fill:none;stroke-width:1.5;margin-bottom:.2rem;transition:stroke .2s;}
     .upload-area:hover{border-color:var(--amber);color:var(--amber-dark);background:var(--amber-light);}
     .upload-area:hover svg{stroke:var(--amber-dark);}
     .upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;}
     .upload-label{font-weight:600;}
-    .upload-label,
-    .upload-hint{
-      width:100%;
-      max-width:100%;
-      overflow-wrap:anywhere;
-    }
     .upload-hint{font-size:.74rem;color:var(--muted2);}
     .upload-meta{
       display:none;align-items:center;justify-content:space-between;gap:.85rem;
-      width:100%;
-      min-width:0;
-      flex-wrap:nowrap;
       margin-top:.8rem;padding:.8rem .95rem;border:1px solid var(--border);
       border-radius:12px;background:#fff;
     }
     .upload-meta.show{display:flex;}
     .upload-file{
-      min-width:0;
-      flex:1 1 auto;
-      display:flex;flex-direction:column;gap:.18rem;
-      overflow:hidden;
+      min-width:0;display:flex;flex-direction:column;gap:.18rem;
     }
     .upload-file strong{
       display:block;font-size:.84rem;font-weight:700;color:var(--text);
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-      max-width:100%;
     }
     .upload-file span{font-size:.74rem;color:var(--muted2);}
     .upload-thumb{
-      flex:0 0 auto;
       width:48px;height:48px;border-radius:10px;object-fit:cover;
       border:1px solid var(--border);background:var(--bg);
     }
@@ -623,8 +526,7 @@
       font-weight:700;cursor:pointer;transition:all .18s ease;
     }
     .upload-actions{
-      display:flex;align-items:center;gap:.5rem;flex:0 0 auto;flex-shrink:0;
-      margin-left:auto;
+      display:flex;align-items:center;gap:.5rem;flex-shrink:0;
     }
     .upload-change{
       display:inline-flex;align-items:center;justify-content:center;
@@ -642,14 +544,10 @@
     /* submit */
     .submit-btn{
       width:100%;display:flex;align-items:center;justify-content:center;gap:9px;
-      min-width:0;
-      max-width:100%;
       padding:1.1rem;margin-top:.65rem;
       background:linear-gradient(135deg,var(--amber),var(--orange));
       color:#fff;border:none;border-radius:var(--r-lg);
       font-family:'Outfit',sans-serif;font-weight:800;font-size:.98rem;
-      text-align:center;
-      overflow-wrap:anywhere;
       cursor:pointer;transition:all .22s;
       box-shadow:0 6px 24px rgba(234,88,12,.34);position:relative;overflow:hidden;
     }
@@ -1152,17 +1050,19 @@
       margin:0;
       min-width:0;
       width:100%;
-      height:auto;
-      display:block;
+      height:100%;
+      display:flex;
+      flex-direction:column;
     }
     .dashboard-form-card{
-      min-height:0;
-      height:auto;
-      max-height:none;
+      min-height:100%;
+      height:100%;
+      max-height:100%;
       min-width:0;
       width:100%;
-      display:block;
-      overflow:visible;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
     }
     .dashboard-form-head{
       position:static;
@@ -1171,17 +1071,13 @@
       padding-bottom:0;
       margin-bottom:1.5rem;
       flex:0 0 auto;
-      width:100%;
-      min-width:0;
-      max-width:100%;
     }
     .dashboard-form-scroll{
-      flex:0 0 auto;
+      flex:1 1 auto;
       min-height:0;
-      min-width:0;
-      width:100%;
-      overflow:visible;
-      padding-right:0;
+      overflow-y:auto;
+      overflow-x:hidden;
+      padding-right:.2rem;
       scrollbar-width:none;
       -ms-overflow-style:none;
     }
@@ -1198,9 +1094,6 @@
       border:none;
       box-shadow:none;
       border-radius:0;
-      width:100%;
-      min-width:0;
-      max-width:100%;
       padding:0 0 1.75rem;
       margin:0;
       overflow:visible;
@@ -1229,9 +1122,9 @@
       display:flex;
       flex-direction:column;
       width:100%;
-      min-height:auto;
+      min-height:0;
       flex:1 1 auto;
-      overflow:visible;
+      overflow:hidden;
       background:#f8fafc;
       align-items:stretch;
     }
@@ -1250,18 +1143,17 @@
       display:none;
     }
     .report-map-panel{
-      display:block;
+      display:none;
       min-width:0;
       min-height:0;
-      background:transparent;
+      background:#e5e7eb;
       overflow:hidden;
       position:relative;
-      padding:0 clamp(.9rem,2vw,1.5rem) clamp(.9rem,2vw,1.5rem);
     }
     .dashboard-map-shell{
-      height:auto;
+      height:100%;
       min-height:0;
-      padding:0;
+      padding:clamp(.9rem,2vw,1.5rem) clamp(.9rem,2vw,1.5rem) clamp(.9rem,2vw,1.5rem) 0;
       display:flex;
       flex-direction:column;
     }
@@ -1269,8 +1161,8 @@
       display:flex !important;
       flex-direction:column;
       flex:1 1 auto;
-      height:clamp(320px, 48vh, 520px);
-      min-height:320px;
+      height:100%;
+      min-height:0;
       margin:0;
       border:none;
       border-radius:28px;
@@ -1300,7 +1192,7 @@
       min-height:100% !important;
       border-radius:0;
     }
-    @media(min-width:1180px){
+    @media(min-width:768px){
       .dashboard-main{
         min-height:calc(100vh - var(--header-h));
         height:calc(100vh - var(--header-h));
@@ -1308,7 +1200,6 @@
       .dashboard-layout{
         display:block;
         min-height:calc(100vh - var(--header-h));
-        overflow:hidden;
         background:#eef2f7;
       }
       .report-form-panel{
@@ -1316,8 +1207,8 @@
         z-index:2;
         top:var(--header-h);
         left:0;
-        width:clamp(480px, 36vw, 620px);
-        max-width:clamp(480px, 36vw, 620px);
+        width:clamp(420px, 34vw, 520px);
+        max-width:clamp(420px, 34vw, 520px);
         height:calc(100vh - var(--header-h));
         padding:0;
         background:#f8fafc;
@@ -1325,37 +1216,17 @@
         border-right:1px solid rgba(191,214,245,.95);
         box-shadow:18px 0 36px rgba(15,23,42,.08);
       }
-      .dashboard-form-wrap{
-        height:100%;
-        display:flex;
-        flex-direction:column;
-      }
-      .dashboard-form-card{
-        min-height:100%;
-        height:100%;
-        max-height:100%;
-        display:flex;
-        flex-direction:column;
-        overflow:hidden;
-      }
-      .dashboard-form-scroll{
-        flex:1 1 auto;
-        overflow-y:auto;
-        overflow-x:hidden;
-        padding-right:.2rem;
-      }
       .report-map-panel{
         display:block !important;
         position:fixed;
         top:var(--header-h);
         right:0;
         bottom:0;
-        left:clamp(480px, 36vw, 620px);
+        left:clamp(420px, 34vw, 520px);
         width:auto;
         height:auto;
         z-index:1;
         background:#e5e7eb;
-        padding:0;
       }
       .dashboard-map-shell{
         position:absolute;
@@ -1391,35 +1262,13 @@
         padding-right:1.35rem;
       }
     }
-    @media(max-width:640px){
-      .gps-map-view-toggle{
-        top:auto;
-        left:12px;
-        bottom:12px;
-      }
-      .gps-map-zoom{
-        top:12px;
-        right:12px;
-        padding:4px 8px;
-      }
-      .gps-map-badge{
-        left:12px;
-        right:12px;
-        bottom:58px;
-        max-width:none;
-      }
-      .gps-map-control{
-        padding:.35rem .75rem;
-        font-size:.72rem;
-      }
-    }
-    @media(min-width:1400px){
+    @media(min-width:1200px){
       .report-form-panel{
-        width:clamp(520px, 35vw, 700px);
-        max-width:clamp(520px, 35vw, 700px);
+        width:clamp(430px, 32vw, 540px);
+        max-width:clamp(430px, 32vw, 540px);
       }
       .report-map-panel{
-        left:clamp(520px, 35vw, 700px);
+        left:clamp(430px, 32vw, 540px);
       }
     }
     @media(max-width:1360px){
@@ -1668,9 +1517,6 @@
     }
     .submit-panel{
       margin-top:.25rem;
-      width:100%;
-      min-width:0;
-      max-width:100%;
       padding:1.15rem;
       border-radius:22px;
       border:1px solid rgba(191,214,245,.9);
@@ -2051,8 +1897,15 @@
       .dashboard-main{
         min-height:auto;
       }
+      .dashboard-layout{
+        min-height:auto;
+        overflow:visible;
+      }
       .report-form-panel{
-        padding:1rem 1rem 0;
+        position:relative;
+        top:auto;
+        margin-left:0;
+        height:auto;
       }
       .dashboard-form-card{
         min-height:auto;
@@ -2060,31 +1913,7 @@
         max-height:none;
       }
       .report-map-panel{
-        padding:0 1rem 1rem;
-      }
-      .dashboard-map-shell .gps-map-wrap{
-        height:320px;
-        min-height:320px;
-        border-radius:22px;
-      }
-      .head-actions{
-        width:100%;
-      }
-      .head-actions .chip-btn{
-        width:100%;
-        justify-content:center;
-      }
-      .card-topline{
-        gap:.85rem;
-      }
-      .upload-meta{
-        flex-wrap:wrap;
-        flex-direction:column;
-        align-items:flex-start;
-      }
-      .upload-actions{
-        width:100%;
-        justify-content:space-between;
+        display:none !important;
       }
     }
   </style>
@@ -2131,30 +1960,6 @@
     <div class="head-actions">
       <button class="chip-btn" type="button" onclick="alertQueued()">Offline Queue (<span id="pendingCount">0</span>)</button>
     </div>
-  </div>
-  <div class="intro-grid">
-    <div class="intro-card">
-      <strong>Best submitted from the actual scene</strong>
-      <span>Live GPS and visible landmarks make routing much faster for dispatch and responders.</span>
-    </div>
-    <div class="intro-card">
-      <strong>GPS plus manual details is strongest</strong>
-      <span>Even when the pin looks right, barangay, landmark, and street details give teams a safer final approach.</span>
-    </div>
-    <div class="intro-card">
-      <strong>Photos are optional, not required</strong>
-      <span>Only attach an image when it is safe. Clear written details are still enough to send the report.</span>
-    </div>
-  </div>
-  <div class="action-strip">
-    <a class="action-chip" href="/sos">
-      <svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
-      Need one-tap help instead?
-    </a>
-    <a class="action-chip" href="/about">
-      <svg viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg>
-      Review hazard guide
-    </a>
   </div>
   <div class="alert-strip">
     <!-- Heroicon: exclamation-triangle -->
@@ -2408,14 +2213,14 @@
         <img class="upload-thumb" id="uploadThumb" alt="Selected upload preview">
         <div class="upload-file">
           <strong id="uploadFileName">No file selected</strong>
-          <span id="uploadFileHint">Optional evidence for dispatch verification and incident logging.</span>
+          <span id="uploadFileHint">Optional but helpful for dispatch verification.</span>
         </div>
         <div class="upload-actions">
           <label class="upload-change" for="iPhoto">Change</label>
           <button class="upload-clear" type="button" onclick="clearReportPhoto()">Remove</button>
         </div>
       </div>
-      <div class="field-note">A clear photo can help confirm hazards, access conditions, and the urgency of the scene.</div>
+      <div class="field-note">The image file is stored in Supabase, and MongoDB only keeps the resulting photo URL.</div>
     </div>
   </div>
 
@@ -2423,7 +2228,7 @@
     <div class="submit-copy">
       <div>
         <h3>Ready to send the report?</h3>
-        <p>Review the contact number, severity, and location details one last time. The system will attempt a final GPS refresh before the report is transmitted to dispatch.</p>
+        <p>Check that your contact number, severity, and location are correct. The system will try to refresh GPS again before final submission.</p>
       </div>
       <div class="required-pill">
         <svg viewBox="0 0 24 24"><path d="M9 12.75 11.25 15 15 9.75"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
@@ -2448,15 +2253,7 @@
           <a id="gpsMapLink" href="#" target="_blank" rel="noopener noreferrer">Open map</a>
         </div>
         <div class="gps-map-canvas">
-          <iframe class="gps-map-frame" id="gpsMapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Detected emergency location map"></iframe>
-          <div class="gps-map-pin" id="gpsMapPin" hidden aria-hidden="true">
-            <div class="gps-map-pin-pulse"></div>
-            <div class="gps-map-pin-dot"></div>
-          </div>
-          <div class="gps-map-badge" id="gpsMapBadge" hidden>
-            <span class="gps-map-badge-label">Pinned location</span>
-            <strong id="gpsMapCoords">Waiting for coordinates</strong>
-          </div>
+          <iframe class="gps-map-frame" id="gpsMapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
           <div class="gps-map-view-toggle">
             <button class="gps-map-control" id="gpsMapViewToggle" type="button" disabled title="Switch between standard and satellite imagery">
               Show satellite image
@@ -2876,6 +2673,7 @@ function selType(el, t) {
       clearReportPhoto();
       return;
     }
+
     if (!/^image\/(png|jpe?g|webp)$/i.test(file.type)) {
       clearReportPhoto();
       toast('Unsupported photo', 'Please upload a JPG, PNG, or WEBP image.','warn');
@@ -3142,7 +2940,17 @@ function selType(el, t) {
 
   function toEmbedUrl(lat, lng, view = 'map', zoom = 16) {
     const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
-    return `https://maps.google.com/maps?q=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
+    return `https://maps.google.com/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
+  }
+
+  function toQueryEmbedUrl(query, view = 'map', zoom = 14) {
+    const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
+    return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=${type}&z=${zoom}&output=embed`;
+  }
+
+  function toCenterEmbedUrl(lat, lng, view = 'map', zoom = 14) {
+    const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
+    return `https://maps.google.com/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
   }
 
   function toQueryEmbedUrl(query, view = 'map', zoom = 14) {
