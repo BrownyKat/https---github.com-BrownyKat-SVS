@@ -1,8 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%- include('partials/favicon') %>
+  <%- include('partials/typography') %>
   <title>Dispatcher Profile</title>
   <style>
     :root{
@@ -20,7 +22,7 @@
     }
     *{box-sizing:border-box}
     body{
-      margin:0;font-family:'Outfit',Arial,sans-serif;color:var(--text);
+      margin:0;font-family:var(--font-body);color:var(--text);
       background:
         radial-gradient(560px 320px at 100% -10%, rgba(29,78,216,.25), transparent 64%),
         radial-gradient(420px 260px at -10% 110%, rgba(250,204,21,.25), transparent 64%),
@@ -46,6 +48,13 @@
       border:1px solid var(--border);border-radius:16px;padding:18px;
       box-shadow:var(--shadow-md);
     }
+    .guide{
+      margin-top:12px;border:1px solid rgba(29,78,216,.16);border-radius:14px;
+      background:linear-gradient(180deg,#eff6ff,#ffffff);padding:14px 15px;
+    }
+    .guide h2{margin:0;font-size:1rem;letter-spacing:-.2px}
+    .guide p{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.6}
+    .guide ul{margin:10px 0 0;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.65}
     label{display:block;font-size:12px;font-weight:700;margin:11px 0 6px;text-transform:uppercase;color:#1e3a8a;letter-spacing:.35px}
     input{
       width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;box-sizing:border-box;
@@ -67,9 +76,14 @@
       border-color:transparent;color:#fff;
     }
     .btn.primary:hover{box-shadow:0 8px 18px rgba(29,78,216,.28)}
-    .msg{padding:11px 12px;border-radius:10px;margin-top:12px;font-size:13px;font-weight:600}
-    .ok{background:#fefce8;border:1px solid #fde047;color:#854d0e}
+    .msg{display:flex;gap:10px;align-items:flex-start;padding:13px 14px;border-radius:12px;margin-top:12px;font-size:13px;font-weight:600;line-height:1.6}
+    .msg strong{display:block;font-size:13px;margin-bottom:2px}
+    .msg-icon{flex:0 0 24px;height:24px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:900}
+    .ok{background:#ecfdf3;border:1px solid #86efac;color:#166534}
+    .ok .msg-icon{background:#bbf7d0;color:#166534}
     .err{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
+    .err .msg-icon{background:#fecaca;color:#991b1b}
+    .field-help{margin-top:6px;color:var(--muted);font-size:12px;line-height:1.55}
     @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
     @media (prefers-reduced-motion: reduce){
       .wrap,*{animation:none!important;transition:none!important}
@@ -98,27 +112,53 @@
       </div>
     </div>
 
-    <% if (success) { %><div class="msg ok"><%= success %></div><% } %>
-    <% if (error) { %><div class="msg err"><%= error %></div><% } %>
+    <% if (success) { %>
+      <div class="msg ok">
+        <span class="msg-icon">OK</span>
+        <div><strong>Profile updated</strong><span><%= success %></span></div>
+      </div>
+    <% } %>
+    <% if (error) { %>
+      <div class="msg err">
+        <span class="msg-icon">!</span>
+        <div><strong>Could not save changes</strong><span><%= error %></span></div>
+      </div>
+    <% } %>
 
     <form class="card" method="post" action="/dispatcher/profile">
+      <div class="guide">
+        <h2>Before you save</h2>
+        <p>Keep this profile accurate so other dispatchers and supervisors can identify you quickly.</p>
+        <ul>
+          <li>Use the full name you want teammates to see on assignments.</li>
+          <li>Only fill in the password fields when you want to change your password.</li>
+          <li>New passwords should be at least 6 characters and easy for you to remember securely.</li>
+        </ul>
+      </div>
+
       <label>Username</label>
       <input value="<%= dispatcher.username %>" disabled>
+      <div class="field-help">Your username is fixed and cannot be changed here.</div>
 
       <label for="fullName">Full Name</label>
       <input id="fullName" name="fullName" value="<%= dispatcher.fullName || '' %>">
+      <div class="field-help">This name appears when reports are assigned, claimed, or passed to you.</div>
 
       <label for="phone">Phone</label>
       <input id="phone" name="phone" value="<%= dispatcher.phone || '' %>">
+      <div class="field-help">Use a reachable number in case your account or dispatch activity needs verification.</div>
 
       <label for="currentPassword">Current Password (required to change password)</label>
       <input id="currentPassword" name="currentPassword" type="password">
+      <div class="field-help">Leave the password fields blank if you are only updating your name or phone number.</div>
 
       <label for="newPassword">New Password (optional)</label>
       <input id="newPassword" name="newPassword" type="password" placeholder="At least 6 characters">
+      <div class="field-help">Use a stronger password than your old one, with at least 6 characters.</div>
 
       <button class="btn primary" type="submit">Save Profile</button>
     </form>
   </div>
 </body>
 </html>
+

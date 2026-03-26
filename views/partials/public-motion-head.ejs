@@ -1,0 +1,73 @@
+<style>
+  @keyframes svsFloat {
+    0%,100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(0, -6px, 0); }
+  }
+
+  @keyframes svsGlowPulse {
+    0%,100% { transform: translate3d(0, 0, 0) scale(1); filter: drop-shadow(0 0 0 rgba(37,99,235,0)); }
+    50% { transform: translate3d(0, -3px, 0) scale(1.012); filter: drop-shadow(0 16px 22px rgba(37,99,235,0.16)); }
+  }
+
+  @keyframes svsShimmer {
+    0% { transform: translateX(-135%) rotate(14deg); }
+    100% { transform: translateX(265%) rotate(14deg); }
+  }
+
+  [data-animate] {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translate3d(0, 22px, 0);
+    transition:
+      opacity .7s cubic-bezier(.22,1,.36,1),
+      transform .7s cubic-bezier(.22,1,.36,1),
+      filter .7s cubic-bezier(.22,1,.36,1);
+    transition-delay: calc(var(--animate-order, 0) * 80ms);
+    will-change: opacity, transform, filter;
+  }
+
+  [data-animate="fade-left"] { transform: translate3d(-28px, 0, 0); }
+  [data-animate="fade-right"] { transform: translate3d(28px, 0, 0); }
+  [data-animate="zoom-in"] { transform: translate3d(0, 18px, 0) scale(.965); }
+  [data-animate="lift"] { transform: translate3d(0, 26px, 0) scale(.985); }
+
+  [data-animate].is-visible {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
+
+  [data-float] { animation: svsFloat 5.6s ease-in-out infinite; }
+  [data-glow] { animation: svsGlowPulse 3s ease-in-out infinite; transform-origin: center; }
+
+  [data-shimmer] {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  [data-shimmer]::after {
+    content: '';
+    position: absolute;
+    inset: -140% auto -140% -38%;
+    width: 44%;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 10%, rgba(255,255,255,.58) 48%, transparent 86%);
+    animation: svsShimmer 3.4s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-animate] {
+      opacity: 1;
+      filter: none;
+      transform: none;
+      transition: none;
+    }
+
+    [data-float],
+    [data-glow],
+    [data-shimmer]::after {
+      animation: none !important;
+    }
+  }
+</style>
