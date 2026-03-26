@@ -1,0 +1,42 @@
+<script>
+  (function(){
+    function initPublicMotion(){
+      const animated = Array.from(document.querySelectorAll('[data-animate]'));
+      if (!animated.length) return;
+
+      animated.forEach((el, index) => {
+        if (!el.style.getPropertyValue('--animate-order')) {
+          el.style.setProperty('--animate-order', String(index % 8));
+        }
+      });
+
+      const prefersReducedMotion =
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (prefersReducedMotion || typeof window.IntersectionObserver !== 'function') {
+        animated.forEach(el => el.classList.add('is-visible'));
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-visible');
+          obs.unobserve(entry.target);
+        });
+      }, {
+        threshold: 0.14,
+        rootMargin: '0px 0px -8% 0px',
+      });
+
+      animated.forEach(el => observer.observe(el));
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPublicMotion, { once: true });
+    } else {
+      initPublicMotion();
+    }
+  })();
+</script>

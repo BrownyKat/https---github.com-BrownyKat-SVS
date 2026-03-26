@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%- include('partials/favicon') %>
+  <%- include('partials/typography') %>
   <title>Dispatcher Reset Password - SVS</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root{
       --blue:#1d4ed8; --blue-dark:#1e3a8a; --blue-light:#dbeafe; --blue-border:#93c5fd;
@@ -17,7 +17,7 @@
     body{
       margin:0; min-height:100vh; padding:20px;
       display:flex; align-items:center; justify-content:center;
-      font-family:'Outfit',sans-serif; color:var(--text);
+      font-family:var(--font-body); color:var(--text);
       background:
         radial-gradient(560px 320px at 100% 0,rgba(29,78,216,.24),transparent 64%),
         radial-gradient(420px 240px at 8% 100%,rgba(250,204,21,.26),transparent 66%),
@@ -37,17 +37,17 @@
     .logo-wrap{text-align:center;margin-bottom:12px}
     .logo{width:186px;max-width:60vw;height:auto;object-fit:contain;display:inline-block;filter:drop-shadow(0 12px 22px rgba(29,78,216,.12))}
     .role-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:#e0f2fe;color:#0c4a6e;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
-    .role-badge::before{content:'Dispatcher';font-family:'JetBrains Mono',monospace}
+    .role-badge::before{content:'Dispatcher';font-family:var(--font-subtitle)}
     h2{margin:14px 0 8px;font-size:30px;letter-spacing:-.9px}
     .subtext{margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.7}
     .err{background:var(--red-light);border:1px solid #fca5a5;color:#b91c1c;padding:12px 13px;border-radius:14px;margin-bottom:14px;font-size:13px;font-weight:700}
     .success{background:#ecfdf3;border:1px solid #86efac;color:#15803d;padding:12px 13px;border-radius:14px;margin-bottom:14px;font-size:13px;font-weight:700}
     .field-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    label{display:block;font-size:11px;font-weight:800;margin:14px 0 7px;text-transform:uppercase;color:var(--blue-dark);letter-spacing:1px;font-family:'JetBrains Mono',monospace}
+    label{display:block;font-size:11px;font-weight:800;margin:14px 0 7px;text-transform:uppercase;color:var(--blue-dark);letter-spacing:1px;font-family:var(--font-subtitle)}
     .meta{font-size:12px;color:var(--muted)}
     input{
       width:100%;padding:14px 15px;border:1px solid var(--blue-border);border-radius:15px;font-size:14px;
-      background:rgba(255,255,255,.94);font-family:'Outfit',sans-serif;
+      background:rgba(255,255,255,.94);font-family:var(--font-body);
       transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
     }
     input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(29,78,216,.12);transform:translateY(-1px)}
@@ -55,7 +55,7 @@
     .tip{font-size:12px;color:var(--muted);line-height:1.5}
     .btn{
       margin-top:18px;width:100%;padding:14px 16px;border:0;border-radius:15px;background:linear-gradient(135deg,var(--blue),#2563eb);
-      color:#fff;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;letter-spacing:.2px;box-shadow:0 14px 30px rgba(29,78,216,.24);
+      color:#fff;font-weight:800;cursor:pointer;font-family:var(--font-body);letter-spacing:.2px;box-shadow:0 14px 30px rgba(29,78,216,.24);
       transition:transform .2s ease,box-shadow .2s ease,filter .2s ease
     }
     .btn:hover{transform:translateY(-2px);box-shadow:0 18px 34px rgba(29,78,216,.28);filter:saturate(1.05)}
@@ -98,3 +98,4 @@
   </div>
 </body>
 </html>
+
