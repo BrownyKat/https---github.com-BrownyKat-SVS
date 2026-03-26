@@ -979,6 +979,12 @@ app.get('/faq', (req, res) => {
   });
 });
 app.get('/report', (_req, res) => res.render('report'));
+app.get('/track', (req, res) => {
+  const initialId = String(req.query.id || '').trim().toUpperCase();
+  res.render('track', {
+    initialId: /^[A-Z]+-\d{4,}$/i.test(initialId) ? initialId : '',
+  });
+});
 
 app.post('/faq/feedback', async (req, res) => {
   const feedback = String(req.body.feedback || '').replace(/\s+/g, ' ').trim();
@@ -1522,6 +1528,25 @@ app.get('/api/health', async (_req, res) => {
 });
 
 // ── API: submit a normal report ──────────────────────────────────────────────
+app.get('/api/report-track/:id', async (req, res) => {
+  try {
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Public track DB connect timed out');
+    const rawId = String(req.params.id || '').trim().toUpperCase();
+    if (!rawId) return res.status(400).json({ error: 'Report ID is required' });
+
+    const report = await Report.findOne(reportLookupQuery(rawId)).lean({ virtuals: true });
+    if (!report) return res.status(404).json({ error: 'Report not found' });
+
+    return res.json({
+      success: true,
+      report: buildPublicTrackPayload(report),
+    });
+  } catch (err) {
+    console.error('[public-track] lookup failed:', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'Could not load report tracking details' });
+  }
+});
+
 app.all('/api/report', (req, res, next) => {
   if (req.method === 'POST') return next();
   return res.status(405).json({ error: 'Method not allowed' });
@@ -2159,6 +2184,70 @@ function reportLookupQuery(id) {
     return { $or: [{ reportId: raw }, { _id: raw }] };
   }
   return { reportId: raw };
+}
+
+function humanizeStatus(status) {
+  const raw = String(status || '').trim().toLowerCase();
+  if (!raw) return 'Pending';
+  return raw
+    .split('-')
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function buildPublicLocationLabel(report) {
+  return pickFirst([
+    [report && report.street, report && report.landmark, report && report.barangay].filter(Boolean).join(', '),
+    [report && report.landmark, report && report.barangay].filter(Boolean).join(', '),
+    report && report.barangay,
+    report && report.gps ? `GPS ${report.gps}` : '',
+    'Location pending confirmation',
+  ]);
+}
+
+function buildPublicTrackPayload(report) {
+  const currentDispatcherUsername = String((report && report.assignedToUsername) || '').trim();
+  const currentDispatcherName = pickFirst([
+    report && report.assignedToName,
+    report && report.dispatcherName,
+    report && report.claimedByName,
+    '',
+  ]);
+  const currentDispatcherDisplay = pickFirst([
+    currentDispatcherName,
+    currentDispatcherUsername,
+    report && report.claimedByUsername,
+    'Waiting for dispatcher',
+  ]);
+  const lastPassedBy = pickFirst([
+    report && report.lastPassedByName,
+    report && report.lastPassedByUsername,
+    '',
+  ]);
+
+  return {
+    id: String((report && (report.reportId || report.id || report._id)) || '').trim(),
+    status: String((report && report.status) || 'new').trim().toLowerCase(),
+    statusLabel: humanizeStatus(report && report.status),
+    reporterName: String((report && report.name) || '').trim() || 'Reporter',
+    emergencyType: String((report && report.emergencyType) || '').trim() || 'Emergency Report',
+    currentDispatcher: currentDispatcherDisplay,
+    dispatcherUsername: currentDispatcherUsername,
+    dispatcherName: currentDispatcherName,
+    passCount: Math.max(0, Number((report && report.passCount) || 0) || 0),
+    lastPassedBy,
+    submittedAt: report && report.timestamp ? new Date(report.timestamp).toISOString() : '',
+    assignedAt: report && report.assignedAt ? new Date(report.assignedAt).toISOString() : '',
+    lastPassedAt: report && report.lastPassedAt ? new Date(report.lastPassedAt).toISOString() : '',
+    location: buildPublicLocationLabel(report),
+    locationParts: {
+      barangay: String((report && report.barangay) || '').trim(),
+      landmark: String((report && report.landmark) || '').trim(),
+      street: String((report && report.street) || '').trim(),
+      gps: String((report && report.gps) || '').trim(),
+    },
+  };
 }
 
 function parseGpsCoords(gps) {

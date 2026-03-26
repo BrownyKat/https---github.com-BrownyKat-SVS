@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%- include('partials/favicon') %>
+  <%- include('partials/typography') %>
   <title>SVS - Dispatcher Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --amber:        #FACC15;
@@ -19,9 +19,9 @@
       --red:          #DC2626;
       --red-light:    #FEF2F2;
       --red-border:   #FCA5A5;
-      --green:        #2563EB;
-      --green-light:  #E8F0FF;
-      --green-border: #C4DAFF;
+      --green:        #16A34A;
+      --green-light:  #ECFDF3;
+      --green-border: #86EFAC;
       --blue:         #1D4ED8;
       --blue-light:   #EEF2F6;
       --blue-border:  #CBD5E1;
@@ -44,7 +44,7 @@
     }
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
     body{
-      font-family:'Outfit',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;
+      font-family:var(--font-body);color:var(--text);-webkit-font-smoothing:antialiased;
       min-height:100vh;display:flex;flex-direction:column;overflow:hidden;
       background:linear-gradient(180deg,#f8fafc 0%,#f5f7fb 100%);
     }
@@ -69,13 +69,13 @@
     .brand-text{margin-left:-38px;}
     .brand-name{font-weight:800;font-size:1.2rem;letter-spacing:-.2px;line-height:1.1;color:var(--text);}
     .brand-name em{font-style:normal;color:var(--amber-dark);}
-    .brand-sub{font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
+    .brand-sub{font-family:var(--font-subtitle);font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
     .header-right{display:flex;align-items:center;gap:.65rem;}
     .header-weather{
       display:flex;align-items:center;gap:8px;
       padding:.38rem .92rem;min-height:38px;
       background:var(--blue-light);border:1.5px solid var(--blue-border);border-radius:999px;
-      font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:700;color:var(--blue);
+      font-family:var(--font-body);font-size:.82rem;font-weight:700;color:var(--blue);
       white-space:nowrap;
     }
     .header-weather svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
@@ -83,7 +83,7 @@
       display:inline-flex;align-items:center;gap:6px;
       padding:.44rem .95rem;border:1.5px solid var(--border-mid);border-radius:999px;
       background:rgba(255,255,255,.9);color:var(--muted);
-      font-family:'Outfit',sans-serif;font-size:.8rem;font-weight:700;
+      font-family:var(--font-body);font-size:.8rem;font-weight:700;
       cursor:pointer;text-decoration:none;transition:all .18s;
       box-shadow:var(--shadow-xs);
     }
@@ -95,7 +95,7 @@
     .online-pill{
       display:flex;align-items:center;gap:6px;padding:.28rem .75rem;
       background:var(--green-light);border:1px solid var(--green-border);border-radius:99px;
-      font-family:'JetBrains Mono',monospace;font-size:.6rem;font-weight:700;
+      font-family:var(--font-subtitle);font-size:.6rem;font-weight:700;
       letter-spacing:1px;text-transform:uppercase;color:var(--green);
     }
     .online-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s ease-in-out infinite;}
@@ -187,7 +187,7 @@
     .filter-item.active .fi-label{color:var(--amber-deep);font-weight:800;}
 
     .fi-count{
-      font-family:'JetBrains Mono',monospace;font-weight:700;font-size:.92rem;min-width:22px;text-align:right;
+      font-family:var(--font-subtitle);font-weight:700;font-size:.92rem;min-width:22px;text-align:right;
     }
     .fi-new .fi-count{color:var(--red);}
     .fi-sos .fi-count{color:var(--red);}
@@ -210,7 +210,7 @@
     .rf-copy{min-width:0;}
     .rf-name{font-weight:800;font-size:.82rem;line-height:1.15;color:var(--text2);}
     .rf-sub{
-      font-family:'JetBrains Mono',monospace;
+      font-family:var(--font-subtitle);
       font-size:.56rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);
       margin-top:3px;
     }
@@ -237,13 +237,13 @@
       display:inline-flex;align-items:center;gap:7px;
       padding:.42rem .8rem;border-radius:999px;
       border:1.5px solid var(--border-mid);background:var(--surface);
-      color:var(--text2);font-family:'Outfit',sans-serif;font-size:.74rem;font-weight:700;
+      color:var(--text2);font-family:var(--font-body);font-size:.74rem;font-weight:700;
       cursor:pointer;transition:all .18s;
     }
     .quick-filter-btn:hover{border-color:var(--amber-border);background:var(--amber-light);color:var(--amber-dark);}
     .quick-filter-btn.active{background:var(--amber-light);border-color:var(--amber-border);color:var(--amber-deep);box-shadow:0 6px 16px rgba(245,158,11,.22);}
     .quick-count{
-      font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:800;line-height:1;
+      font-family:var(--font-subtitle);font-size:.72rem;font-weight:800;line-height:1;
       padding:2px 6px;border-radius:999px;background:rgba(255,255,255,.7);border:1px solid var(--border);
     }
     .main-head-tools{display:flex;flex:0 0 340px;flex-direction:column;align-items:flex-end;gap:.55rem;justify-content:flex-end;width:100%;max-width:360px;}
@@ -258,7 +258,7 @@
     }
     .search-bar svg{width:16px;height:16px;stroke:var(--muted);flex-shrink:0;}
     .search-input{
-      flex:1;border:0;background:transparent;font-family:'Outfit',sans-serif;
+      flex:1;border:0;background:transparent;font-family:var(--font-body);
       font-size:.85rem;color:var(--text);
       padding:.35rem 0;
       outline:none;
@@ -294,13 +294,13 @@
     .main-datetime svg{width:24px;height:18px;stroke:var(--blue);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
     .time-block{display:flex;flex-direction:column;line-height:1.05;min-width:0;}
     .clock-text{
-      font-family:'Orbitron','JetBrains Mono',monospace;
+      font-family:var(--font-title);
       font-size:1.2rem;font-weight:700;letter-spacing:1.1px;color:var(--text2);
       text-shadow:none;
       overflow-wrap:anywhere;
     }
     .date-text{
-      font-family:'JetBrains Mono',monospace;
+      font-family:var(--font-subtitle);
       font-size:.66rem;font-weight:700;letter-spacing:.7px;color:var(--muted2);
       margin-top:4px;
       overflow-wrap:anywhere;
@@ -391,7 +391,7 @@
     .notif-msg{color:#1f2937;line-height:1.5;font-size:.94rem;}
     .notif-meta{font-size:.78rem;color:#6b7280;}
     .filter-label-bar{
-      font-family:'JetBrains Mono',monospace;font-size:.6rem;font-weight:700;
+      font-family:var(--font-subtitle);font-size:.6rem;font-weight:700;
       letter-spacing:2px;text-transform:uppercase;color:var(--muted);
       display:flex;align-items:center;gap:10px;
       position:sticky;top:0;z-index:8;
@@ -419,7 +419,7 @@
     .ops-card.verify::before{background:var(--amber-dark);}
     .ops-card.resolved::before{background:var(--green);}
     .ops-kicker{
-      font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:700;
+      font-family:var(--font-subtitle);font-size:.58rem;font-weight:700;
       letter-spacing:1.6px;text-transform:uppercase;color:var(--muted2);margin-bottom:.45rem;
     }
     .ops-value{font-size:1.55rem;line-height:1;font-weight:900;letter-spacing:-1px;color:var(--text);}
@@ -490,7 +490,7 @@
     .rcard-meta svg { width: 12px; height: 12px; }
     .cred-pill{
       display:inline-flex;align-items:center;gap:3px;
-      font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:700;
+      font-family:var(--font-subtitle);font-size:.58rem;font-weight:700;
       padding:2px 7px;border-radius:99px;text-transform:uppercase;
     }
     .cred-high  {color:var(--green);background:var(--green-light);border:1px solid var(--green-border);}
@@ -498,7 +498,7 @@
     .cred-low   {color:var(--red);background:var(--red-light);border:1px solid var(--red-border);}
     .trust-pill{
       display:inline-flex;align-items:center;gap:3px;
-      font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:700;
+      font-family:var(--font-subtitle);font-size:.58rem;font-weight:700;
       padding:2px 7px;border-radius:99px;text-transform:uppercase;
       border:1px solid transparent;
     }
@@ -516,7 +516,7 @@
 
     .rcard-meta{
       display:flex;gap:1rem;flex-wrap:wrap;
-      font-family:'JetBrains Mono',monospace;font-size:.71rem;color:var(--muted);
+      font-family:var(--font-subtitle);font-size:.71rem;color:var(--muted);
     }
     .rcard-meta span{display:flex;align-items:center;gap:5px;}
     .rcard-meta svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
@@ -527,7 +527,7 @@
       border:1.2px solid var(--border-mid);
       background:rgba(226,232,255,.7);
       color:var(--blue);
-      font-family:'JetBrains Mono',monospace;
+      font-family:var(--font-subtitle);
       font-size:.68rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
     }
     /* image modal */
@@ -578,7 +578,7 @@
     .img-meta label{font-size:.78rem;font-weight:800;color:#475569;letter-spacing:.3px;text-transform:uppercase;}
     .img-meta textarea{
       width:100%;min-height:110px;border:1.5px solid #cbd5e1;border-radius:12px;
-      padding:.75rem;font-family:'Outfit',sans-serif;font-size:.92rem;color:#0f172a;resize:vertical;
+      padding:.75rem;font-family:var(--font-body);font-size:.92rem;color:#0f172a;resize:vertical;
       background:#f8fafc;
     }
     .img-actions{display:flex;flex-wrap:wrap;gap:.55rem;}
@@ -617,7 +617,7 @@
     .rcard-right{display:flex;align-items:center;gap:9px;flex-shrink:0;}
     .status-pill{
       padding:.35rem 1rem;border-radius:999px;
-      font-family:'JetBrains Mono',monospace;font-size:.64rem;font-weight:800;
+      font-family:var(--font-subtitle);font-size:.64rem;font-weight:800;
       letter-spacing:.6px;text-transform:uppercase;white-space:nowrap;
       box-shadow:var(--shadow-xs);
     }
@@ -635,7 +635,7 @@
 
     .rcard-loc{
       display:flex;gap:.9rem;flex-wrap:wrap;margin-bottom:.8rem;
-      font-family:'Outfit',sans-serif;font-size:.9rem;color:var(--muted);
+      font-family:var(--font-body);font-size:.9rem;color:var(--muted);
     }
     .rcard-loc span{display:flex;align-items:center;gap:4px;}
     .rcard-loc svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
@@ -651,7 +651,7 @@
       display:flex;align-items:center;justify-content:flex-start;gap:.6rem;
       padding:.5rem .75rem .9rem;
       border-bottom:1px solid var(--border);
-      font-family:'JetBrains Mono',monospace;
+      font-family:var(--font-subtitle);
       font-size:.62rem;font-weight:700;color:var(--muted);
       letter-spacing:.6px;text-transform:uppercase;
       background:var(--surface);
@@ -660,7 +660,7 @@
       position:absolute;top:10px;right:10px;
       padding:.5rem .9rem;border-radius:10px;
       background:linear-gradient(135deg,#2563EB,#1D4ED8);
-      color:#fff;border:none;font-family:'Outfit',sans-serif;font-weight:800;font-size:.8rem;
+      color:#fff;border:none;font-family:var(--font-body);font-weight:800;font-size:.8rem;
       cursor:pointer;box-shadow:0 6px 16px rgba(29,78,216,.18);
       transition:transform .12s,box-shadow .12s;
       text-decoration:none;
@@ -699,7 +699,7 @@
     .ownership-sub{margin-top:2px;font-size:.71rem;line-height:1.45;color:var(--muted);}
     .ownership-tag{
       flex-shrink:0;align-self:center;padding:.26rem .62rem;border-radius:999px;
-      font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:1px;
+      font-family:var(--font-subtitle);font-size:.58rem;font-weight:700;letter-spacing:1px;
       text-transform:uppercase;border:1px solid var(--border);color:var(--muted);background:var(--surface);
     }
     .ownership-bar.mine{
@@ -728,7 +728,7 @@
       display:inline-flex;align-items:center;gap:5px;
       padding:.5rem 1.05rem;border-radius:12px;
       border:1.5px solid var(--border-mid);background:var(--surface);
-      color:var(--text2);font-family:'Outfit',sans-serif;font-weight:700;font-size:.8rem;
+      color:var(--text2);font-family:var(--font-body);font-weight:700;font-size:.8rem;
       cursor:pointer;transition:all .18s;
       }
     .act-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
@@ -817,12 +817,12 @@
     .edit-form{padding:1rem 1.1rem 1.1rem;display:grid;gap:.78rem;}
     .edit-field label{
       display:block;margin-bottom:.3rem;font-size:.72rem;font-weight:700;color:var(--text2);
-      font-family:'JetBrains Mono',monospace;letter-spacing:.45px;text-transform:uppercase;
+      font-family:var(--font-subtitle);letter-spacing:.45px;text-transform:uppercase;
     }
     .edit-field input{
       width:100%;padding:.64rem .72rem;border-radius:10px;
       border:1.5px solid var(--border);background:var(--bg);color:var(--text);
-      font-family:'Outfit',sans-serif;font-size:.88rem;
+      font-family:var(--font-body);font-size:.88rem;
     }
     .edit-field input:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(245,158,11,.13);background:var(--surface);}
     .edit-actions{display:flex;justify-content:flex-end;gap:.55rem;padding:.2rem 1.1rem 1.1rem;}
@@ -869,12 +869,12 @@
     .profile-field.full{grid-column:1 / -1;}
     .profile-field label{
       font-size:.7rem;font-weight:700;color:var(--text2);
-      font-family:'JetBrains Mono',monospace;letter-spacing:.42px;text-transform:uppercase;
+      font-family:var(--font-subtitle);letter-spacing:.42px;text-transform:uppercase;
     }
     .profile-field input{
       width:100%;padding:.66rem .75rem;border-radius:10px;
       border:1.5px solid var(--border);background:var(--bg);color:var(--text);
-      font-family:'Outfit',sans-serif;font-size:.86rem;
+      font-family:var(--font-body);font-size:.86rem;
       transition:border-color .18s ease, box-shadow .18s ease;
     }
     .profile-field input:focus{
@@ -1169,7 +1169,7 @@
     .webcall-meta{flex:1;min-width:0;}
     .webcall-title{font-weight:800;font-size:.92rem;color:var(--text);}
     .webcall-sub{font-size:.78rem;color:var(--muted);}
-    .webcall-status{font-family:'JetBrains Mono',monospace;font-size:.74rem;color:var(--muted2);}
+    .webcall-status{font-family:var(--font-subtitle);font-size:.74rem;color:var(--muted2);}
     .webcall-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;}
     .webcall-btn{padding:.45rem .9rem;border-radius:12px;border:1px solid var(--border-mid);font-weight:700;font-size:.82rem;cursor:pointer;}
     .webcall-btn.primary{background:linear-gradient(135deg,var(--blue),var(--indigo));color:#fff;border-color:transparent;}
@@ -1792,6 +1792,12 @@
     return !!r;
   }
 
+  function isAccessibleOpenReport(r) {
+    if (!r || isClosedStatus(r.status)) return false;
+    const assignedToId = String(r.assignedToId || '').trim();
+    return !assignedToId || assignedToId === currentUserId;
+  }
+
   function assignmentLabel(r) {
     const owner = String(r.assignedToName || '').trim();
     if (!owner) return 'Unassigned';
@@ -1801,17 +1807,20 @@
 
   function counts() {
     const visible = reports.filter(canSeeReport);
+    const openAccessible = visible.filter(isAccessibleOpenReport);
+    const sosOpen = openAccessible.filter(isSosReport);
+    const regularOpen = openAccessible.filter(isRegularReport);
     const mine = visible.filter(r => String(r.assignedToId || '').trim() === currentUserId && !isClosedStatus(r.status));
-    document.getElementById('cAll').textContent   = visible.filter(r => !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId)).length;
+    document.getElementById('cAll').textContent   = sosOpen.length + regularOpen.length;
     document.getElementById('cNew').textContent    = visible.filter(r=>r.status==='new' && !String(r.assignedToId||'').trim()).length;
     document.getElementById('cAssigned').textContent = mine.length;
-    document.getElementById('cSos').textContent    = visible.filter(r => isSosReport(r) && !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId)).length;
-    document.getElementById('cReport').textContent = visible.filter(r => isRegularReport(r) && !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId)).length;
+    document.getElementById('cSos').textContent    = sosOpen.length;
+    document.getElementById('cReport').textContent = regularOpen.length;
     document.getElementById('cVerify').textContent = visible.filter(r=>r.status==='verifying').length;
     document.getElementById('cDisp').textContent   = visible.filter(r=>r.status==='dispatched').length;
     document.getElementById('cRes').textContent    = visible.filter(r=>r.status==='resolved').length;
     document.getElementById('cFalse').textContent  = visible.filter(r=>r.status==='false-report').length;
-    document.getElementById('opsIncoming').textContent = visible.filter(r => (r.status === 'new' || isSosReport(r)) && !isClosedStatus(r.status)).length;
+    document.getElementById('opsIncoming').textContent = openAccessible.filter(r => r.status === 'new' || isSosReport(r)).length;
     document.getElementById('opsMine').textContent = mine.length;
     document.getElementById('opsVerify').textContent = visible.filter(r=>r.status==='verifying').length;
     document.getElementById('opsResolved').textContent = visible.filter(r=>r.status==='resolved').length;
@@ -2355,12 +2364,13 @@
     });
 
     const visibleReports = reports.filter(canSeeReport);
+    const openAccessible = visibleReports.filter(isAccessibleOpenReport);
     const baseFiltered = curFilter === 'all'
-      ? visibleReports.filter(r => !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId))
+      ? openAccessible
       : curFilter === 'sos'
-        ? visibleReports.filter(r => isSosReport(r) && !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId))
+        ? openAccessible.filter(isSosReport)
         : curFilter === 'report'
-          ? visibleReports.filter(r => isRegularReport(r) && !isClosedStatus(r.status) && (!String(r.assignedToId||'').trim() || String(r.assignedToId||'').trim() === currentUserId))
+          ? openAccessible.filter(isRegularReport)
           : curFilter === 'new'
             ? visibleReports.filter(r=>r.status==='new' && !String(r.assignedToId||'').trim())
             : curFilter === 'assigned'
@@ -3249,7 +3259,7 @@
     void hydrateLegacyPanicLocations();
     if (nr.isPanic || nr.emergencyType === 'PANIC SOS') addNotification('PANIC SOS', `${nr.barangay || 'Unknown area'} - panic received`, 'alert');
     checkHotspot(nr);
-    toast_(nr.isPanic?'PANIC SOS':'New Report', `${nr.emergencyType} â€” ${nr.barangay}`);
+    toast_(nr.isPanic?'PANIC SOS':'New Report', `${nr.emergencyType} - ${nr.barangay}`);
     requestAnimationFrame(()=>{
       const el=document.getElementById(`card-${nr.id}`);
       if (el){el.classList.add('card-flash');setTimeout(()=>el.classList.remove('card-flash'),1800);}
@@ -3336,3 +3346,5 @@
 </script>
 </body>
 </html>
+
+

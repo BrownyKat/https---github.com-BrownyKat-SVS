@@ -1,9 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SVS — Report Emergency</title>
+  <%- include('partials/favicon') %>
+  <%- include('partials/typography') %>
+  <title>SVS - Report Emergency</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
@@ -55,41 +57,11 @@
         radial-gradient(420px 280px at -10% 120%, rgba(239,68,68,.12), transparent 60%),
         linear-gradient(180deg, #f2f6ff 0%, #fff7ef 82%, #ffffff 100%);
     }
-    a{color:var(--blue);text-decoration:none;}
-    a:visited{color:var(--blue);}
-    a:hover{color:#0f3fb5;}
+    #gpsMapLink{color:var(--blue);text-decoration:none;}
+    #gpsMapLink:visited{color:var(--blue);}
+    #gpsMapLink:hover{color:#0f3fb5;}
     ::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:50px;}
 
-    header{position:fixed;top:0;left:0;right:0;z-index:50;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:1rem;padding:1rem 1.5rem;background:rgba(243,247,255,.9);backdrop-filter:blur(18px);border-bottom:1px solid rgba(191,214,245,.9);box-shadow:0 6px 18px rgba(0,0,0,.08);color:var(--text);}
-    header.sticky{position:sticky;left:auto;right:auto;display:block;padding:0;background:transparent;backdrop-filter:none;border-bottom:none;box-shadow:none;color:inherit;}
-    .brand{display:flex;align-items:center;gap:.6rem;color:var(--text);text-decoration:none;}
-    .brand img{width:72px;height:60px;object-fit:contain;flex-shrink:0;}
-    .brand-text{line-height:1;}
-    .brand-name{font-weight:900;font-size:1.25rem;letter-spacing:-.2px;color:var(--text);}
-    .brand-sub{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:1px;color:#475569;}
-    .header-right{
-      display:grid;
-      grid-template-columns:minmax(0,1fr) auto;
-      align-items:center;
-      gap:.7rem;
-      width:100%;
-      min-width:0;
-    }
-    .nav-links{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;justify-content:center;}
-    .nav-btn{display:inline-flex;align-items:center;gap:8px;padding:.5rem 1.1rem;border:1.6px solid rgba(151,189,233,.9);border-radius:15px;background:linear-gradient(180deg,#fff,#f3f7ff);color:var(--text);font-weight:820;font-size:.9rem;transition:.16s;box-shadow:0 9px 18px rgba(15,23,42,.08);}
-    .nav-btn:hover{border-color:var(--blue);color:var(--blue);box-shadow:0 12px 24px rgba(29,78,216,.15);}
-    .nav-btn.active{border-color:var(--blue);background:linear-gradient(180deg,#f0f5ff,#dfe9ff);color:var(--blue);box-shadow:0 12px 26px rgba(29,78,216,.22);}
-    .nav-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
-    .nav-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
-    .main-datetime{display:flex;align-items:center;gap:12px;min-height:56px;padding:.65rem 1rem;background:linear-gradient(180deg,#ffffff,#eef3ff) padding-box,linear-gradient(135deg,rgba(239,68,68,.9),rgba(59,130,246,.9)) border-box;border:1.6px solid transparent;border-radius:18px;color:#0F172A;white-space:nowrap;box-shadow:0 14px 26px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.65);backdrop-filter:blur(10px);}
-    .main-datetime:hover{
-      transform:translateY(-1px);
-      box-shadow:0 16px 30px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.8);
-    }
-    .main-datetime svg{width:22px;height:18px;stroke:var(--blue);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
-    .time-block{display:flex;flex-direction:column;line-height:1.05;min-width:0;}
-    .clock-text{font-family:'Orbitron','JetBrains Mono',monospace;font-size:1.08rem;font-weight:900;letter-spacing:1.1px;color:#0b1a3a;}
-    .date-text{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:800;letter-spacing:.8px;color:#4b5563;margin-top:3px;}
     .sos-save-row{
       display:flex;align-items:center;gap:.55rem;flex-wrap:wrap;
       margin-top:.4rem;background:rgba(255,255,255,.6);
@@ -109,7 +81,7 @@
     .sos-save-row button:hover{box-shadow:var(--shadow-md);}
     .sos-save-row .pill-status{font-weight:700;font-size:.85rem;color:var(--muted);}
 
-    /* ── PANIC STRIP ── */
+    /* â”€â”€ PANIC STRIP â”€â”€ */
     .panic-strip{
       background:linear-gradient(180deg,#E9F2FF 0%,#FEFCE8 52%,#FEF2F2 100%);
       border-bottom:1px solid rgba(220,38,38,.12);
@@ -124,7 +96,7 @@
       pointer-events:none;
     }
     .panic-eyebrow{
-      font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;
+      font-family:var(--font-subtitle);font-size:2rem;font-weight:700;
       letter-spacing:3px;text-transform:uppercase;color:var(--orange);
       margin-bottom:1.4rem;position:relative;
     }
@@ -152,21 +124,21 @@
       display:inline-flex;align-items:center;gap:7px;
       background:var(--surface);border:1px solid var(--border-mid);
       border-radius:99px;padding:.35rem 1rem;
-      font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--muted);
+      font-family:var(--font-subtitle);font-size:.72rem;color:var(--muted);
       margin-top:.85rem;cursor:pointer;transition:all .18s;
     }
     .panic-number-pill:hover{border-color:var(--red);color:var(--red);}
     .panic-number-pill svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
     .panic-number-pill strong{color:var(--green);}
 
-    /* ── FORM ── */
+    /* â”€â”€ FORM â”€â”€ */
     .form-wrap{max-width:740px;margin:0 auto;padding:2.75rem 1.5rem 5rem;position:relative;z-index:1;}
 
     .form-head{margin-bottom:2.5rem;animation:fadeUp .5s ease both;}
     @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
     .form-eyebrow{
       display:inline-flex;align-items:center;gap:6px;
-      font-family:'JetBrains Mono',monospace;font-size:.6rem;font-weight:700;
+      font-family:var(--font-subtitle);font-size:.6rem;font-weight:700;
       letter-spacing:2px;text-transform:uppercase;color:var(--red);
       background:var(--red-light);border:1px solid var(--red-border);
       border-radius:99px;padding:.28rem .85rem;margin-bottom:.9rem;
@@ -232,7 +204,7 @@
       display:flex;align-items:center;justify-content:center;
     }
     .card-icon svg{width:22px;height:22px;stroke:var(--amber-deep);fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
-    .card-step{font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:700;color:var(--red);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
+    .card-step{font-family:var(--font-subtitle);font-size:.58rem;font-weight:700;color:var(--red);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
     .card-title{font-weight:820;font-size:1.08rem;color:var(--blue);letter-spacing:-.25px;}
     .card-sub{font-size:.77rem;color:var(--muted);margin-top:2px;}
 
@@ -265,7 +237,7 @@
     input,select,textarea{
       width:100%;background:var(--bg);border:1.5px solid var(--border);
       color:var(--text);padding:.78rem 1rem;border-radius:var(--r-md);
-      font-family:'Outfit',sans-serif;font-size:.92rem;font-weight:500;
+      font-family:var(--font-body);font-size:.92rem;font-weight:500;
       transition:border-color .18s,box-shadow .18s,background .18s;
       outline:none;appearance:none;
     }
@@ -315,7 +287,7 @@
       padding:1.3rem .6rem 1.05rem;
       border:1.5px solid var(--border);border-radius:13px;
       background:var(--bg);color:var(--muted);
-      cursor:pointer;font-family:'Outfit',sans-serif;font-weight:700;font-size:.82rem;
+      cursor:pointer;font-family:var(--font-body);font-weight:700;font-size:.82rem;
       transition:all .2s;
     }
     .etype-icon{
@@ -340,7 +312,7 @@
       display:flex;align-items:center;justify-content:center;gap:7px;
       padding:.9rem;border:1.5px solid var(--border);border-radius:11px;
       background:var(--bg);color:var(--muted);
-      cursor:pointer;font-family:'Outfit',sans-serif;font-weight:700;font-size:.9rem;
+      cursor:pointer;font-family:var(--font-body);font-weight:700;font-size:.9rem;
       transition:all .2s;
     }
     .sev-btn svg{width:17px;height:17px;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s;}
@@ -372,7 +344,7 @@
       width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
       padding:.88rem;border:1.5px dashed var(--border-mid);border-radius:var(--r-md);
       background:var(--bg);color:var(--muted);
-      font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:600;
+      font-family:var(--font-body);font-size:.88rem;font-weight:600;
       cursor:pointer;transition:all .2s;margin-bottom:1rem;
     }
     .gps-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;}
@@ -393,7 +365,7 @@
       padding:.55rem .75rem;
       border-bottom:1px solid var(--border);
       background:var(--surface2);
-      font-family:'JetBrains Mono',monospace;
+      font-family:var(--font-subtitle);
       font-size:.62rem;font-weight:700;letter-spacing:.7px;color:var(--muted);
       text-transform:uppercase;
       z-index:2;
@@ -439,7 +411,7 @@
       background:rgba(255,255,255,.9);
       border:1px solid rgba(15,23,42,.1);
       box-shadow:0 12px 32px rgba(15,23,42,.18);
-      font-family:'JetBrains Mono',monospace;
+      font-family:var(--font-subtitle);
       font-size:.68rem;
       letter-spacing:.6px;
       color:var(--muted2);
@@ -546,7 +518,7 @@
       padding:1.1rem;margin-top:.65rem;
       background:linear-gradient(135deg,var(--amber),var(--orange));
       color:#fff;border:none;border-radius:var(--r-lg);
-      font-family:'Outfit',sans-serif;font-weight:800;font-size:.98rem;
+      font-family:var(--font-body);font-weight:800;font-size:.98rem;
       cursor:pointer;transition:all .22s;
       box-shadow:0 6px 24px rgba(234,88,12,.34);position:relative;overflow:hidden;
     }
@@ -560,7 +532,7 @@
     }
     .submit-btn:hover::after{transform:translateX(100%);}
 
-    /* ── MODALS / OVERLAYS ── */
+    /* â”€â”€ MODALS / OVERLAYS â”€â”€ */
     .overlay{
       display:none;position:fixed;inset:0;
       background:rgba(233,243,255,.95);backdrop-filter:blur(14px);
@@ -586,14 +558,15 @@
     .rpt-id{
       margin-top:1.6rem;padding:1rem 2.5rem;
       background:var(--amber-light);border:1.5px solid var(--amber-border);border-radius:13px;
-      font-family:'JetBrains Mono',monospace;font-size:1.55rem;font-weight:700;
+      font-family:var(--font-subtitle);font-size:1.55rem;font-weight:700;
       letter-spacing:4px;color:var(--amber-dark);
     }
     .ghost-btn{
       margin-top:1.75rem;padding:.75rem 2rem;
       background:var(--surface);border:1.5px solid var(--border-mid);
       border-radius:var(--r-md);color:var(--text2);
-      font-family:'Outfit',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer;
+      display:inline-flex;align-items:center;justify-content:center;text-decoration:none;
+      font-family:var(--font-body);font-weight:700;font-size:.88rem;cursor:pointer;
       transition:all .18s;
     }
     .ghost-btn:hover{border-color:var(--amber);color:var(--amber-dark);background:var(--amber-light);}
@@ -616,7 +589,7 @@
     .modal-box input{
       width:100%;background:var(--bg);border:1.5px solid var(--border-mid);
       color:var(--text);padding:.9rem 1rem;border-radius:var(--r-md);
-      font-family:'JetBrains Mono',monospace;font-size:1.05rem;
+      font-family:var(--font-subtitle);font-size:1.05rem;
       outline:none;text-align:center;letter-spacing:3px;margin-bottom:1rem;transition:all .18s;
     }
     .modal-box input:focus{border-color:var(--red);box-shadow:0 0 0 3.5px rgba(220,38,38,.1);background:var(--surface);}
@@ -624,11 +597,11 @@
       width:100%;padding:.95rem;
       background:linear-gradient(135deg,#EF4444,#DC2626);
       color:#fff;border:none;border-radius:var(--r-md);
-      font-family:'Outfit',sans-serif;font-weight:800;font-size:.97rem;cursor:pointer;
+      font-family:var(--font-body);font-weight:800;font-size:.97rem;cursor:pointer;
       box-shadow:0 4px 20px rgba(220,38,38,.3);transition:all .2s;
     }
     .modal-save:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(220,38,38,.4);}
-    .modal-cancel{display:block;width:100%;padding:.55rem;margin-top:.6rem;background:none;border:none;color:var(--muted);cursor:pointer;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:600;}
+    .modal-cancel{display:block;width:100%;padding:.55rem;margin-top:.6rem;background:none;border:none;color:var(--muted);cursor:pointer;font-family:var(--font-body);font-size:.85rem;font-weight:600;}
 
     /* panic sending overlay */
     #sendingOverlay{
@@ -708,11 +681,11 @@
     .sos-id-box{
       margin-top:1.4rem;padding:1rem 2.25rem;
       background:var(--red-light);border:1.5px solid var(--red-border);border-radius:12px;
-      font-family:'JetBrains Mono',monospace;font-size:1.7rem;font-weight:700;
+      font-family:var(--font-subtitle);font-size:1.7rem;font-weight:700;
       letter-spacing:4px;color:var(--red);
     }
-    .sos-id-label{font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
-    .gps-note{margin-top:.85rem;font-size:.74rem;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+    .sos-id-label{font-family:var(--font-subtitle);font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+    .gps-note{margin-top:.85rem;font-size:.74rem;color:var(--muted);font-family:var(--font-subtitle);}
 
     /* toast */
     .toast{
@@ -756,10 +729,10 @@
     }
     .rf-copy{margin-left:-10px;}
     .rf-name{font-weight:900;font-size:.95rem;line-height:1.15;}
-    .rf-sub{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+    .rf-sub{font-family:var(--font-subtitle);font-size:.62rem;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
     .rf-text{font-size:.8rem;color:var(--text2);line-height:1.65;margin-top:.38rem;max-width:340px;}
     .rf-col h4{
-      font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:1.1px;
+      font-family:var(--font-subtitle);font-size:.66rem;letter-spacing:1.1px;
       text-transform:uppercase;color:var(--text2);margin:0 0 .45rem;
     }
     .rf-list{list-style:none;padding:0;margin:0;display:grid;gap:.34rem;}
@@ -793,23 +766,6 @@
       mask-image: radial-gradient(circle at center, rgba(0,0,0,.92), rgba(0,0,0,.30));
     }
     .panic-strip,.form-wrap,.report-footer{position:relative;z-index:1}
-    .header{
-      position:fixed;
-      top:0;
-      left:0;
-      right:0;
-      z-index:50;
-      display:grid;
-      grid-template-columns:auto 1fr auto;
-      align-items:center;
-      gap:1rem;
-      padding:1rem 1.5rem;
-      background:rgba(243,247,255,.9);
-      backdrop-filter:blur(18px);
-      border-bottom:1px solid rgba(191,214,245,.9);
-      box-shadow:0 6px 18px rgba(0,0,0,.08);
-    }
-    .brand{gap:.6rem}
     .panic-strip{
       margin: 1rem auto 0;
       width:min(1220px, calc(100% - 2rem));
@@ -1168,24 +1124,29 @@
       box-shadow:0 18px 50px rgba(15,23,42,.12);
       background:rgba(255,255,255,.92);
       overflow:hidden;
+      position:relative;
     }
     .dashboard-map-shell .gps-map-head{
-      padding:1rem 1.15rem;
+      padding:.82rem 1rem;
       background:rgba(255,255,255,.94);
       border-bottom:1px solid rgba(226,232,240,.95);
+      flex-shrink:0;
+      position:relative;
+      z-index:2;
     }
     .dashboard-map-shell .gps-map-canvas{
-      display:flex;
       flex:1 1 auto;
       min-height:0;
       border-radius:0;
       border:none;
       background:linear-gradient(180deg,#dbeafe,#e2e8f0);
       position:relative;
+      display:block;
     }
     .dashboard-map-shell .gps-map-frame{
       display:block;
-      flex:1 1 auto;
+      position:absolute;
+      inset:0;
       width:100%;
       height:100% !important;
       min-height:100% !important;
@@ -1232,8 +1193,15 @@
         inset:0;
         height:auto;
         padding:0;
+        display:flex;
+        flex-direction:column;
+      }
+      .progress-panel--side{
+        margin:0;
       }
       .dashboard-map-shell .gps-map-wrap{
+        flex:1 1 auto;
+        min-height:0;
         border-radius:0;
         box-shadow:none;
         background:#fff;
@@ -1303,7 +1271,7 @@
       padding:1.15rem 1.1rem;
     }
     .aside-kicker{
-      font-family:'JetBrains Mono',monospace;
+      font-family:var(--font-subtitle);
       font-size:.6rem;
       font-weight:700;
       letter-spacing:2px;
@@ -1366,7 +1334,7 @@
       flex-shrink:0;
       background:var(--surface);
       border:1px solid var(--border);
-      font-family:'JetBrains Mono',monospace;
+      font-family:var(--font-subtitle);
       font-size:.72rem;
       font-weight:700;
       color:var(--amber-dark);
@@ -1472,7 +1440,7 @@
       border-radius:999px;
       background:rgba(255,255,255,.72);
       border:1px solid var(--border);
-      font-family:'JetBrains Mono',monospace;
+      font-family:var(--font-subtitle);
       font-size:.62rem;
       font-weight:700;
       letter-spacing:1px;
@@ -1556,7 +1524,7 @@
       background:var(--amber-light);
       border:1px solid var(--amber-border);
       color:var(--amber-deep);
-      font-family:'JetBrains Mono',monospace;
+      font-family:var(--font-subtitle);
       font-size:.64rem;
       font-weight:700;
       letter-spacing:1px;
@@ -1572,6 +1540,185 @@
       stroke-width:1.8;
       stroke-linecap:round;
       stroke-linejoin:round;
+    }
+    .progress-panel{
+      position:sticky;
+      top:.75rem;
+      z-index:8;
+      margin-bottom:1rem;
+      padding:1rem 1.05rem;
+      border-radius:20px;
+      border:1px solid rgba(191,214,245,.92);
+      background:rgba(255,255,255,.92);
+      box-shadow:0 14px 30px rgba(15,23,42,.08);
+      backdrop-filter:blur(14px);
+    }
+    .progress-panel-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:.85rem;
+      flex-wrap:wrap;
+      margin-bottom:.85rem;
+    }
+    .progress-kicker{
+      font-family:var(--font-subtitle);
+      font-size:.62rem;
+      font-weight:800;
+      letter-spacing:1.5px;
+      text-transform:uppercase;
+      color:var(--blue);
+    }
+    .progress-status-text{
+      margin-top:.25rem;
+      font-size:.84rem;
+      font-weight:700;
+      color:var(--muted);
+    }
+    .progress-count{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:.42rem .72rem;
+      border-radius:999px;
+      background:var(--blue-light);
+      border:1px solid var(--blue-border);
+      color:var(--blue);
+      font-family:var(--font-subtitle);
+      font-size:.68rem;
+      font-weight:800;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+    .progress-steps{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(0,1fr));
+      gap:.65rem;
+    }
+    .progress-step{
+      padding:.72rem .8rem;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:var(--surface);
+      color:var(--muted);
+      font-size:.78rem;
+      font-weight:800;
+      text-align:center;
+      transition:all .2s ease;
+    }
+    .progress-step.is-complete{
+      border-color:var(--green-border);
+      background:var(--green-light);
+      color:var(--green);
+    }
+    .progress-step.is-current{
+      border-color:var(--amber-border);
+      background:var(--amber-light);
+      color:var(--amber-deep);
+      box-shadow:0 8px 18px rgba(245,158,11,.14);
+    }
+    .progress-step.is-missing{
+      border-color:var(--red-border);
+      background:var(--red-light);
+      color:var(--red);
+    }
+    .progress-step--optional{
+      border-style:dashed;
+    }
+    .validation-summary{
+      margin-bottom:1rem;
+      padding:.95rem 1rem;
+      border-radius:18px;
+      border:1px solid rgba(245,158,11,.28);
+      background:rgba(255,251,235,.9);
+    }
+    .validation-summary.is-ready{
+      border-color:rgba(34,197,94,.26);
+      background:rgba(236,253,245,.92);
+    }
+    .validation-summary-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:.75rem;
+      flex-wrap:wrap;
+    }
+    .validation-summary-head strong{
+      font-size:.92rem;
+      color:var(--text);
+    }
+    .validation-summary-head span{
+      font-family:var(--font-subtitle);
+      font-size:.68rem;
+      font-weight:800;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      color:var(--amber-deep);
+    }
+    .validation-summary.is-ready .validation-summary-head span{
+      color:var(--green);
+    }
+    .validation-summary-list{
+      margin:.7rem 0 0;
+      padding-left:1rem;
+      display:grid;
+      gap:.28rem;
+      color:var(--muted);
+      font-size:.8rem;
+      line-height:1.55;
+    }
+    .progress-panel--side{
+      position:absolute;
+      top:.9rem;
+      right:.9rem;
+      width:min(310px, calc(100% - 1.8rem));
+      margin:0;
+      padding:.82rem .86rem;
+      border-radius:18px;
+      z-index:7;
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+      transform:translateY(-10px) scale(.98);
+      transition:opacity .22s ease, transform .22s ease, visibility .22s ease;
+    }
+    .progress-panel--side.is-visible{
+      opacity:1;
+      visibility:visible;
+      pointer-events:auto;
+      transform:translateY(0) scale(1);
+    }
+    .progress-panel--side .progress-panel-head{
+      gap:.55rem;
+      margin-bottom:.65rem;
+    }
+    .progress-panel--side .progress-kicker{
+      font-size:.55rem;
+      letter-spacing:1.3px;
+    }
+    .progress-panel--side .progress-status-text{
+      margin-top:.18rem;
+      font-size:.73rem;
+      line-height:1.42;
+    }
+    .progress-panel--side .progress-count{
+      padding:.34rem .58rem;
+      font-size:.6rem;
+      letter-spacing:.9px;
+    }
+    .progress-panel--side .progress-steps{
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:.45rem;
+    }
+    .progress-panel--side .progress-step{
+      padding:.56rem .54rem;
+      border-radius:12px;
+      font-size:.68rem;
+      line-height:1.25;
+    }
+    .progress-panel--side .progress-step:last-child{
+      grid-column:1 / -1;
     }
     .report-footer{
       margin-top:1rem;
@@ -1656,30 +1803,11 @@
       .submit-panel{
         padding:1.2rem 1.25rem;
       }
+      .progress-steps{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+      }
     }
     @media(max-width:768px){
-      .header-right{
-        grid-template-columns:1fr;
-        justify-items:stretch;
-      }
-      .nav-links{
-        justify-content:flex-start;
-      }
-      .nav-btn{
-        flex:1 1 auto;
-        justify-content:center;
-      }
-      .brand img{
-        width:58px;
-        height:48px;
-      }
-      .brand-name{
-        font-size:1.05rem;
-      }
-      .brand-sub{
-        font-size:.6rem;
-        letter-spacing:.7px;
-      }
       .form-head h1{
         font-size:2.2rem;
         letter-spacing:-1.4px;
@@ -1723,6 +1851,9 @@
       .submit-copy{
         flex-direction:column;
       }
+      .progress-steps{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
       .action-strip{
         width:100%;
         justify-content:center;
@@ -1755,8 +1886,6 @@
         width:min(100%, calc(100% - 1rem));
         border-radius:24px;
       }
-      .header{height:auto;min-height:64px;padding:.75rem 1rem;align-items:flex-start;gap:.75rem;flex-wrap:wrap;}
-      .main-datetime{width:100%;white-space:normal;justify-content:flex-start;}
       .panic-sublabel{padding:.85rem 1rem}
     }
     @media(max-width:900px){
@@ -1779,7 +1908,8 @@
       }
       .intro-card,
       .aside-card,
-      .submit-panel{
+      .submit-panel,
+      .progress-panel{
         border-radius:18px;
         padding:.95rem;
       }
@@ -1831,6 +1961,9 @@
       .sev-row{
         grid-template-columns:1fr;
       }
+      .progress-steps{
+        grid-template-columns:1fr;
+      }
       .sev-btn{
         justify-content:flex-start;
         padding:1rem;
@@ -1851,20 +1984,6 @@
       .action-chip{
         flex-basis:100%;
       }
-      .nav-links{
-        display:grid;
-        grid-template-columns:repeat(2,minmax(0,1fr));
-        width:100%;
-      }
-      .nav-btn{
-        width:100%;
-        padding:.6rem .8rem;
-        font-size:.82rem;
-      }
-      .main-datetime{padding:.68rem .85rem;gap:.7rem;}
-      .main-datetime svg{width:20px;height:20px;}
-      .clock-text{font-size:.95rem;letter-spacing:.7px;}
-      .date-text{font-size:.6rem;letter-spacing:.45px;}
     }
     @media(max-width:1100px){
       .card-step{
@@ -1890,9 +2009,6 @@
       }
     }
     @media(max-width:767px){
-      body{
-        padding-top:var(--header-h);
-      }
       .dashboard-main{
         min-height:auto;
       }
@@ -1916,7 +2032,7 @@
       }
     }
   </style>
-  <%- include('partials/typography') %>
+  <%- include('partials/public-motion-head') %>
 </head>
 <body>
 
@@ -1926,9 +2042,9 @@
 <div class="dashboard-layout">
   <div class="report-form-panel custom-scrollbar">
     <div class="form-wrap dashboard-form-wrap" id="report-form">
-      <div class="bg-white rounded-3xl shadow-lg p-8 dashboard-form-card">
+      <div data-animate="fade-right" style="--animate-order:0" class="bg-white rounded-3xl shadow-lg p-8 dashboard-form-card">
   <div class="dashboard-form-scroll custom-scrollbar">
-  <div class="form-head dashboard-form-head">
+  <div data-animate="fade-up" style="--animate-order:1" class="form-head dashboard-form-head">
     <div class="form-eyebrow">
       <!-- Heroicon: document-text -->
       <svg viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
@@ -1940,7 +2056,7 @@
       <button class="chip-btn" type="button" onclick="alertQueued()">Offline Queue (<span id="pendingCount">0</span>)</button>
     </div>
   </div>
-  <div class="alert-strip">
+  <div data-animate="fade-up" style="--animate-order:2" class="alert-strip">
     <!-- Heroicon: exclamation-triangle -->
     <svg viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
     <span><strong>For life-threatening emergencies, call 911 immediately.</strong><br>This form is for reporting incidents and requesting assistance through SVS.</span>
@@ -1948,7 +2064,7 @@
 
   <div class="card-stack dashboard-card-stack">
   <!-- STEP 01 -->
-  <div class="card" id="step-reporter">
+  <div data-animate="fade-up" style="--animate-order:3" class="card" id="step-reporter">
     <div class="card-topline">
       <div class="card-head">
       <div class="card-icon">
@@ -1990,7 +2106,7 @@
   </div>
 
   <!-- STEP 02 -->
-  <div class="card" id="step-type">
+  <div data-animate="fade-up" style="--animate-order:4" class="card" id="step-type">
     <div class="card-topline">
       <div class="card-head">
       <div class="card-icon">
@@ -2053,7 +2169,7 @@
   </div>
 
   <!-- STEP 03 -->
-  <div class="card" id="step-severity">
+  <div data-animate="fade-up" style="--animate-order:5" class="card" id="step-severity">
     <div class="card-topline">
       <div class="card-head">
       <div class="card-icon">
@@ -2091,7 +2207,7 @@
   </div>
 
   <!-- STEP 04 -->
-  <div class="card" id="step-location">
+  <div data-animate="fade-up" style="--animate-order:6" class="card" id="step-location">
     <div class="card-topline">
       <div class="card-head">
       <div class="card-icon">
@@ -2160,7 +2276,7 @@
   </div>
 
   <!-- STEP 05 -->
-  <div class="card" id="step-details">
+  <div data-animate="fade-up" style="--animate-order:7" class="card" id="step-details">
     <div class="card-topline">
       <div class="card-head">
       <div class="card-icon">
@@ -2214,6 +2330,13 @@
         Required fields only
       </div>
     </div>
+    <div id="validationSummary" class="validation-summary">
+      <div class="validation-summary-head">
+        <strong id="validationSummaryTitle">Complete the required fields</strong>
+        <span id="validationSummaryCount">0 missing</span>
+      </div>
+      <ul id="validationSummaryList" class="validation-summary-list"></ul>
+    </div>
     <button class="submit-btn" type="button" onclick="submitReport()">
       <!-- Heroicon: paper-airplane -->
       <svg viewBox="0 0 24 24"><path d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
@@ -2224,8 +2347,24 @@
       </div>
     </div>
   </div>
-  <div class="report-map-panel dashboard-map-panel">
+  <div data-animate="fade-left" style="--animate-order:1" class="report-map-panel dashboard-map-panel">
     <div class="dashboard-map-shell">
+      <div class="progress-panel progress-panel--side" id="reportProgressPanel" aria-hidden="true">
+        <div class="progress-panel-head">
+          <div>
+            <div class="progress-kicker">Progress</div>
+            <div id="reportProgressText" class="progress-status-text">Complete the required sections below.</div>
+          </div>
+          <div id="reportProgressCount" class="progress-count">0 / 4 ready</div>
+        </div>
+        <div class="progress-steps">
+          <div id="progressReporter" class="progress-step">1. Reporter</div>
+          <div id="progressType" class="progress-step">2. Type</div>
+          <div id="progressSeverity" class="progress-step">3. Severity</div>
+          <div id="progressLocation" class="progress-step">4. Location</div>
+          <div id="progressDetails" class="progress-step progress-step--optional">5. Details</div>
+        </div>
+      </div>
       <div class="gps-map-wrap" id="gpsMapWrap">
         <div class="gps-map-head">
           <span id="gpsMapLabel">Mapandan, Pangasinan overview</span>
@@ -2251,7 +2390,7 @@
 </main>
 
 <!-- FOOTER -->
-<footer class="report-footer">
+<footer data-animate="fade-up" class="report-footer">
   <div class="report-footer-inner">
     <div>
       <div class="rf-brand">
@@ -2286,6 +2425,7 @@
   <h2>Report Submitted</h2>
   <p>Your emergency report has been received by SVS dispatchers. You will be contacted at your provided number for verification.</p>
   <div class="rpt-id" id="rptId">RPT-0000</div>
+  <a class="ghost-btn" id="trackReportLink" href="/track">Track This Report</a>
   <button class="ghost-btn" onclick="closeSuccess()">Submit Another Report</button>
 </div>
 
@@ -2310,7 +2450,7 @@
     <div class="sending-ring">
       <svg viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
     </div>
-    <h2 class="red">Sending SOS…</h2>
+    <h2 class="red">Sending SOS...</h2>
     <p class="sending-sub">Acquiring exact location and alerting dispatchers</p>
   </div>
   <div class="confirmed" id="confirmedState">
@@ -2319,7 +2459,7 @@
     </div>
     <h2 class="green-h" style="font-size:2rem;letter-spacing:-1px;margin-bottom:.55rem;">SOS Sent!</h2>
     <p style="color:var(--text2);max-width:310px;line-height:1.7;font-size:.9rem;">
-      Dispatchers have been alerted. <strong style="color:var(--text);">Stay on the line — they will call you back immediately.</strong>
+      Dispatchers have been alerted. <strong style="color:var(--text);">Stay on the line - they will call you back immediately.</strong>
     </p>
     <div style="margin-top:1.4rem;">
       <div class="sos-id-label">Your SOS ID</div>
@@ -2336,9 +2476,12 @@
   <div><strong id="toastTitle"></strong><span id="toastMsg"></span></div>
 </div>
 
+<%- include('partials/public-motion-script') %>
+
 <script>
   let selType_ = '', selSev_ = '';
   let panicNum = '';
+  let reportPhotoData = '';
   const MAP_MIN_ZOOM = 6;
   const MAP_MAX_ZOOM = 20;
   const MAP_STREET_ZOOM = 17;
@@ -2355,6 +2498,7 @@
   bindRequiredFieldWatchers();
   flushPendingQueue();
   updatePendingCount();
+  renderReportProgress();
   window.addEventListener('online', flushPendingQueue);
   if (panicNum) {
     initPanicUI();
@@ -2370,6 +2514,7 @@
     if (sosBtn) sosBtn.textContent = 'Edit';
     if (status) { status.textContent = 'Saved'; status.style.color = 'var(--green)'; }
   }
+  renderReportProgress();
 
   function bindInputSecurity() {
     const contactInput = document.getElementById('iContact');
@@ -2533,13 +2678,122 @@
     return !!String((el && el.value) || '').trim();
   }
 
+  function getReportProgressState() {
+    const name = hasValue(document.getElementById('iName'));
+    const contact = !!toIntlPhone(document.getElementById('iContact')?.value || '');
+    const type = !!selType_;
+    const severity = !!selSev_;
+    const barangay = hasValue(document.getElementById('iBarangay'));
+    const landmark = hasValue(document.getElementById('iLandmark'));
+    const street = hasValue(document.getElementById('iStreet'));
+    const gps = !!parseGps(document.getElementById('iGPS')?.value || '');
+    const details = hasValue(document.getElementById('iDesc')) || !!reportPhotoData;
+
+    return {
+      steps: [
+        { id: 'progressReporter', done: name && contact, label: 'Reporter details' },
+        { id: 'progressType', done: type, label: 'Emergency type' },
+        { id: 'progressSeverity', done: severity, label: 'Severity level' },
+        { id: 'progressLocation', done: barangay && landmark && street && gps, label: 'Location details' },
+        { id: 'progressDetails', done: details, label: 'Incident details', optional: true },
+      ],
+      missing: [
+        !name ? 'Add the reporter name.' : '',
+        !contact ? 'Enter a valid callback number.' : '',
+        !type ? 'Choose the emergency type.' : '',
+        !severity ? 'Choose the severity level.' : '',
+        !gps ? 'Detect or confirm the GPS location.' : '',
+        !barangay ? 'Fill in the barangay.' : '',
+        !landmark ? 'Fill in the nearest landmark.' : '',
+        !street ? 'Fill in the street or approach details.' : '',
+      ].filter(Boolean),
+    };
+  }
+
+  function hasStartedReportInput() {
+    return [
+      hasValue(document.getElementById('iName')),
+      !!selType_,
+      !!selSev_,
+      hasValue(document.getElementById('iBarangay')),
+      hasValue(document.getElementById('iLandmark')),
+      hasValue(document.getElementById('iStreet')),
+      !!parseGps(document.getElementById('iGPS')?.value || ''),
+      hasValue(document.getElementById('iDesc')),
+      !!reportPhotoData,
+    ].some(Boolean);
+  }
+
+  function renderReportProgress() {
+    const progress = getReportProgressState();
+    const requiredSteps = progress.steps.filter(step => !step.optional);
+    const completeRequired = requiredSteps.filter(step => step.done).length;
+    const firstMissing = requiredSteps.find(step => !step.done);
+    const panel = document.getElementById('reportProgressPanel');
+    const shouldShowPanel = hasStartedReportInput();
+
+    if (panel) {
+      panel.classList.toggle('is-visible', shouldShowPanel);
+      panel.setAttribute('aria-hidden', shouldShowPanel ? 'false' : 'true');
+    }
+
+    progress.steps.forEach(step => {
+      const el = document.getElementById(step.id);
+      if (!el) return;
+      el.classList.remove('is-complete', 'is-current', 'is-missing');
+      if (step.done) el.classList.add('is-complete');
+      else if (!step.optional && firstMissing && firstMissing.id === step.id) el.classList.add('is-current', 'is-missing');
+    });
+
+    const progressText = document.getElementById('reportProgressText');
+    const progressCount = document.getElementById('reportProgressCount');
+    if (progressText) {
+      progressText.textContent = progress.missing.length
+        ? 'Finish the missing required sections before sending.'
+        : progress.steps[4].done
+          ? 'All required sections are ready and extra details are included.'
+          : 'All required sections are ready. You can still add more context if needed.';
+    }
+    if (progressCount) progressCount.textContent = `${completeRequired} / ${requiredSteps.length} ready`;
+
+    const summary = document.getElementById('validationSummary');
+    const summaryTitle = document.getElementById('validationSummaryTitle');
+    const summaryCount = document.getElementById('validationSummaryCount');
+    const summaryList = document.getElementById('validationSummaryList');
+    if (summary && summaryTitle && summaryCount && summaryList) {
+      const ready = progress.missing.length === 0;
+      summary.classList.toggle('is-ready', ready);
+      summaryTitle.textContent = ready ? 'Ready to submit' : 'Before you submit';
+      summaryCount.textContent = ready ? '0 missing' : `${progress.missing.length} missing`;
+      summaryList.innerHTML = ready
+        ? `<li>All required fields are complete. Submit now or add optional details first.</li>`
+        : progress.missing.map(item => `<li>${item}</li>`).join('');
+    }
+
+    return progress;
+  }
+
+  function scrollToFirstMissingStep(progress = getReportProgressState()) {
+    const firstMissing = progress.steps.find(step => !step.done && !step.optional);
+    const stepMap = {
+      progressReporter: 'step-reporter',
+      progressType: 'step-type',
+      progressSeverity: 'step-severity',
+      progressLocation: 'step-location',
+    };
+    const targetId = firstMissing && stepMap[firstMissing.id];
+    if (!targetId) return;
+    document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   function bindRequiredFieldWatchers() {
-    const requiredInputs = ['iName', 'iContact', 'iBarangay', 'iLandmark', 'iStreet'];
+    const requiredInputs = ['iName', 'iContact', 'iBarangay', 'iLandmark', 'iStreet', 'iDesc'];
     requiredInputs.forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       el.addEventListener('input', () => {
         if (hasValue(el)) setRequiredError(el, false);
+        renderReportProgress();
       });
     });
   }
@@ -2562,17 +2816,19 @@ function selType(el, t) {
     document.querySelectorAll('.etype-btn').forEach(b => b.classList.remove('sel'));
     el.classList.add('sel'); selType_ = t;
     setRequiredError(document.getElementById('typeGrid'), false);
+    renderReportProgress();
   }
   function selSev(el, s) {
     document.querySelectorAll('.sev-btn').forEach(b => b.classList.remove('sel'));
     el.classList.add('sel'); selSev_ = s;
     setRequiredError(document.getElementById('sevGrid'), false);
+    renderReportProgress();
   }
 
   function detectGPS() {
     const btn = document.getElementById('gpsBtn');
     btn.disabled = true;
-    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;animation:spin .9s linear infinite"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> Detecting…`;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;animation:spin .9s linear infinite"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> Detecting...`;
     if (!navigator.geolocation) { btn.textContent = 'GPS not available on this device'; btn.disabled = false; return; }
     navigator.geolocation.getCurrentPosition(
       pos => {
@@ -2584,15 +2840,14 @@ function selType(el, t) {
         void autoFillLocationFromCoords(pos.coords.latitude, pos.coords.longitude);
         setRequiredError(btn, false);
         btn.classList.add('got');
-        btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4.5 12.75l6 6 9-13.5"/></svg> Detected: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} (±${Math.round(pos.coords.accuracy || 0)}m)`;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4.5 12.75l6 6 9-13.5"/></svg> Detected: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} (+/-${Math.round(pos.coords.accuracy || 0)}m)`;
         btn.disabled = false;
+        renderReportProgress();
       },
-      () => { btn.textContent = 'Could not detect location — fill in manually.'; btn.disabled = false; }
+      () => { btn.textContent = 'Could not detect location - fill it in manually.'; btn.disabled = false; renderReportProgress(); }
       , { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
   }
-
-  let reportPhotoData = '';
 
   function bytesToReadableSize(bytes) {
     const value = Number(bytes) || 0;
@@ -2642,6 +2897,7 @@ function selType(el, t) {
     const photoInput = document.getElementById('iPhoto');
     if (photoInput) photoInput.value = '';
     updateReportPhotoUi();
+    renderReportProgress();
   }
 
   function handleReportPhotoChange(event) {
@@ -2668,6 +2924,7 @@ function selType(el, t) {
     reader.onload = () => {
       reportPhotoData = typeof reader.result === 'string' ? reader.result : '';
       updateReportPhotoUi(file);
+      renderReportProgress();
     };
     reader.onerror = () => {
       clearReportPhoto();
@@ -2708,6 +2965,8 @@ function selType(el, t) {
     setRequiredError(streetInput, !street);
 
     if (!name||!contact||!selType_||!selSev_||!barangay||!landmark||!street) {
+      const progress = renderReportProgress();
+      scrollToFirstMissingStep(progress);
       toast('Missing fields', 'Please complete all required fields and selections.','warn'); return;
     }
     if (!isValidPhMobile(contact)) {
@@ -2721,6 +2980,8 @@ function selType(el, t) {
     const gpsValue = liveGps || document.getElementById('iGPS').value;
     if (!parseGps(gpsValue)) {
       setRequiredError(document.getElementById('gpsBtn'), true);
+      const progress = renderReportProgress();
+      scrollToFirstMissingStep(progress);
       toast('Location required', 'Please enable Location/GPS and try again.','warn');
       return;
     }
@@ -2748,7 +3009,9 @@ function selType(el, t) {
         toast('Stored to retry', d.error || 'Network issue. Will retry automatically.','warn');
         return;
       }
+      try{ localStorage.setItem('svs_last_report_id', d.id || ''); }catch(_e){}
       document.getElementById('rptId').textContent = d.id;
+      document.getElementById('trackReportLink').href = `/track?id=${encodeURIComponent(d.id)}`;
       document.getElementById('successOverlay').classList.add('show');
       resetForm();
       window.dispatchEvent(new Event('svs:report-submitted'));
@@ -2778,6 +3041,7 @@ function selType(el, t) {
     resetMapToDefaultView();
     g.innerHTML=`<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round"><path d="M9.348 14.651a3.75 3.75 0 0 1 0-5.303m5.304-.001a3.75 3.75 0 0 1 0 5.304m-7.425 2.122a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79M12 12h.008v.007H12V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg> Auto-detect My Location (GPS)`;
     updatePendingCount();
+    renderReportProgress();
   }
 
   function closeSuccess() { document.getElementById('successOverlay').classList.remove('show'); }
@@ -3229,6 +3493,7 @@ function selType(el, t) {
     if (changedBarangay || changedLandmark || changedStreet) {
       toast('Location autofill', 'Location fields updated from detected GPS.');
     }
+    renderReportProgress();
   }
 
   async function applyDetectedCoords(pos, options = {}) {
@@ -3240,6 +3505,7 @@ function selType(el, t) {
     mapState.zoom = Math.max(MAP_STREET_ZOOM, mapState.zoom);
     renderReporterMap(gps, 'Detected location');
     await autoFillLocationFromCoords(pos.coords.latitude, pos.coords.longitude, options);
+    renderReportProgress();
   }
 
   async function acquireBestGpsPosition(timeoutMs = 12000, targetAccuracyM = 30) {
@@ -3309,3 +3575,4 @@ function selType(el, t) {
 </script>
 </body>
 </html>
+

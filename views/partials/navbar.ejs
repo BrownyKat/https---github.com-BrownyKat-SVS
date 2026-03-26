@@ -2,6 +2,7 @@
   const navLinks = [
     { href: '/sos', key: 'sos', label: 'SOS' },
     { href: '/report', key: 'report', label: 'Report' },
+    { href: '/track', key: 'track', label: 'Track' },
     { href: '/about', key: 'about', label: 'About Us' },
     { href: '/faq', key: 'faq', label: 'FAQ' },
   ];
@@ -9,7 +10,7 @@
   const clockId = (typeof timeId === 'string' && timeId) || 'navTime';
 %>
 
-<header class="sticky top-0 z-50 border-b border-slate-200/70 bg-slate-50/80 backdrop-blur-xl">
+<header id="publicNavbar" class="sticky top-0 z-50 border-b border-slate-200/70 bg-slate-50/80 backdrop-blur-xl">
   <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
     <div class="rounded-[1.6rem] border border-white/80 bg-white/75 px-4 py-3 shadow-[0_12px_34px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/70 sm:px-5">
       <div class="flex items-center justify-between gap-4">
@@ -23,13 +24,13 @@
           </div>
         </a>
 
-        <nav class="hidden items-center gap-1 rounded-2xl border border-slate-200/80 bg-slate-100/70 p-1 md:flex">
+        <nav class="hidden shrink items-center gap-1 rounded-2xl border border-slate-200/80 bg-slate-100/70 p-1 md:flex">
           <% navLinks.forEach(link => {
                const isActive = activeKey === link.key;
           %>
             <a
               href="<%= link.href %>"
-              class="rounded-xl px-4 py-2 text-sm font-bold transition-all duration-200 <%= isActive ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:bg-white/70 hover:text-slate-900' %>"
+              class="rounded-xl px-3 py-2 text-sm font-bold transition-all duration-200 lg:px-4 <%= isActive ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:bg-white/70 hover:text-slate-900' %>"
             >
               <%= link.label %>
             </a>
@@ -38,7 +39,7 @@
 
         <div
           id="<%= clockId %>"
-          class="hidden min-w-[172px] items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/55 px-3.5 py-2.5 text-slate-700 shadow-sm ring-1 ring-white/70 sm:flex"
+          class="hidden min-w-[172px] items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/55 px-3.5 py-2.5 text-slate-700 shadow-sm ring-1 ring-white/70 xl:flex"
         >
           <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100/80 text-slate-500 ring-1 ring-slate-200/80">
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -53,13 +54,13 @@
         </div>
       </div>
 
-      <nav class="mt-3 flex items-center gap-2 overflow-x-auto pb-1 md:hidden">
+      <nav class="mt-3 grid grid-cols-3 gap-2 pb-1 sm:grid-cols-5 md:hidden">
         <% navLinks.forEach(link => {
              const isActive = activeKey === link.key;
         %>
           <a
             href="<%= link.href %>"
-            class="whitespace-nowrap rounded-xl border px-3.5 py-2 text-sm font-bold transition-all duration-200 <%= isActive ? 'border-slate-200 bg-slate-900 text-white shadow-sm' : 'border-slate-200 bg-white/85 text-slate-600 hover:border-slate-300 hover:text-slate-900' %>"
+            class="flex items-center justify-center rounded-xl border px-3 py-2 text-center text-sm font-bold transition-all duration-200 <%= isActive ? 'border-slate-200 bg-slate-900 text-white shadow-sm' : 'border-slate-200 bg-white/85 text-slate-600 hover:border-slate-300 hover:text-slate-900' %>"
           >
             <%= link.label %>
           </a>
@@ -68,3 +69,24 @@
     </div>
   </div>
 </header>
+<script>
+  (() => {
+    const root = document.documentElement;
+    const nav = document.getElementById('publicNavbar');
+    if (!root || !nav) return;
+
+    const syncNavbarHeight = () => {
+      const height = Math.ceil(nav.getBoundingClientRect().height || nav.offsetHeight || 0);
+      if (height > 0) root.style.setProperty('--header-h', `${height}px`);
+    };
+
+    syncNavbarHeight();
+    window.addEventListener('load', syncNavbarHeight, { once: true });
+    window.addEventListener('resize', syncNavbarHeight);
+
+    if ('ResizeObserver' in window) {
+      const observer = new ResizeObserver(syncNavbarHeight);
+      observer.observe(nav);
+    }
+  })();
+</script>

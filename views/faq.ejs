@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%- include('partials/favicon') %>
   <title>SVS - FAQ</title>
   <%- include('partials/typography') %>
   <script src="https://cdn.tailwindcss.com"></script>
+  <%- include('partials/public-motion-head') %>
 </head>
 <body class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.1),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(239,68,68,0.09),_transparent_30%),linear-gradient(180deg,#f4f8ff_0%,#fff8ef_82%,#ffffff_100%)] text-slate-900 antialiased">
   <%
@@ -38,7 +40,7 @@
   <%- include('partials/navbar', { active: 'faq', timeId: 'faqTime' }) %>
 
   <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <section class="overflow-hidden rounded-[2.2rem] border border-slate-200/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.94),rgba(238,246,255,0.9))] shadow-[0_28px_70px_rgba(15,23,42,0.12)]">
+    <section data-animate="zoom-in" class="overflow-hidden rounded-[2.2rem] border border-slate-200/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.94),rgba(238,246,255,0.9))] shadow-[0_28px_70px_rgba(15,23,42,0.12)]">
       <div class="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)] lg:items-center">
         <div>
           <div class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/90 px-3 py-1 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-blue-700">
@@ -81,20 +83,20 @@
     </section>
 
     <% if (feedbackState === 'success') { %>
-      <div class="mt-6 rounded-[1.6rem] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-bold text-emerald-700 shadow-[0_14px_28px_rgba(16,185,129,0.08)]">
+      <div data-animate="fade-up" class="mt-6 rounded-[1.6rem] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-bold text-emerald-700 shadow-[0_14px_28px_rgba(16,185,129,0.08)]">
         Feedback received. Thank you for helping improve SVS.
       </div>
     <% } else if (feedbackState === 'error') { %>
-      <div class="mt-6 rounded-[1.6rem] border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700 shadow-[0_14px_28px_rgba(239,68,68,0.08)]">
+      <div data-animate="fade-up" class="mt-6 rounded-[1.6rem] border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700 shadow-[0_14px_28px_rgba(239,68,68,0.08)]">
         We could not save your feedback right now. Please try again in a moment.
       </div>
     <% } %>
 
     <section class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
-      <div class="rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#eff6ff_0%,#ffffff_100%)] p-5 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-6">
+      <div data-animate="fade-right" class="rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#eff6ff_0%,#ffffff_100%)] p-5 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-6">
         <div class="space-y-4">
           <% faqs.forEach(function(item, index) { %>
-            <details class="group rounded-[1.6rem] border border-slate-200 bg-white px-5 py-4 shadow-[0_12px_24px_rgba(15,23,42,0.06)] open:border-blue-200 open:shadow-[0_18px_34px_rgba(37,99,235,0.12)]" <%= index === 0 ? 'open' : '' %>>
+            <details data-animate="fade-up" style="--animate-order:<%= index %>" class="group rounded-[1.6rem] border border-slate-200 bg-white px-5 py-4 shadow-[0_12px_24px_rgba(15,23,42,0.06)] open:border-blue-200 open:shadow-[0_18px_34px_rgba(37,99,235,0.12)]" <%= index === 0 ? 'open' : '' %>>
               <summary class="flex cursor-pointer list-none items-center gap-4 text-left">
                 <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-sm font-black text-white">?</span>
                 <span class="text-base font-black text-slate-950 sm:text-lg"><%= item.q %></span>
@@ -107,7 +109,7 @@
       </div>
 
       <aside class="space-y-6">
-        <section class="rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)]">
+        <section data-animate="fade-left" style="--animate-order:1" class="rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)]">
           <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-amber-600">Best practice</div>
           <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950">How to help dispatch faster</h2>
           <div class="mt-4 space-y-3 text-sm leading-7 text-slate-700">
@@ -120,7 +122,7 @@
           </div>
         </section>
 
-        <section class="rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#fff8ef_0%,#ffffff_100%)] p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)]">
+        <section data-animate="fade-left" style="--animate-order:2" class="rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#fff8ef_0%,#ffffff_100%)] p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)]">
           <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-red-600">Feedback</div>
           <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950">Tell us what needs work.</h2>
           <p class="mt-3 text-sm leading-7 text-slate-700 sm:text-base">
@@ -155,6 +157,7 @@
   </main>
 
   <%- include('partials/footer') %>
+  <%- include('partials/public-motion-script') %>
 
   <script>
     function updateTime(elId){
