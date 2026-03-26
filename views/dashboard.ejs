@@ -426,6 +426,64 @@
       backdrop-filter:blur(4px);
     }
     .filter-label-bar::after{content:'';flex:1;height:1px;background:var(--border);}
+    .report-pager{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:.75rem;
+      flex-wrap:wrap;
+      margin:.25rem 0 1rem;
+      padding:.8rem .95rem;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:rgba(255,255,255,.8);
+      box-shadow:var(--shadow-xs);
+    }
+    .report-pager-summary{
+      font-size:.82rem;
+      font-weight:700;
+      color:var(--muted);
+    }
+    .report-pager-actions{
+      display:flex;
+      align-items:center;
+      gap:.45rem;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .pager-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:38px;
+      height:38px;
+      padding:0 .78rem;
+      border:1px solid var(--border);
+      border-radius:11px;
+      background:#fff;
+      color:var(--text2);
+      font:800 .78rem var(--font-body);
+      cursor:pointer;
+      transition:all .16s ease;
+      box-shadow:var(--shadow-xs);
+    }
+    .pager-btn:hover{
+      border-color:var(--blue-border);
+      color:var(--blue);
+      transform:translateY(-1px);
+    }
+    .pager-btn.active{
+      background:linear-gradient(135deg,var(--blue),#1d4ed8);
+      border-color:var(--blue);
+      color:#fff;
+      box-shadow:0 10px 20px rgba(29,78,216,.18);
+    }
+    .pager-btn:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+      transform:none;
+      box-shadow:none;
+    }
 
     /* Ã¢â€â‚¬Ã¢â€â‚¬ REPORT CARDS Ã¢â€â‚¬Ã¢â€â‚¬ */
     .report-list{display:flex;flex-direction:column;gap:1rem;}
@@ -673,6 +731,44 @@
       border:0;
       display:block;
       background:#F3F4F6;
+    }
+    .rcard-map-placeholder{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:.7rem;
+      padding:1rem;
+      background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(239,246,255,.9));
+    }
+    .rcard-map-placeholder strong{
+      font-size:.9rem;
+      color:var(--text);
+    }
+    .rcard-map-placeholder p{
+      margin:0;
+      font-size:.8rem;
+      line-height:1.55;
+      color:var(--muted);
+      max-width:56ch;
+    }
+    .map-preview-btn{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      padding:.55rem .9rem;
+      border:1px solid var(--blue-border);
+      border-radius:10px;
+      background:var(--blue-light);
+      color:var(--blue);
+      font:800 .78rem var(--font-body);
+      cursor:pointer;
+      box-shadow:0 8px 18px rgba(29,78,216,.12);
+      transition:transform .12s, box-shadow .12s, filter .12s;
+    }
+    .map-preview-btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 12px 20px rgba(29,78,216,.16);
+      filter:saturate(1.03);
     }
 
     .rcard-desc{
@@ -1337,6 +1433,10 @@
       </div>
 
       <div class="filter-label-bar" id="filterLabel">All Reports</div>
+      <div class="report-pager" id="reportPager" hidden>
+        <div class="report-pager-summary" id="reportPagerSummary">0 reports</div>
+        <div class="report-pager-actions" id="reportPagerActions"></div>
+      </div>
 
       <div class="report-list" id="reportList">
         <!-- rendered by JS -->
@@ -1620,14 +1720,18 @@
   let curStatusFilter = 'all';
   let curTypeFilter = 'all';
   let curSearch = '';
+  let curListPage = 1;
   let pendingScrollToFirst = false;
   let editReportId = '';
   let editIsPanic = false;
   const callStartedIds = new Set();
+  const loadedReportMaps = new Set();
   const geoCache = new Map();
   const geoInFlight = new Set();
+  const REPORTS_PAGE_SIZE = 18;
   const REPORTS_POLL_MS = 2000;
   const ACTIVE_DISPATCHERS_POLL_MS = 5000;
+  const GPS_RESOLVE_BATCH_SIZE = 18;
 
   // Ã¢â€â‚¬Ã¢â€â‚¬ Icon SVGs per type Ã¢â€â‚¬Ã¢â€â‚¬
   const typeIcons = {
@@ -1847,6 +1951,7 @@
   function setFilter(f) {
     curStatusFilter = f;
     curTypeFilter = 'all';
+    curListPage = 1;
     updateActiveFilters();
     document.getElementById('filterLabel').textContent = filterLabelText();
     render();
@@ -1854,6 +1959,7 @@
 
   function setTypeFilter(f) {
     curTypeFilter = curTypeFilter === f ? 'all' : f;
+    curListPage = 1;
     updateActiveFilters();
     document.getElementById('filterLabel').textContent = filterLabelText();
     render();
@@ -1874,11 +1980,13 @@
 
   function setSearch(val) {
     curSearch = String(val || '');
+    curListPage = 1;
     render();
   }
 
   function clearSearch() {
     curSearch = '';
+    curListPage = 1;
     const input = document.getElementById('reportSearch');
     if (input) input.value = '';
     render();
@@ -1886,6 +1994,7 @@
 
   function jumpToFirst() {
     pendingScrollToFirst = true;
+    curListPage = 1;
     render();
   }
 
@@ -1989,7 +2098,7 @@
     const photoCount = Math.max(Number(r.photoCount || 0), photos.length);
     const photosJson = photos.length ? JSON.stringify(photos).replace(/&/g,'&amp;').replace(/"/g,'&quot;') : '';
     const photoHtml = photos.length
-      ? `<div class="photo-stack" data-photos="${photosJson}" data-report="${esc(rid)}" data-name="${esc(r.name)}">${photos.slice(0,3).map((p,i)=>`<img src="${p}" class="photo-thumb" alt="Photo ${i+1}" data-index="${i}">`).join('')}${photos.length>3 ? `<span class="photo-more" data-index="0">+${photos.length-3}</span>` : ''}</div><span class="photo-count">${photos.length} photo${photos.length>1?'s':''}</span>`
+      ? `<div class="photo-stack" data-photos="${photosJson}" data-report="${esc(rid)}" data-name="${esc(r.name)}">${photos.slice(0,3).map((p,i)=>`<img src="${p}" class="photo-thumb" alt="Photo ${i+1}" data-index="${i}" loading="lazy" decoding="async">`).join('')}${photos.length>3 ? `<span class="photo-more" data-index="0">+${photos.length-3}</span>` : ''}</div><span class="photo-count">${photos.length} photo${photos.length>1?'s':''}</span>`
       : photoCount
         ? `<button type="button" class="photo-more photo-launch" data-report="${esc(rid)}" data-name="${esc(r.name)}">View ${photoCount} photo${photoCount>1?'s':''}</button>`
         : '';
@@ -2161,18 +2270,70 @@
   function gpsMapHTML(r) {
     const p = parseGps(r.gps);
     if (!p) return '';
+    const rid = normalizeId(r.id || r.reportId || r._id || '');
     const lat = p.lat.toFixed(6);
     const lng = p.lng.toFixed(6);
     const open = `https://www.google.com/maps?q=${lat},${lng}`;
     const embed = `https://maps.google.com/maps?q=${lat},${lng}&t=m&z=20&output=embed`;
+    const shouldLoadPreview = !!rid && loadedReportMaps.has(rid);
     return `
       <div class="rcard-map">
         <div class="rcard-map-head">
           <span>GPS: ${lat}, ${lng}</span>
           <a class="map-open" href="${open}" target="_blank" rel="noopener noreferrer">Open map</a>
         </div>
-        <iframe class="rcard-map-canvas" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${embed}"></iframe>
+        ${shouldLoadPreview
+          ? `<iframe class="rcard-map-canvas" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${embed}"></iframe>`
+          : `<div class="rcard-map-placeholder">
+              <strong>Map preview paused for performance</strong>
+              <p>Large queues stay smoother when embedded maps load only on demand. You can still open Google Maps instantly.</p>
+              <button type="button" class="map-preview-btn" onclick="loadReportMapPreview('${rid}')">Load preview</button>
+            </div>`}
       </div>
+    `;
+  }
+
+  function loadReportMapPreview(reportId) {
+    const id = normalizeId(reportId);
+    if (!id) return;
+    loadedReportMaps.add(id);
+    render();
+  }
+
+  function setListPage(nextPage) {
+    const page = Math.max(1, Number.parseInt(nextPage, 10) || 1);
+    if (page === curListPage) return;
+    curListPage = page;
+    render();
+  }
+
+  function renderReportPager(totalItems, totalPages, currentPage) {
+    const pager = document.getElementById('reportPager');
+    const summary = document.getElementById('reportPagerSummary');
+    const actions = document.getElementById('reportPagerActions');
+    if (!pager || !summary || !actions) return;
+
+    if (totalItems <= REPORTS_PAGE_SIZE) {
+      pager.hidden = true;
+      actions.innerHTML = '';
+      summary.textContent = totalItems === 1 ? '1 report' : `${totalItems} reports`;
+      return;
+    }
+
+    pager.hidden = false;
+    const start = ((currentPage - 1) * REPORTS_PAGE_SIZE) + 1;
+    const end = Math.min(totalItems, currentPage * REPORTS_PAGE_SIZE);
+    summary.textContent = `Showing ${start}-${end} of ${totalItems} reports`;
+
+    const pages = new Set([1, totalPages, currentPage - 1, currentPage, currentPage + 1].filter(p => p >= 1 && p <= totalPages));
+    const pageButtons = Array.from(pages).sort((a, b) => a - b).map(page => (
+      `<button type="button" class="pager-btn${page === currentPage ? ' active' : ''}" onclick="setListPage(${page})">${page}</button>`
+    )).join('');
+
+    actions.innerHTML = `
+      <button type="button" class="pager-btn" onclick="setListPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>Prev</button>
+      ${pageButtons}
+      <button type="button" class="pager-btn" onclick="setListPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>Next</button>
     `;
   }
 
@@ -2369,6 +2530,7 @@
     }
     counts();
     const list = document.getElementById('reportList');
+    const pager = document.getElementById('reportPager');
     const existingMaps = new Map();
     list.querySelectorAll('.rcard-map').forEach(mapNode => {
       const card = mapNode.closest('.rcard');
@@ -2382,6 +2544,7 @@
       ? baseFiltered.filter(r => matchesSearch(r, searchTerm))
       : baseFiltered;
     if (!filtered.length) {
+      if (pager) pager.hidden = true;
       list.innerHTML = `<div class="empty">
         <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"/></svg></div>
         <h3>${searchTerm ? 'No reports match your search' : 'No reports here'}</h3>
@@ -2389,7 +2552,12 @@
       </div>`;
       return;
     }
-    list.innerHTML = filtered.map(r => cardHTML(r, searchTerm && matchesSearch(r, searchTerm))).join('');
+    const totalPages = Math.max(1, Math.ceil(filtered.length / REPORTS_PAGE_SIZE));
+    if (curListPage > totalPages) curListPage = totalPages;
+    const startIndex = (curListPage - 1) * REPORTS_PAGE_SIZE;
+    const paged = filtered.slice(startIndex, startIndex + REPORTS_PAGE_SIZE);
+    renderReportPager(filtered.length, totalPages, curListPage);
+    list.innerHTML = paged.map(r => cardHTML(r, searchTerm && matchesSearch(r, searchTerm))).join('');
 
     // Reuse already-loaded map nodes so map iframes do not reload on data refresh.
     existingMaps.forEach((oldMapNode, cardId) => {
@@ -2401,7 +2569,7 @@
     });
 
     if (pendingScrollToFirst && filtered.length) {
-      const firstId = normalizeId(filtered[0].id || filtered[0].reportId || filtered[0]._id || '');
+      const firstId = normalizeId(paged[0].id || paged[0].reportId || paged[0]._id || '');
       if (firstId) {
         const target = document.getElementById(`card-${firstId}`);
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2409,7 +2577,7 @@
     }
     pendingScrollToFirst = false;
 
-    resolveGpsTexts(filtered).then(changed => { if (changed) render(); });
+    resolveGpsTexts(paged.slice(0, GPS_RESOLVE_BATCH_SIZE)).then(changed => { if (changed) render(); });
   }
 
   async function reverseGeocodeForDashboard(lat, lng) {
