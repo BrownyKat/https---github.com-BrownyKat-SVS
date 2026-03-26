@@ -39,6 +39,10 @@ app.use((req, res, next) => {
 });
 const SESSION_TTL_MS = 1000 * 60 * 60 * 8; // 8 hours
 const SESSION_REMEMBER_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
+const DISPATCHER_ONLINE_WINDOW_MS = Math.max(
+  60 * 1000,
+  Number.parseInt(process.env.DISPATCHER_ONLINE_WINDOW_MS || '300000', 10) || (5 * 60 * 1000)
+);
 const ADMIN_REPORTS_PAGE_SIZE = 20;
 const ADMIN_AUDIT_PAGE_SIZE = 20;
 const DB_READY_ROUTE_TIMEOUT_MS = Math.max(15000, Number.parseInt(process.env.DB_READY_ROUTE_TIMEOUT_MS || '20000', 10) || 20000);
@@ -1948,6 +1952,28 @@ app.get('/api/dispatchers/active', requireRolesApi(['dispatcher', 'admin']), asy
   }
 });
 
+async function getOnlineDispatcherLookups(now = new Date()) {
+  const activeCutoff = new Date(now.getTime() - DISPATCHER_ONLINE_WINDOW_MS);
+  const activeSessions = await Session.find({
+    role: 'dispatcher',
+    expiresAt: { $gt: now },
+    updatedAt: { $gte: activeCutoff },
+  })
+    .select('userId username')
+    .lean();
+
+  const onlineDispatcherIds = new Set();
+  const onlineDispatcherUsernames = new Set();
+  activeSessions.forEach((session) => {
+    const sessionUserId = String((session && session.userId) || '').trim();
+    const sessionUsername = String((session && session.username) || '').trim().toLowerCase();
+    if (sessionUserId) onlineDispatcherIds.add(sessionUserId);
+    if (sessionUsername) onlineDispatcherUsernames.add(sessionUsername);
+  });
+
+  return { onlineDispatcherIds, onlineDispatcherUsernames };
+}
+
 app.get('/api/admin/dispatchers/status', requireRolesApi(['admin']), async (_req, res) => {
   try {
     await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Dispatcher status API DB connect timed out');
@@ -1956,21 +1982,7 @@ app.get('/api/admin/dispatchers/status', requireRolesApi(['admin']), async (_req
       .sort({ createdAt: -1 })
       .lean();
     const now = new Date();
-    const sessions = await Session.find({
-      role: 'dispatcher',
-      expiresAt: { $gt: now },
-    })
-      .select('userId username')
-      .lean();
-
-    const onlineDispatcherIds = new Set();
-    const onlineDispatcherUsernames = new Set();
-    sessions.forEach((session) => {
-      const sessionUserId = String(session && session.userId || '').trim();
-      const sessionUsername = String(session && session.username || '').trim().toLowerCase();
-      if (sessionUserId) onlineDispatcherIds.add(sessionUserId);
-      if (sessionUsername) onlineDispatcherUsernames.add(sessionUsername);
-    });
+    const { onlineDispatcherIds, onlineDispatcherUsernames } = await getOnlineDispatcherLookups(now);
 
     res.json(dispatchers.map((dispatcher) => {
       const dispatcherId = String(dispatcher && dispatcher._id || '').trim();
@@ -3244,20 +3256,7 @@ async function getAdminViewData(req) {
   const auditPage = parsePositiveInt(source.auditPage, 1);
   const rawDispatchers = await Dispatcher.find().sort({ createdAt: -1 }).lean();
   const now = new Date();
-  const activeSessions = await Session.find({
-    role: 'dispatcher',
-    expiresAt: { $gt: now },
-  })
-    .select('userId username')
-    .lean();
-  const onlineDispatcherIds = new Set();
-  const onlineDispatcherUsernames = new Set();
-  activeSessions.forEach((session) => {
-    const sessionUserId = String(session && session.userId || '').trim();
-    const sessionUsername = String(session && session.username || '').trim().toLowerCase();
-    if (sessionUserId) onlineDispatcherIds.add(sessionUserId);
-    if (sessionUsername) onlineDispatcherUsernames.add(sessionUsername);
-  });
+  const { onlineDispatcherIds, onlineDispatcherUsernames } = await getOnlineDispatcherLookups(now);
   const dispatchers = rawDispatchers.map((dispatcher) => {
     const dispatcherId = String(dispatcher && dispatcher._id || '').trim();
     const dispatcherUsername = String(dispatcher && dispatcher.username || '').trim().toLowerCase();
