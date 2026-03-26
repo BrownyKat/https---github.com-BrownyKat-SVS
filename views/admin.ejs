@@ -261,6 +261,13 @@
       font-size:13px;
       line-height:1.45;
     }
+    .alert-mini-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .alert-mini-actions form{margin:0}
     .section-head svg{
       width:22px;height:22px;stroke:var(--amber-strong);fill:none;stroke-width:1.9;
       stroke-linecap:round;stroke-linejoin:round;
@@ -712,6 +719,11 @@
               <span class="alert-mini-label">Admin Alert</span>
               <% if (latestAlert) { %>
                 <strong><%= latestAlert.title || 'Active alert' %></strong>
+                <div class="alert-mini-actions">
+                  <form method="post" action="/admin/alerts/<%= latestAlert._id %>/delete?tab=dashboard">
+                    <button class="btn danger" type="submit">Delete Alert</button>
+                  </form>
+                </div>
                 <p><%= latestAlert.disasterType || 'General' %> · <%= latestAlert.severity || 'High' %><br><%= latestAlert.message || 'No message provided.' %></p>
               <% } else { %>
                 <strong>No active alert</strong>

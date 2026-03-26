@@ -119,12 +119,19 @@ async function initDatabase() {
   dbInitPromise = (async () => {
     let mongoUri;
     try {
-      mongoUri = String(
+      const primaryMongoUri = String(
         process.env.MONGODB_URI
         || process.env.MONGO_URI
         || process.env.DATABASE_URL
         || ''
       ).trim();
+      const directMongoUri = String(
+        process.env.MONGODB_DIRECT_URI
+        || process.env.MONGO_DIRECT_URI
+        || process.env.DATABASE_DIRECT_URL
+        || ''
+      ).trim();
+      mongoUri = primaryMongoUri || directMongoUri;
       const mongoDb = String(
         process.env.MONGODB_DB
         || process.env.MONGO_DB
@@ -135,20 +142,38 @@ async function initDatabase() {
       if (!mongoUri) {
         throw new Error('Mongo URI is not configured (set MONGODB_URI or DATABASE_URL)');
       }
-      const envTls = String(process.env.MONGODB_SSL || process.env.MONGO_SSL || '').toLowerCase();
-      let wantTls = /^mongodb\+srv:/i.test(mongoUri) || /ssl=true/i.test(mongoUri);
-      if (envTls === 'true') wantTls = true;
-      if (envTls === 'false') wantTls = false;
-      const connectOptions = {
-        dbName: mongoDb || undefined,
-        serverSelectionTimeoutMS: 10000,
-        socketTimeoutMS: 45000,
-        retryWrites: true,
-        w: 'majority',
-        ssl: wantTls,
-        tlsAllowInvalidCertificates: wantTls ? false : undefined,
+      const buildConnectOptions = (uri) => {
+        const envTls = String(process.env.MONGODB_SSL || process.env.MONGO_SSL || '').toLowerCase();
+        let wantTls = /^mongodb\+srv:/i.test(uri) || /ssl=true/i.test(uri);
+        if (envTls === 'true') wantTls = true;
+        if (envTls === 'false') wantTls = false;
+        return {
+          dbName: mongoDb || undefined,
+          serverSelectionTimeoutMS: 10000,
+          socketTimeoutMS: 45000,
+          retryWrites: true,
+          w: 'majority',
+          ssl: wantTls,
+          tlsAllowInvalidCertificates: wantTls ? false : undefined,
+        };
       };
-      await mongoose.connect(mongoUri, connectOptions);
+      try {
+        await mongoose.connect(mongoUri, buildConnectOptions(mongoUri));
+      } catch (err) {
+        const canRetryDirect = !!directMongoUri
+          && directMongoUri !== primaryMongoUri
+          && /^mongodb\+srv:/i.test(primaryMongoUri)
+          && /querySrv|ENOTFOUND|ECONNREFUSED|ETIMEOUT|ETIMEDOUT/i.test(String(err && err.message || ''));
+        if (!canRetryDirect) throw err;
+        console.warn('[db] SRV lookup failed; retrying with direct Mongo URI fallback.');
+        mongoUri = directMongoUri;
+        try {
+          if (mongoose.connection.readyState !== 0) {
+            await mongoose.disconnect();
+          }
+        } catch (_disconnectErr) {}
+        await mongoose.connect(mongoUri, buildConnectOptions(mongoUri));
+      }
       console.log(`  ✔  MongoDB connected${mongoDb ? ` (db: ${mongoDb})` : ''}`);
       await ensureDefaultAdmin();
       await ensureDefaultDispatcher();
@@ -278,6 +303,7 @@ function logMongoConnectionHints(err, mongoUri) {
   }
   if (/ENOTFOUND|EREFUSED|ECONNRESET|ETIMEDOUT|querySrv/i.test(message)) {
     hints.push('Check local DNS, firewall, proxy, or VPN settings. Atlas SRV lookups must be allowed from this machine.');
+    hints.push('If SRV lookups are blocked, set MONGODB_DIRECT_URI to the standard mongodb:// Atlas driver string as a fallback.');
   }
   if (/certificate|TLS|SSL/i.test(message)) {
     hints.push('Confirm TLS inspection or antivirus is not blocking Atlas certificates.');
@@ -1292,6 +1318,46 @@ app.post('/admin/alerts', requireRolesPage(['admin'], '/login'), async (req, res
   } catch (err) {
     console.error(err);
     return renderAdminPage(req, res, { error: 'Could not publish alert.' }, 500);
+  }
+});
+
+app.post('/admin/alerts/:id/delete', requireRolesPage(['admin'], '/login'), async (req, res) => {
+  try {
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Alert delete DB connect timed out');
+    const alert = await Alert.findById(req.params.id);
+    if (!alert) {
+      return res.redirect(adminRedirectUrl(req, { err: 'Alert not found' }));
+    }
+
+    alert.active = false;
+    await alert.save();
+
+    await logAudit({
+      actorRole: 'admin',
+      actorId: String(req.auth.userId || ''),
+      actorName: String(req.auth.fullName || req.auth.username || 'Admin'),
+      action: 'ALERT_DELETE',
+      targetType: 'alert',
+      targetId: String(alert._id),
+      details: `${alert.disasterType} ${alert.severity} alert removed`,
+    });
+
+    const realtimeAlert = formatAlertPayload(alert);
+    await emitRealtime('alert-created', realtimeAlert);
+    await emitRealtime('admin-alert-created', realtimeAlert);
+    await emitRealtime('alert-deleted', realtimeAlert);
+    await emitRealtime('admin-alert-deleted', realtimeAlert);
+    const supabaseResult = await upsertSupabaseAlert(realtimeAlert);
+    const mirrorResult = await syncAlertToMobileBackend(realtimeAlert);
+
+    return res.redirect(adminRedirectUrl(req, {
+      ok: supabaseResult.ok && mirrorResult.ok
+        ? 'Alert removed'
+        : `Alert removed locally. ${supabaseResult.ok ? '' : `${supabaseResult.message} `}${mirrorResult.ok ? '' : mirrorResult.message}`.trim(),
+    }));
+  } catch (err) {
+    console.error(err);
+    return renderAdminPage(req, res, { error: 'Could not remove alert.' }, 500);
   }
 });
 
