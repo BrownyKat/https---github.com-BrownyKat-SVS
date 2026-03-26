@@ -71,14 +71,19 @@
     .brand-name em{font-style:normal;color:var(--amber-dark);}
     .brand-sub{font-family:var(--font-subtitle);font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
     .header-right{display:flex;align-items:center;gap:.65rem;}
-    .header-weather{
+    .main-weather{
       display:flex;align-items:center;gap:8px;
-      padding:.38rem .92rem;min-height:38px;
-      background:var(--blue-light);border:1.5px solid var(--blue-border);border-radius:999px;
-      font-family:var(--font-body);font-size:.82rem;font-weight:700;color:var(--blue);
-      white-space:nowrap;
+      width:100%;
+      padding:.42rem .2rem 0;
+      min-height:unset;
+      background:transparent;
+      border:0;
+      border-top:1px solid rgba(148,163,184,.18);
+      border-radius:0;
+      font-family:var(--font-body);font-size:.78rem;font-weight:700;color:var(--blue);
+      white-space:normal;
     }
-    .header-weather svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+    .main-weather svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
     .nav-btn{
       display:inline-flex;align-items:center;gap:6px;
       padding:.44rem .95rem;border:1.5px solid var(--border-mid);border-radius:999px;
@@ -230,21 +235,32 @@
       backdrop-filter:blur(8px);
     }
     .main-head-copy{flex:1 1 360px;min-width:0;}
-    .main-title{font-weight:900;font-size:1.55rem;letter-spacing:-.75px;line-height:1.1;}
-    .main-sub{font-size:.78rem;color:var(--muted);margin-top:3px;}
+    .main-title{
+      font-weight:900;font-size:1.55rem;letter-spacing:-.75px;line-height:1.1;
+      background:linear-gradient(135deg,#0f172a 0%, #1d4ed8 58%, #0f172a 100%);
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+    .main-sub{
+      font-size:.78rem;
+      color:#475569;
+      margin-top:3px;
+    }
     .main-quick-filters{display:flex;gap:.5rem;margin-top:.65rem;flex-wrap:wrap;}
     .quick-filter-btn{
       display:inline-flex;align-items:center;gap:7px;
       padding:.42rem .8rem;border-radius:999px;
       border:1.5px solid var(--border-mid);background:var(--surface);
-      color:var(--text2);font-family:var(--font-body);font-size:.74rem;font-weight:700;
+      color:#1e293b;font-family:var(--font-body);font-size:.74rem;font-weight:700;
       cursor:pointer;transition:all .18s;
     }
     .quick-filter-btn:hover{border-color:var(--amber-border);background:var(--amber-light);color:var(--amber-dark);}
     .quick-filter-btn.active{background:var(--amber-light);border-color:var(--amber-border);color:var(--amber-deep);box-shadow:0 6px 16px rgba(245,158,11,.22);}
     .quick-count{
       font-family:var(--font-subtitle);font-size:.72rem;font-weight:800;line-height:1;
-      padding:2px 6px;border-radius:999px;background:rgba(255,255,255,.7);border:1px solid var(--border);
+      padding:2px 6px;border-radius:999px;background:rgba(255,255,255,.92);border:1px solid var(--border);
+      color:var(--blue);
     }
     .main-head-tools{display:flex;flex:0 0 340px;flex-direction:column;align-items:flex-end;gap:.55rem;justify-content:flex-end;width:100%;max-width:360px;}
     .search-bar{
@@ -295,78 +311,88 @@
     .time-block{display:flex;flex-direction:column;line-height:1.05;min-width:0;}
     .clock-text{
       font-family:var(--font-title);
-      font-size:1.2rem;font-weight:700;letter-spacing:1.1px;color:var(--text2);
+      font-size:1.2rem;font-weight:700;letter-spacing:1.1px;color:#172554;
       text-shadow:none;
       overflow-wrap:anywhere;
     }
     .date-text{
       font-family:var(--font-subtitle);
-      font-size:.66rem;font-weight:700;letter-spacing:.7px;color:var(--muted2);
+      font-size:.66rem;font-weight:700;letter-spacing:.7px;color:#64748b;
       margin-top:4px;
       overflow-wrap:anywhere;
     }
     .user-greet{
       display:inline-flex;
       align-items:center;
-      gap:.45rem;
-      background:linear-gradient(145deg,#F8FBFF,#EEF5FF);
-      border:1px solid var(--border-mid);
-      border-radius:999px;
-      padding:.42rem .9rem;
-      font-size:.78rem;
-      font-weight:700;
-      color:var(--text2);
+      gap:.72rem;
+      min-width:196px;
+      background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(247,250,255,.94));
+      border:1.5px solid var(--border-mid);
+      border-radius:20px;
+      padding:.62rem .95rem;
+      color:var(--text);
       white-space:nowrap;
-      box-shadow:var(--shadow-xs);
+      box-shadow:0 10px 24px rgba(15,23,42,.08);
       text-decoration:none;
-      transition:transform .2s ease, color .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
-      will-change:transform;
+      transition:border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
     }
     .user-greet-icon{
-      width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;
-      border-radius:50%;
-      background:var(--blue-light);
+      width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;
+      border-radius:14px;
+      background:linear-gradient(180deg,#F3F8FF,#DEEAFE);
       border:1px solid var(--blue-border);
       color:var(--blue);
       flex-shrink:0;
-      transition:all .2s ease;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
     }
     .user-greet-icon svg{
-      width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;
+      width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.85;
       stroke-linecap:round;stroke-linejoin:round;
     }
+    .user-greet-copy{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:3px;
+      line-height:1;
+    }
+    .user-greet-label{
+      font-family:var(--font-subtitle);
+      font-size:.54rem;
+      font-weight:800;
+      letter-spacing:1.8px;
+      text-transform:uppercase;
+      color:var(--muted2);
+    }
+    .user-greet-name{
+      max-width:128px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      font-size:1rem;
+      font-weight:900;
+      letter-spacing:-.02em;
+      color:var(--text);
+    }
     .user-greet:hover{
-      color:#fff;
-      background:linear-gradient(135deg,var(--blue),var(--red));
-      border-color:transparent;
-      box-shadow:0 8px 18px rgba(29,78,216,.28);
-      transform:translateY(-1px) scale(1.02);
-      animation:greetFloat .85s ease-in-out;
+      background:#fff;
+      border-color:var(--blue-border);
+      box-shadow:0 14px 28px rgba(29,78,216,.12);
+      transform:translateY(-1px);
     }
     .user-greet:focus-visible{
       outline:none;
-      box-shadow:0 0 0 3px rgba(29,78,216,.22), 0 8px 18px rgba(29,78,216,.22);
+      box-shadow:0 0 0 3px rgba(29,78,216,.18), 0 10px 24px rgba(29,78,216,.12);
     }
-    .user-greet:active{transform:translateY(0) scale(.99);}
-    .user-greet span{
-      color:var(--amber-deep);
-      font-weight:800;
-    }
+    .user-greet:active{transform:translateY(0);}
     .act-btn[disabled]{
       opacity:.6;
       cursor:not-allowed;
       box-shadow:none;
     }
     .user-greet:hover .user-greet-icon{
-      background:rgba(255,255,255,.2);
-      border-color:rgba(255,255,255,.45);
-      color:#fff;
-    }
-    .user-greet:hover span{color:#FDE047;}
-    @keyframes greetFloat{
-      0%{transform:translateY(0) scale(1);}
-      50%{transform:translateY(-2px) scale(1.03);}
-      100%{transform:translateY(-1px) scale(1.02);}
+      background:linear-gradient(180deg,#EAF2FF,#D9E8FF);
+      border-color:var(--blue-border);
     }
     /* Notifications */
     .notif-stack{
@@ -400,31 +426,6 @@
       backdrop-filter:blur(4px);
     }
     .filter-label-bar::after{content:'';flex:1;height:1px;background:var(--border);}
-    .ops-grid{
-      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.85rem;
-    }
-    .ops-card{
-      position:relative;overflow:hidden;
-      padding:1rem 1rem .95rem;border-radius:18px;
-      border:1.5px solid var(--border);
-      background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(240,247,255,.9));
-      box-shadow:var(--shadow-sm);
-    }
-    .ops-card::before{
-      content:'';position:absolute;inset:0 auto 0 0;width:4px;
-      border-radius:18px 0 0 18px;background:var(--border-mid);
-    }
-    .ops-card.urgent::before{background:var(--red);}
-    .ops-card.mine::before{background:var(--blue);}
-    .ops-card.verify::before{background:var(--amber-dark);}
-    .ops-card.resolved::before{background:var(--green);}
-    .ops-kicker{
-      font-family:var(--font-subtitle);font-size:.58rem;font-weight:700;
-      letter-spacing:1.6px;text-transform:uppercase;color:var(--muted2);margin-bottom:.45rem;
-    }
-    .ops-value{font-size:1.55rem;line-height:1;font-weight:900;letter-spacing:-1px;color:var(--text);}
-    .ops-label{margin-top:.45rem;font-size:.8rem;font-weight:700;color:var(--text2);}
-    .ops-meta{margin-top:.2rem;font-size:.72rem;color:var(--muted);line-height:1.45;}
 
     /* Ã¢â€â‚¬Ã¢â€â‚¬ REPORT CARDS Ã¢â€â‚¬Ã¢â€â‚¬ */
     .report-list{display:flex;flex-direction:column;gap:1rem;}
@@ -993,7 +994,6 @@
       .rcard{padding:1.1rem 1.05rem}
     }
     @media(max-width:768px){
-      .ops-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
       body{overflow:auto;height:auto;}
       .body{flex-direction:column;}
       .sidebar{width:100%;height:auto;min-height:0;position:relative;top:0;align-self:stretch;overflow:visible;}
@@ -1014,8 +1014,6 @@
       .main-head-tools{align-items:stretch;}
     }
     @media(max-width:520px){
-      .ops-grid{grid-template-columns:1fr;}
-      .ops-card{padding:.9rem;border-radius:16px;}
       .header{height:auto;padding:.62rem .65rem;align-items:flex-start;gap:.6rem;flex-direction:column}
       .header-right{width:100%}
       .brand-name{font-size:.9rem}
@@ -1032,6 +1030,8 @@
       .quick-filter-btn{flex:1 1 calc(50% - .25rem);justify-content:center;min-width:0;}
       .main-datetime{padding:.68rem .85rem;min-height:unset;gap:.7rem;white-space:normal;}
       .main-datetime svg{width:20px;height:20px;}
+      .main-weather{padding:.4rem 0 0;font-size:.72rem;}
+      .main-weather svg{width:15px;height:15px;}
       .clock-text{font-size:1rem;letter-spacing:.7px;}
       .date-text{font-size:.62rem;letter-spacing:.5px;}
       .rcard-type{gap:6px}
@@ -1077,7 +1077,7 @@
       box-shadow:0 18px 40px rgba(15,23,42,.08);
     }
     .brand-logo{filter:drop-shadow(0 10px 16px rgba(29,78,216,.08))}
-    .header-weather,.online-pill,.nav-btn,.user-greet{
+    .online-pill,.nav-btn,.user-greet{
       box-shadow: var(--shadow-sm);
     }
     .sidebar{
@@ -1190,12 +1190,16 @@
     </div>
   </div>
   <div class="header-right">
-    <div class="header-weather" id="weatherText">
-      <svg viewBox="0 0 24 24"><path d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/></svg>
-      Loading weather...
-    </div>
     <div class="online-pill"><div class="online-dot"></div>Live</div>
-    <a class="nav-btn" href="/dispatcher/reset" target="_blank" rel="noopener">Reset Password</a>
+    <button type="button" class="user-greet" title="Open profile settings" onclick="openProfileModal()">
+      <span class="user-greet-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0m-3.75 13.5a7.5 7.5 0 0 1 15 0"/></svg>
+      </span>
+      <span class="user-greet-copy">
+        <span class="user-greet-label">Dispatcher</span>
+        <span class="user-greet-name" id="profileGreetingName"><%= (currentUser && (currentUser.fullName || currentUser.username)) ? (currentUser.fullName || currentUser.username) : 'Dispatcher' %></span>
+      </span>
+    </button>
     <form method="post" action="/dispatcher/logout" style="margin:0" id="dispatcherLogoutForm">
       <button class="nav-btn danger" type="submit">Logout</button>
     </form>
@@ -1304,11 +1308,11 @@
           <div class="main-title">Live Dispatch Console</div>
           <div class="main-sub">Real-time emergency report management</div>
           <div class="main-quick-filters">
-            <button class="quick-filter-btn" type="button" onclick="setFilter('sos',this)">
+            <button class="quick-filter-btn" type="button" onclick="setTypeFilter('sos',this)">
               SOS
               <span class="quick-count" id="cSos">0</span>
             </button>
-            <button class="quick-filter-btn" type="button" onclick="setFilter('report',this)">
+            <button class="quick-filter-btn" type="button" onclick="setTypeFilter('report',this)">
               Report
               <span class="quick-count" id="cReport">0</span>
             </button>
@@ -1325,39 +1329,10 @@
             <svg viewBox="0 0 24 24"><path d="M6.75 3v2.25m10.5-2.25v2.25M3.75 9.75h16.5M4.5 5.25h15A1.5 1.5 0 0 1 21 6.75v12A1.5 1.5 0 0 1 19.5 20.25h-15A1.5 1.5 0 0 1 3 18.75v-12A1.5 1.5 0 0 1 4.5 5.25Z"/></svg>
             Loading time...
           </div>
-          <button type="button" class="user-greet" title="Open profile settings" onclick="openProfileModal()">
-            <span class="user-greet-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0m-3.75 13.5a7.5 7.5 0 0 1 15 0"/></svg>
-            </span>
-            HI!!! <span id="profileGreetingName"><%= (currentUser && (currentUser.fullName || currentUser.username)) ? (currentUser.fullName || currentUser.username) : 'Dispatcher' %></span>
-          </button>
-        </div>
-      </div>
-
-      <div class="ops-grid" aria-label="Dispatch summary">
-        <div class="ops-card urgent">
-          <div class="ops-kicker">Incoming</div>
-          <div class="ops-value" id="opsIncoming">0</div>
-          <div class="ops-label">New / urgent queue</div>
-          <div class="ops-meta">Fresh reports that may need immediate pickup.</div>
-        </div>
-        <div class="ops-card mine">
-          <div class="ops-kicker">Assigned</div>
-          <div class="ops-value" id="opsMine">0</div>
-          <div class="ops-label">Owned by you</div>
-          <div class="ops-meta">Reports you can verify, edit, dispatch, or resolve.</div>
-        </div>
-        <div class="ops-card verify">
-          <div class="ops-kicker">Verification</div>
-          <div class="ops-value" id="opsVerify">0</div>
-          <div class="ops-label">In call-back stage</div>
-          <div class="ops-meta">Reports currently under verification follow-up.</div>
-        </div>
-        <div class="ops-card resolved">
-          <div class="ops-kicker">Closed</div>
-          <div class="ops-value" id="opsResolved">0</div>
-          <div class="ops-label">Resolved queue</div>
-          <div class="ops-meta">Handled incidents already marked complete.</div>
+          <div class="main-weather" id="weatherText">
+            <svg viewBox="0 0 24 24"><path d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/></svg>
+            Loading weather...
+          </div>
         </div>
       </div>
 
@@ -1642,7 +1617,8 @@
     });
   }
   const currentUserId = String((currentUser && currentUser.userId) || '').trim();
-  let curFilter = 'all';
+  let curStatusFilter = 'all';
+  let curTypeFilter = 'all';
   let curSearch = '';
   let pendingScrollToFirst = false;
   let editReportId = '';
@@ -1798,6 +1774,22 @@
     return !assignedToId || assignedToId === currentUserId;
   }
 
+  function getStatusFilteredReports(filter = curStatusFilter) {
+    const visibleReports = reports.filter(canSeeReport);
+    const openAccessible = visibleReports.filter(isAccessibleOpenReport);
+
+    if (filter === 'all') return openAccessible;
+    if (filter === 'new') return visibleReports.filter(r => r.status === 'new' && !String(r.assignedToId || '').trim());
+    if (filter === 'assigned') return visibleReports.filter(r => String(r.assignedToId || '').trim() === currentUserId && !isClosedStatus(r.status));
+    return visibleReports.filter(r => r.status === filter);
+  }
+
+  function applyTypeFilter(items, typeFilter = curTypeFilter) {
+    if (typeFilter === 'sos') return items.filter(isSosReport);
+    if (typeFilter === 'report') return items.filter(isRegularReport);
+    return items;
+  }
+
   function assignmentLabel(r) {
     const owner = String(r.assignedToName || '').trim();
     if (!owner) return 'Unassigned';
@@ -1810,39 +1802,60 @@
     const openAccessible = visible.filter(isAccessibleOpenReport);
     const sosOpen = openAccessible.filter(isSosReport);
     const regularOpen = openAccessible.filter(isRegularReport);
+    const currentBucket = getStatusFilteredReports(curStatusFilter);
     const mine = visible.filter(r => String(r.assignedToId || '').trim() === currentUserId && !isClosedStatus(r.status));
     document.getElementById('cAll').textContent   = sosOpen.length + regularOpen.length;
     document.getElementById('cNew').textContent    = visible.filter(r=>r.status==='new' && !String(r.assignedToId||'').trim()).length;
     document.getElementById('cAssigned').textContent = mine.length;
-    document.getElementById('cSos').textContent    = sosOpen.length;
-    document.getElementById('cReport').textContent = regularOpen.length;
+    document.getElementById('cSos').textContent    = currentBucket.filter(isSosReport).length;
+    document.getElementById('cReport').textContent = currentBucket.filter(isRegularReport).length;
     document.getElementById('cVerify').textContent = visible.filter(r=>r.status==='verifying').length;
     document.getElementById('cDisp').textContent   = visible.filter(r=>r.status==='dispatched').length;
     document.getElementById('cRes').textContent    = visible.filter(r=>r.status==='resolved').length;
     document.getElementById('cFalse').textContent  = visible.filter(r=>r.status==='false-report').length;
-    document.getElementById('opsIncoming').textContent = openAccessible.filter(r => r.status === 'new' || isSosReport(r)).length;
-    document.getElementById('opsMine').textContent = mine.length;
-    document.getElementById('opsVerify').textContent = visible.filter(r=>r.status==='verifying').length;
-    document.getElementById('opsResolved').textContent = visible.filter(r=>r.status==='resolved').length;
   }
 
-  function setFilter(f, el) {
-    curFilter = f;
+  function updateActiveFilters() {
     document.querySelectorAll('.filter-item').forEach(x=>x.classList.remove('active'));
     document.querySelectorAll('.quick-filter-btn').forEach(x=>x.classList.remove('active'));
-    if (el && el.classList) el.classList.add('active');
+    const activeStatusEl = document.querySelector(`.filter-item[onclick*="setFilter('${curStatusFilter}')"]`);
+    const activeTypeEl = curTypeFilter !== 'all'
+      ? document.querySelector(`.quick-filter-btn[onclick*="setTypeFilter('${curTypeFilter}')"]`)
+      : null;
+    if (activeStatusEl) activeStatusEl.classList.add('active');
+    if (activeTypeEl) activeTypeEl.classList.add('active');
+  }
+
+  function filterLabelText() {
     const labels = {
       all:'All Reports',
       new:'New (Unassigned)',
       assigned:'Assigned to Me',
-      sos:'SOS / High Severity',
-      report:'Medium + Low Reports',
       verifying:'Verifying',
       dispatched:'Dispatched',
       resolved:'Resolved',
       ['false-report']:'False Reports'
     };
-    document.getElementById('filterLabel').textContent = labels[f] || f;
+    const typeLabels = {
+      sos: 'SOS',
+      report: 'Report'
+    };
+    const base = labels[curStatusFilter] || curStatusFilter;
+    return curTypeFilter === 'all' ? base : `${base} - ${typeLabels[curTypeFilter] || curTypeFilter}`;
+  }
+
+  function setFilter(f) {
+    curStatusFilter = f;
+    curTypeFilter = 'all';
+    updateActiveFilters();
+    document.getElementById('filterLabel').textContent = filterLabelText();
+    render();
+  }
+
+  function setTypeFilter(f) {
+    curTypeFilter = curTypeFilter === f ? 'all' : f;
+    updateActiveFilters();
+    document.getElementById('filterLabel').textContent = filterLabelText();
     render();
   }
 
@@ -2363,19 +2376,7 @@
       existingMaps.set(card.id, mapNode);
     });
 
-    const visibleReports = reports.filter(canSeeReport);
-    const openAccessible = visibleReports.filter(isAccessibleOpenReport);
-    const baseFiltered = curFilter === 'all'
-      ? openAccessible
-      : curFilter === 'sos'
-        ? openAccessible.filter(isSosReport)
-        : curFilter === 'report'
-          ? openAccessible.filter(isRegularReport)
-          : curFilter === 'new'
-            ? visibleReports.filter(r=>r.status==='new' && !String(r.assignedToId||'').trim())
-            : curFilter === 'assigned'
-              ? visibleReports.filter(r=>String(r.assignedToId||'').trim() === currentUserId && !isClosedStatus(r.status))
-              : visibleReports.filter(r=>r.status===curFilter);
+    const baseFiltered = applyTypeFilter(getStatusFilteredReports(curStatusFilter), curTypeFilter);
     const searchTerm = curSearch.trim().toLowerCase();
     const filtered = searchTerm
       ? baseFiltered.filter(r => matchesSearch(r, searchTerm))
