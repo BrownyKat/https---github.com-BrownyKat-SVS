@@ -28,6 +28,8 @@ Required env:
 - `SESSION_SECRET`
 - `ADMIN_USERNAME`
 - `ADMIN_PASSWORD`
+- `DISPATCHER_USERNAME` (or `DEFAULT_DISPATCHER_USERNAME`)
+- `DISPATCHER_PASSWORD` (or `DEFAULT_DISPATCHER_PASSWORD`)
 
 Optional push-notification env for mobile-wide admin alerts:
 - `FIREBASE_PROJECT_ID`
