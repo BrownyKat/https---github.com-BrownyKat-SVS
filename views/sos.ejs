@@ -4,86 +4,108 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SVS - SOS</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <%- include('partials/typography') %>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="min-h-screen bg-[linear-gradient(180deg,#f2f6ff_0%,#fff7ef_72%,#ffffff_100%)] text-slate-900 antialiased [font-family:'Outfit',sans-serif] leading-[1.65]">
+<body class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.12),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(239,68,68,0.14),_transparent_32%),linear-gradient(180deg,#f3f7ff_0%,#fff8ef_78%,#ffffff_100%)] text-slate-900 antialiased">
   <%- include('partials/navbar', { active: 'sos', timeId: 'sosTime' }) %>
 
-  <main class="mx-auto my-9 max-w-[1100px] px-5">
-    <section class="rounded-[28px] border border-red-200/70 bg-[linear-gradient(180deg,#ecf2ff_0%,#fff7e8_52%,#ffeef1_100%)] px-6 py-9 text-center shadow-[0_18px_38px_rgba(0,0,0,0.12)] sm:px-7 sm:py-11">
-      <div class="mb-5 font-mono text-[1.05rem] font-extrabold uppercase tracking-[0.22em] text-red-700 sm:text-[1.1rem]">
-        Urgent Emergency
-      </div>
+  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <section class="mx-auto max-w-5xl">
+      <div class="overflow-hidden rounded-[2rem] border border-red-200/70 bg-[linear-gradient(145deg,#fff8f4_0%,#eef4ff_52%,#ffffff_100%)] shadow-[0_28px_70px_rgba(15,23,42,0.12)]">
+        <div class="border-b border-white/70 bg-[radial-gradient(circle_at_top,_rgba(239,68,68,0.18),_transparent_42%),linear-gradient(180deg,rgba(255,255,255,0.92),rgba(255,255,255,0.72))] px-6 py-7 sm:px-8">
+          <div class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white/85 px-3 py-1 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-red-600">
+            Emergency SOS
+          </div>
+          <div class="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-center">
+            <div>
+              <h1 class="max-w-xl text-3xl font-black leading-[1.05] tracking-tight text-slate-950 sm:text-[3.2rem]">
+                Send a location-first emergency alert in one tap.
+              </h1>
+              <p class="mt-4 max-w-2xl text-base leading-8 text-slate-700 sm:text-lg">
+                Use SOS when you need dispatch to react immediately. SVS grabs your latest GPS position, sends your saved number, and alerts responders with the fastest available location data.
+              </p>
+              <div class="mt-5 flex flex-wrap gap-2">
+                <span class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">GPS-first alert</span>
+                <span class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">Fast dispatcher callback</span>
+                <span class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">Works with saved PH number</span>
+              </div>
+            </div>
 
-      <button
-        class="mx-auto mb-6 flex h-[220px] w-[220px] cursor-pointer flex-col items-center justify-center gap-3 rounded-full border-0 bg-[linear-gradient(145deg,#ef4444,#dc2626,#b91c1c)] text-white shadow-[0_0_0_14px_rgba(220,38,38,0.08),0_12px_40px_rgba(220,38,38,0.35)] transition duration-150 hover:-translate-y-0.5 hover:shadow-[0_0_0_16px_rgba(220,38,38,0.10),0_18px_48px_rgba(220,38,38,0.40)] focus:outline-none focus:ring-4 focus:ring-red-200 disabled:cursor-not-allowed max-[820px]:h-[200px] max-[820px]:w-[200px]"
-        type="button"
-        onclick="triggerPanic()"
-        id="panicBtn"
-      >
-        <svg class="h-12 w-12 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="1.6">
-          <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
-        </svg>
-        <div class="panic-btn-label text-[0.95rem] font-black uppercase tracking-[0.28em] text-white">
-          PANIC SOS
+            <div class="mx-auto w-full max-w-[220px] rounded-[1.75rem] border border-white/80 bg-white/75 p-4 text-center shadow-[0_18px_38px_rgba(15,23,42,0.12)] backdrop-blur">
+              <div class="text-sm font-black uppercase tracking-[0.22em] text-red-600">Live Status</div>
+              <div id="panicStatusCard" class="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-5 text-sm font-bold leading-6 text-slate-600">
+                Ready to send.
+              </div>
+            </div>
+          </div>
         </div>
-      </button>
 
-      <div class="mx-auto mb-5 max-w-[520px] rounded-[18px] border border-blue-200 bg-white px-5 py-5 shadow-[0_14px_30px_rgba(15,23,42,0.14)]">
-        <h3 class="mb-2 text-[1.08rem] font-extrabold text-slate-950">One tap sends instant SOS.</h3>
-        <p class="text-base leading-[1.65] text-slate-800">
-          Your exact location will be sent to dispatchers immediately. If GPS is weak, proceed to the full report form.
-        </p>
+        <div class="px-6 py-8 sm:px-8">
+          <div class="grid gap-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(280px,320px)] lg:items-start">
+            <div class="rounded-[1.8rem] border border-red-200/80 bg-[linear-gradient(180deg,#fff4f4_0%,#fffaf7_100%)] px-5 py-6 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_18px_42px_rgba(220,38,38,0.12)] sm:px-7">
+              <button
+                class="mx-auto flex h-[210px] w-[210px] items-center justify-center rounded-full border-0 bg-[linear-gradient(145deg,#ef4444,#dc2626,#b91c1c)] text-white shadow-[0_0_0_14px_rgba(220,38,38,0.08),0_18px_48px_rgba(220,38,38,0.34)] transition duration-150 hover:-translate-y-0.5 hover:shadow-[0_0_0_18px_rgba(220,38,38,0.11),0_22px_58px_rgba(220,38,38,0.42)] focus:outline-none focus:ring-4 focus:ring-red-200 disabled:cursor-not-allowed disabled:opacity-80 max-[520px]:h-[180px] max-[520px]:w-[180px]"
+                type="button"
+                onclick="triggerPanic()"
+                id="panicBtn"
+              >
+                <span class="flex flex-col items-center gap-3">
+                  <svg class="h-12 w-12 stroke-current" viewBox="0 0 24 24" fill="none" stroke-width="1.6">
+                    <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+                  </svg>
+                  <span class="panic-btn-label text-base font-black uppercase tracking-[0.3em]">PANIC SOS</span>
+                </span>
+              </button>
+
+              <div class="mx-auto mt-6 max-w-xl rounded-[1.4rem] border border-blue-200/90 bg-white px-5 py-5 text-left shadow-[0_16px_34px_rgba(15,23,42,0.1)]">
+                <h2 class="text-lg font-black text-slate-950">What happens after you tap</h2>
+                <p class="mt-2 text-sm leading-7 text-slate-700 sm:text-base">
+                  SVS attempts a live GPS fix first, then sends your emergency number and latest location data to dispatch. If GPS is weak, responders can still call the number you saved below.
+                </p>
+                <div id="panicStatus" class="mt-4 rounded-2xl border border-blue-100 bg-blue-50/80 px-4 py-3 text-sm font-extrabold text-blue-700" aria-live="polite">
+                  Waiting for action.
+                </div>
+              </div>
+            </div>
+
+            <aside class="space-y-4">
+              <div class="rounded-[1.6rem] border border-slate-200 bg-white/85 p-5 shadow-[0_16px_34px_rgba(15,23,42,0.1)]">
+                <h3 class="text-lg font-black text-slate-950">Save your callback number</h3>
+                <p class="mt-2 text-sm leading-7 text-slate-600">
+                  Use a working Philippine mobile number so dispatch can reach you immediately if your signal drops or the GPS fix needs confirmation.
+                </p>
+                <div class="mt-4 flex flex-col gap-3">
+                  <label class="text-xs font-black uppercase tracking-[0.22em] text-slate-500" for="sosNumber">Emergency contact</label>
+                  <input
+                    class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-base font-bold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                    id="sosNumber"
+                    type="tel"
+                    inputmode="tel"
+                    pattern="[0-9+ ]{10,16}"
+                    maxlength="16"
+                    placeholder="+63 9XX XXX XXXX"
+                  >
+                  <div class="flex flex-wrap items-center gap-3">
+                    <button
+                      class="rounded-2xl border border-blue-600 bg-blue-600 px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-white transition hover:bg-blue-700"
+                      type="button"
+                      onclick="saveSosNumber()"
+                    >
+                      Save Number
+                    </button>
+                    <span id="sosSaved" class="text-sm font-bold text-blue-700"></span>
+                  </div>
+                  <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-7 text-slate-700">
+                    Keep location services on for the fastest pin. For ongoing life-threatening danger, call <span class="font-black text-slate-950">911</span> too when possible.
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
       </div>
-
-      <div class="mt-4 flex flex-wrap items-center justify-center gap-3 rounded-[14px] border border-slate-300 bg-slate-50 px-4 py-3 font-mono font-extrabold text-slate-900">
-        <span>Sending as:</span>
-        <input
-          class="min-w-[180px] rounded-[10px] border border-slate-300 bg-white px-3 py-2 text-[0.95rem] font-bold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 [font-family:'Outfit',sans-serif]"
-          id="sosNumber"
-          type="tel"
-          inputmode="tel"
-          pattern="[0-9+ ]{10,16}"
-          maxlength="16"
-          placeholder="+63 9XX XXX XXXX"
-        >
-        <button
-          class="rounded-[10px] border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-extrabold text-white transition hover:bg-blue-700"
-          type="button"
-          onclick="saveSosNumber()"
-        >
-          Save
-        </button>
-        <span id="sosSaved" class="text-blue-600"></span>
-      </div>
-
-      <div id="panicStatus" class="mt-3 text-sm font-extrabold text-blue-600 sm:text-base"></div>
     </section>
-
-    <div class="mt-6 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
-      <div class="rounded-[18px] border border-blue-200 bg-[linear-gradient(180deg,#e9f2ff,#fdf7ef)] px-5 py-5 shadow-[0_12px_28px_rgba(15,23,42,0.12)]">
-        <h3 class="mb-2 text-[1.05rem] font-extrabold text-red-500">1. Tap Panic</h3>
-        <p class="text-[0.98rem] leading-[1.6] text-slate-800">
-          Sends your saved emergency contact plus your latest GPS fix.
-        </p>
-      </div>
-
-      <div class="rounded-[18px] border border-blue-200 bg-[linear-gradient(180deg,#e9f2ff,#fdf7ef)] px-5 py-5 shadow-[0_12px_28px_rgba(15,23,42,0.12)]">
-        <h3 class="mb-2 text-[1.05rem] font-extrabold text-red-500">2. Stay on the line</h3>
-        <p class="text-[0.98rem] leading-[1.6] text-slate-800">
-          Dispatch will call back if GPS is weak. Keep your phone nearby.
-        </p>
-      </div>
-
-      <div class="rounded-[18px] border border-blue-200 bg-[linear-gradient(180deg,#e9f2ff,#fdf7ef)] px-5 py-5 shadow-[0_12px_28px_rgba(15,23,42,0.12)]">
-        <h3 class="mb-2 text-[1.05rem] font-extrabold text-red-500">3. If offline</h3>
-        <p class="text-[0.98rem] leading-[1.6] text-slate-800">
-          Reports are queued and auto-retried when signal returns.
-        </p>
-      </div>
-    </div>
   </main>
 
   <%- include('partials/footer') %>
@@ -174,10 +196,16 @@
     })();
 
     function setPanicStatus(msg, color='#2563eb'){
-      const el=document.getElementById('panicStatus');
-      if(!el) return;
-      el.textContent=msg;
-      el.style.color=color;
+      const line=document.getElementById('panicStatus');
+      const card=document.getElementById('panicStatusCard');
+      if(line){
+        line.textContent=msg;
+        line.style.color=color;
+      }
+      if(card){
+        card.textContent=msg;
+        card.style.color=color;
+      }
     }
 
     function getSavedNumber(){
