@@ -185,8 +185,8 @@
 
   <%- include('partials/navbar', { active: 'about', timeId: 'aboutTime' }) %>
 
-  <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <section data-animate="zoom-in" class="overflow-hidden rounded-[2.2rem] border border-slate-200/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.94),rgba(236,244,255,0.9))] shadow-[0_28px_70px_rgba(15,23,42,0.12)]">
+  <main class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <section data-animate="zoom-in" class="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.94),rgba(236,244,255,0.9))] shadow-[0_28px_70px_rgba(15,23,42,0.12)]">
       <div class="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-center">
         <div>
           <div class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/90 px-3 py-1 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-blue-700">
@@ -235,31 +235,38 @@
       </div>
     </section>
 
-    <section class="mt-8 grid gap-4 md:grid-cols-3">
-      <% pillars.forEach(function(pillar, index) { %>
-        <article data-animate="fade-up" style="--animate-order:<%= index %>" class="rounded-[1.8rem] border border-slate-200 bg-white/90 p-6 shadow-[0_18px_38px_rgba(15,23,42,0.1)]">
-          <div class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14"/>
-              <path d="M12 5v14"/>
-            </svg>
+    <section class="mt-12 rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-[0_18px_38px_rgba(15,23,42,0.1)]">
+      <h2 class="text-xl font-black text-slate-950">Core Strengths</h2>
+      <div class="mt-6 space-y-6">
+        <% pillars.forEach(function(pillar, index) { %>
+          <div data-animate="fade-up" style="--animate-order:<%= index %>" class="flex gap-4">
+            <div class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14"/>
+                <path d="M12 5v14"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-black text-slate-950"><%= pillar.title %></h3>
+              <p class="mt-2 text-sm leading-7 text-slate-700 sm:text-base"><%= pillar.body %></p>
+            </div>
           </div>
-          <h2 class="mt-4 text-xl font-black text-slate-950"><%= pillar.title %></h2>
-          <p class="mt-3 text-sm leading-7 text-slate-700 sm:text-base"><%= pillar.body %></p>
-        </article>
-      <% }) %>
+        <% }) %>
+      </div>
     </section>
 
-    <section class="mt-6 grid gap-4 sm:grid-cols-3">
-      <% statCards.forEach(function(stat, index) { %>
-        <div data-animate="fade-up" style="--animate-order:<%= index %>" class="rounded-[1.5rem] border border-slate-200 bg-white/85 px-5 py-5 text-center shadow-[0_14px_28px_rgba(15,23,42,0.08)]">
-          <div class="text-3xl font-black tracking-tight text-slate-950"><%= stat.value %></div>
-          <div class="mt-2 text-sm font-bold uppercase tracking-[0.16em] text-slate-500"><%= stat.label %></div>
-        </div>
-      <% }) %>
+    <section class="mt-12 rounded-[2rem] border border-slate-200 bg-white/85 p-6 shadow-[0_14px_28px_rgba(15,23,42,0.08)]">
+      <div class="flex flex-wrap justify-center gap-4">
+        <% statCards.forEach(function(stat, index) { %>
+          <div data-animate="fade-up" style="--animate-order:<%= index %>" class="flex-1 min-w-[150px] max-w-[200px] text-center">
+            <div class="text-3xl font-black tracking-tight text-slate-950"><%= stat.value %></div>
+            <div class="mt-2 text-sm font-bold uppercase tracking-[0.16em] text-slate-500"><%= stat.label %></div>
+          </div>
+        <% }) %>
+      </div>
     </section>
 
-    <section class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)]">
+    <section class="mt-12 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)]">
       <div data-animate="fade-right" class="rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#eff6ff_0%,#ffffff_100%)] p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-8">
         <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-blue-700">Why it matters</div>
         <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Emergency reporting should not create more emergency.</h2>
@@ -299,7 +306,7 @@
       </aside>
     </section>
 
-    <section data-animate="fade-up" class="mt-8 rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#fff8ef_0%,#ffffff_100%)] p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-8">
+    <section data-animate="fade-up" class="mt-12 rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#fff8ef_0%,#ffffff_100%)] p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-8">
       <div class="max-w-3xl">
         <div class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white px-3 py-1 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-red-600">
           Contact Us
@@ -340,7 +347,7 @@
       </div>
     </section>
 
-    <section data-animate="fade-up" class="mt-8 rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-8">
+    <section data-animate="fade-up" class="mt-12 rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-8">
       <div class="max-w-3xl">
         <div class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3 py-1 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-blue-700">
           Disaster Ready
@@ -373,40 +380,40 @@
               </div>
             </summary>
             <div class="border-t border-slate-100 px-5 py-5 sm:px-6">
-              <div class="grid gap-3 md:grid-cols-2">
-                <div class="rounded-[1.2rem] border border-slate-200 bg-slate-50 px-4 py-4">
-                  <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">What</div>
-                  <p class="mt-2 text-sm leading-7 text-slate-700"><%= hazard.what %></p>
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="rounded-[1.2rem] border border-slate-200 bg-slate-50 px-4 py-4">
+                    <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">What</div>
+                    <p class="mt-2 text-sm leading-7 text-slate-700"><%= hazard.what %></p>
+                  </div>
+                  <div class="rounded-[1.2rem] border border-slate-200 bg-slate-50 px-4 py-4">
+                    <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">When</div>
+                    <p class="mt-2 text-sm leading-7 text-slate-700"><%= hazard.when %></p>
+                  </div>
                 </div>
-                <div class="rounded-[1.2rem] border border-slate-200 bg-slate-50 px-4 py-4">
-                  <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">When</div>
-                  <p class="mt-2 text-sm leading-7 text-slate-700"><%= hazard.when %></p>
+                <div class="grid grid-cols-3 gap-4">
+                  <div class="rounded-[1.2rem] border border-amber-200 bg-amber-50 px-4 py-4">
+                    <div class="text-xs font-black uppercase tracking-[0.18em] text-amber-800">Before</div>
+                    <p class="mt-2 text-sm leading-7 text-slate-700"><%= hazard.before %></p>
+                  </div>
+                  <div class="rounded-[1.2rem] border border-sky-200 bg-sky-50 px-4 py-4">
+                    <div class="text-xs font-black uppercase tracking-[0.18em] text-sky-800">During</div>
+                    <p class="mt-2 text-sm leading-7 text-slate-700"><%= hazard.during %></p>
+                  </div>
+                  <div class="rounded-[1.2rem] border border-emerald-200 bg-emerald-50 px-4 py-4">
+                    <div class="text-xs font-black uppercase tracking-[0.18em] text-emerald-800">After</div>
+                    <p class="mt-2 text-sm leading-7 text-slate-700"><%= hazard.after %></p>
+                  </div>
                 </div>
-              </div>
-
-              <div class="mt-4 grid gap-3 lg:grid-cols-3">
-                <div class="rounded-[1.2rem] border border-amber-200 bg-amber-50 px-4 py-4">
-                  <div class="text-xs font-black uppercase tracking-[0.18em] text-amber-800">Before</div>
-                  <p class="mt-2 text-sm leading-7 text-slate-700"><%= hazard.before %></p>
-                </div>
-                <div class="rounded-[1.2rem] border border-sky-200 bg-sky-50 px-4 py-4">
-                  <div class="text-xs font-black uppercase tracking-[0.18em] text-sky-800">During</div>
-                  <p class="mt-2 text-sm leading-7 text-slate-700"><%= hazard.during %></p>
-                </div>
-                <div class="rounded-[1.2rem] border border-emerald-200 bg-emerald-50 px-4 py-4">
-                  <div class="text-xs font-black uppercase tracking-[0.18em] text-emerald-800">After</div>
-                  <p class="mt-2 text-sm leading-7 text-slate-700"><%= hazard.after %></p>
-                </div>
-              </div>
-
-              <div class="mt-4 grid gap-3 md:grid-cols-2">
-                <div class="rounded-[1.2rem] border border-emerald-200 bg-emerald-50 px-4 py-4">
-                  <div class="text-xs font-black uppercase tracking-[0.18em] text-emerald-800">Do</div>
-                  <p class="mt-2 text-sm leading-7 text-slate-700"><%= hazard.do %></p>
-                </div>
-                <div class="rounded-[1.2rem] border border-rose-200 bg-rose-50 px-4 py-4">
-                  <div class="text-xs font-black uppercase tracking-[0.18em] text-rose-800">Don't</div>
-                  <p class="mt-2 text-sm leading-7 text-slate-700"><%= hazard.dont %></p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="rounded-[1.2rem] border border-emerald-200 bg-emerald-50 px-4 py-4">
+                    <div class="text-xs font-black uppercase tracking-[0.18em] text-emerald-800">Do</div>
+                    <p class="mt-2 text-sm leading-7 text-slate-700"><%= hazard.do %></p>
+                  </div>
+                  <div class="rounded-[1.2rem] border border-rose-200 bg-rose-50 px-4 py-4">
+                    <div class="text-xs font-black uppercase tracking-[0.18em] text-rose-800">Don't</div>
+                    <p class="mt-2 text-sm leading-7 text-slate-700"><%= hazard.dont %></p>
+                  </div>
                 </div>
               </div>
             </div>
