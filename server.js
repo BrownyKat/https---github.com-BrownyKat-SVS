@@ -1882,6 +1882,46 @@ app.get('/api/dispatchers/active', requireRolesApi(['dispatcher', 'admin']), asy
   }
 });
 
+app.get('/api/admin/dispatchers/status', requireRolesApi(['admin']), async (_req, res) => {
+  try {
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Dispatcher status API DB connect timed out');
+    const dispatchers = await Dispatcher.find()
+      .select('_id username isActive')
+      .sort({ createdAt: -1 })
+      .lean();
+    const now = new Date();
+    const sessions = await Session.find({
+      role: 'dispatcher',
+      expiresAt: { $gt: now },
+    })
+      .select('userId username')
+      .lean();
+
+    const onlineDispatcherIds = new Set();
+    const onlineDispatcherUsernames = new Set();
+    sessions.forEach((session) => {
+      const sessionUserId = String(session && session.userId || '').trim();
+      const sessionUsername = String(session && session.username || '').trim().toLowerCase();
+      if (sessionUserId) onlineDispatcherIds.add(sessionUserId);
+      if (sessionUsername) onlineDispatcherUsernames.add(sessionUsername);
+    });
+
+    res.json(dispatchers.map((dispatcher) => {
+      const dispatcherId = String(dispatcher && dispatcher._id || '').trim();
+      const dispatcherUsername = String(dispatcher && dispatcher.username || '').trim().toLowerCase();
+      return {
+        id: dispatcherId,
+        username: dispatcher.username || '',
+        isActive: !!dispatcher.isActive,
+        isOnline: onlineDispatcherIds.has(dispatcherId) || onlineDispatcherUsernames.has(dispatcherUsername),
+      };
+    }));
+  } catch (err) {
+    console.error('[admin] dispatcher status fetch failed:', err && err.message ? err.message : err);
+    res.status(500).json({ error: 'Could not fetch dispatcher statuses' });
+  }
+});
+
 app.post('/api/report/:id/claim', requireRolesApi(['dispatcher', 'admin']), async (req, res) => {
   try {
     await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Claim report DB connect timed out');
@@ -3136,7 +3176,31 @@ async function getAdminViewData(req) {
   const { from, to, where } = buildReportDateRangeFilter(source.from, source.to);
   const reportPage = parsePositiveInt(source.reportPage, 1);
   const auditPage = parsePositiveInt(source.auditPage, 1);
-  const dispatchers = await Dispatcher.find().sort({ createdAt: -1 }).lean();
+  const rawDispatchers = await Dispatcher.find().sort({ createdAt: -1 }).lean();
+  const now = new Date();
+  const activeSessions = await Session.find({
+    role: 'dispatcher',
+    expiresAt: { $gt: now },
+  })
+    .select('userId username')
+    .lean();
+  const onlineDispatcherIds = new Set();
+  const onlineDispatcherUsernames = new Set();
+  activeSessions.forEach((session) => {
+    const sessionUserId = String(session && session.userId || '').trim();
+    const sessionUsername = String(session && session.username || '').trim().toLowerCase();
+    if (sessionUserId) onlineDispatcherIds.add(sessionUserId);
+    if (sessionUsername) onlineDispatcherUsernames.add(sessionUsername);
+  });
+  const dispatchers = rawDispatchers.map((dispatcher) => {
+    const dispatcherId = String(dispatcher && dispatcher._id || '').trim();
+    const dispatcherUsername = String(dispatcher && dispatcher.username || '').trim().toLowerCase();
+    const isOnline = onlineDispatcherIds.has(dispatcherId) || onlineDispatcherUsernames.has(dispatcherUsername);
+    return {
+      ...dispatcher,
+      isOnline,
+    };
+  });
   const latestAlert = await Alert.findOne({ active: true }).sort({ timestamp: -1 }).lean();
   const reportTotal = await Report.countDocuments(where);
   const reportTotalPages = Math.max(1, Math.ceil(reportTotal / ADMIN_REPORTS_PAGE_SIZE));
