@@ -916,29 +916,7 @@ app.get('/admin/login', async (req, res) => {
   res.render('login', { error: '' });
 });
 
-app.post('/admin/login', async (req, res) => {
-  try {
-    const username = String(req.body.username || '').trim();
-    const password = String(req.body.password || '');
-    if (!username || !password) {
-      return res.status(400).render('login', { error: 'Invalid login details.' });
-    }
-    const admin = await authenticateAdminUser(username, password);
-    if (!admin) {
-      return res.status(401).render('login', { error: 'Invalid admin credentials.' });
-    }
-    await createSession(req, res, {
-      role: 'admin',
-      userId: String(admin.userId),
-      username: admin.username,
-      fullName: admin.fullName || admin.username,
-    });
-    return res.redirect('/admin');
-  } catch (err) {
-    console.error('[login] admin/login failed:', err && err.message ? err.message : err);
-    res.status(500).render('login', { error: 'Login failed. Please try again.' });
-  }
-});
+app.post('/admin/login', guardAdminLoginRate, handleAdminLogin);
 
 app.post('/logout', async (req, res) => {
   await destroyAllSessions(req, res);
@@ -2294,9 +2272,21 @@ function shouldUseSecureCookie(req) {
   const forcedSecure = String(process.env.COOKIE_SECURE || '').toLowerCase();
   if (forcedSecure === 'true' || forcedSecure === '1') return true;
   if (forcedSecure === 'false' || forcedSecure === '0') return false;
+
+  const isLocalHost = (host) => {
+    if (!host) return false;
+    const normalized = String(host || '').toLowerCase();
+    return /(^localhost$|^localhost:\d+$|^127\.0\.0\.1$|^127\.0\.0\.1:\d+$|^\[::1\]$|^\[::1\]:\d+$)/.test(normalized);
+  };
+
   if (req && req.secure) return true;
   const xfProto = String((req && req.headers && req.headers['x-forwarded-proto']) || '').toLowerCase();
   if (xfProto.includes('https')) return true;
+
+  if (req && (isLocalHost(req.hostname) || isLocalHost(req.headers && req.headers.host))) {
+    return false;
+  }
+
   return nodeEnv === 'production';
 }
 
@@ -2440,6 +2430,37 @@ function verifyPassword(password, stored) {
     return crypto.timingSafeEqual(Buffer.from(digest, 'hex'), Buffer.from(oldHash, 'hex'));
   } catch (_e) {
     return false;
+  }
+}
+
+async function upgradeLegacyPasswordHashIfNeeded(user, password) {
+  const role = String(user && user.role || '').trim();
+  const userId = String(user && user.userId || '').trim();
+  const username = String(user && user.username || '').trim();
+
+  if (!role || !userId || !username) return;
+  if (userId.includes(':env:')) return;
+  if (!password) return;
+
+  const Model = role === 'admin' ? Admin : role === 'dispatcher' ? Dispatcher : null;
+  if (!Model) return;
+
+  try {
+    await ensureDbReadyQuick(DB_READY_AUTH_TIMEOUT_MS, `${role} password upgrade DB connect timed out`);
+    let record = null;
+
+    if (mongoose.Types.ObjectId.isValid(userId)) {
+      record = await Model.findById(userId);
+    }
+    if (!record) {
+      record = await Model.findOne({ username });
+    }
+    if (!record || !isLegacyPlainPassword(record.passwordHash)) return;
+
+    record.passwordHash = hashPassword(password);
+    await record.save();
+  } catch (err) {
+    console.warn(`[auth] ${role} legacy password upgrade skipped:`, err && err.message ? err.message : err);
   }
 }
 
