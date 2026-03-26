@@ -418,6 +418,12 @@
     .dispatcher-user{
       display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;
     }
+    .dispatcher-badges{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:6px;
+    }
     .dispatcher-meta{
       display:grid;
       gap:8px;
@@ -452,6 +458,8 @@
       white-space:nowrap;
     }
     .dispatcher-pill.off{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+    .dispatcher-pill.online{background:#ecfdf3;border-color:#86efac;color:#166534}
+    .dispatcher-pill.offline{background:#f3f4f6;border-color:#d1d5db;color:#4b5563}
     .dispatcher-actions{display:flex;gap:8px;flex-wrap:wrap}
     .dispatcher-actions .btn{display:inline-flex;align-items:center;gap:6px}
     .dispatcher-actions .btn svg{
@@ -845,13 +853,16 @@
         </div>
         <div class="dispatcher-grid">
           <% dispatchers.forEach(function(d){ %>
-          <article class="dispatcher-card">
+          <article class="dispatcher-card" data-dispatcher-card data-dispatcher-id="<%= d._id %>">
             <div class="dispatcher-user">
               <div>
                 <h3 class="dispatcher-name"><%= d.username %></h3>
                 <div class="dispatcher-sub"><%= d.fullName || '-' %> - <%= d.phone || '-' %></div>
               </div>
-              <span class="dispatcher-pill <%= d.isActive ? '' : 'off' %>"><%= d.isActive ? 'Active' : 'Inactive' %></span>
+              <div class="dispatcher-badges">
+                <span class="dispatcher-pill <%= d.isOnline ? 'online' : 'offline' %>" data-dispatcher-online-status><%= d.isOnline ? 'Online' : 'Offline' %></span>
+                <span class="dispatcher-pill <%= d.isActive ? '' : 'off' %>"><%= d.isActive ? 'Active' : 'Inactive' %></span>
+              </div>
             </div>
             <div class="dispatcher-meta">
               <div class="dispatcher-meta-item">
@@ -1278,6 +1289,7 @@
     let auditPaginationState = parseJsonSeed('auditPaginationSeed', {
       page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false
     });
+    const dispatcherStatusCards = Array.from(document.querySelectorAll('[data-dispatcher-card]'));
 
     const severityLevels = ['Low', 'Medium', 'High'];
     const trendRangeSelect = document.getElementById('trendRangeSelect');
@@ -1287,6 +1299,51 @@
     const reportIdTypeFilter = document.getElementById('reportIdTypeFilter');
     let reportRows = Array.from(document.querySelectorAll('.report-row'));
     let reportFilterEmptyState = document.getElementById('reportFilterEmptyState');
+
+    function applyDispatcherStatuses(items) {
+      const statusMap = new Map();
+      safeArr(items).forEach((item) => {
+        const id = String(item && item.id || '').trim();
+        if (id) statusMap.set(id, !!(item && item.isOnline));
+      });
+      dispatcherStatusCards.forEach((card) => {
+        const id = card.getAttribute('data-dispatcher-id') || '';
+        const statusEl = card.querySelector('[data-dispatcher-online-status]');
+        if (!id || !statusEl || !statusMap.has(id)) return;
+        const isOnline = !!statusMap.get(id);
+        statusEl.textContent = isOnline ? 'Online' : 'Offline';
+        statusEl.classList.toggle('online', isOnline);
+        statusEl.classList.toggle('offline', !isOnline);
+      });
+    }
+
+    let dispatcherStatusPollTimer = null;
+    let dispatcherStatusFetchInFlight = false;
+    async function refreshDispatcherStatuses() {
+      if (dispatcherStatusFetchInFlight) return;
+      dispatcherStatusFetchInFlight = true;
+      try {
+        const res = await fetch(`/api/admin/dispatchers/status?_=${Date.now()}`, {
+          cache: 'no-store',
+          headers: { 'Accept': 'application/json' },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        applyDispatcherStatuses(data);
+      } catch (err) {
+        console.warn('[admin-ui] dispatcher status refresh failed', err);
+      } finally {
+        dispatcherStatusFetchInFlight = false;
+      }
+    }
+
+    if (dispatcherStatusCards.length) {
+      refreshDispatcherStatuses();
+      dispatcherStatusPollTimer = window.setInterval(refreshDispatcherStatuses, 10000);
+      window.addEventListener('beforeunload', () => {
+        if (dispatcherStatusPollTimer) window.clearInterval(dispatcherStatusPollTimer);
+      });
+    }
     const reportsTableBody = document.getElementById('reportsTableBody');
     const auditTableBody = document.getElementById('auditTableBody');
     const reportsPagerSummary = document.getElementById('reportsPagerSummary');
