@@ -55,7 +55,7 @@ const ROLE_COOKIE_NAMES = {
 const REALTIME_CHANNEL = process.env.PUSHER_CHANNEL || 'mdrrmo-reports';
 const VALID_REPORT_STATUSES = new Set(['new', 'verifying', 'dispatched', 'resolved', 'false-report']);
 const VALID_EMERGENCY_TYPES = new Set(['Fire', 'Flood', 'Medical', 'Accident', 'Landslide', 'Other', 'PANIC SOS']);
-const VALID_SEVERITIES = new Set(['Zion','High', 'Medium', 'Low']);
+const VALID_SEVERITIES = new Set(['High', 'Medium', 'Low']);
 const VALID_REPORT_TAGS = [
   'people_trapped',
   'injured',
@@ -69,7 +69,6 @@ const VALID_REPORT_TAGS = [
   'missing_persons',
   'medical_needed',
   'evac_needed',
-  'missing_Zion',
 ];
 const SIGNED_SESSION_PREFIX = 'v1.';
 let dbInitPromise = null;
@@ -3524,7 +3523,7 @@ async function sendPushAlertToDevices(alertPayload) {
   try {
     const app = getFirebaseAdminApp();
     if (!alertPayload) return;
-    if (!app) {
+    if (!firebaseAdmin || !app) {
       console.warn('[push] Push skipped because Firebase Admin is not configured.');
       return;
     }
