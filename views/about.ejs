@@ -297,6 +297,7 @@
               id="reporterQrImage"
               class="h-[220px] w-[220px] rounded-xl object-contain"
               alt="QR code for the mobile reporter page"
+              src="/images/Apk.png"
             >
           </div>
         </div>
@@ -477,11 +478,7 @@
   <%- include('partials/public-motion-script') %>
 
   <script>
-    const reporterQrImage=document.getElementById('reporterQrImage');
-    if(reporterQrImage){
-      const reportUrl=`${window.location.origin}/report`;
-      reporterQrImage.src=`https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=0&data=${encodeURIComponent(reportUrl)}`;
-    }
+
 
     function setupSegmentedFilter(groupId, selector, attrName){
       const group=document.getElementById(groupId);

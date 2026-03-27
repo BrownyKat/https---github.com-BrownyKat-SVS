@@ -92,8 +92,8 @@
       </div>
     <% } %>
 
-    <section class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
-      <div data-animate="fade-right" class="rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#eff6ff_0%,#ffffff_100%)] p-5 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-6">
+    <section class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:items-start">
+      <div data-animate="fade-right" class="self-start rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#eff6ff_0%,#ffffff_100%)] p-5 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-6">
         <div class="space-y-4">
           <% faqs.forEach(function(item, index) { %>
             <details data-animate="fade-up" style="--animate-order:<%= index %>" class="group rounded-[1.6rem] border border-slate-200 bg-white px-5 py-4 shadow-[0_12px_24px_rgba(15,23,42,0.06)] open:border-blue-200 open:shadow-[0_18px_34px_rgba(37,99,235,0.12)]" <%= index === 0 ? 'open' : '' %>>
@@ -108,7 +108,7 @@
         </div>
       </div>
 
-      <aside class="space-y-6">
+      <aside class="self-start space-y-6">
         <section data-animate="fade-left" style="--animate-order:1" class="rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)]">
           <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-amber-600">Best practice</div>
           <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950">How to help dispatch faster</h2>
