@@ -1285,6 +1285,7 @@ app.post('/admin/dispatchers/:id/delete', requireRolesPage(['admin'], '/login'),
 
 app.post('/admin/alerts', requireRolesPage(['admin'], '/login'), async (req, res) => {
   try {
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Alert create DB connect timed out');
     const title = String(req.body.title || '').trim();
     const message = String(req.body.message || '').trim();
     const disasterType = String(req.body.disasterType || 'General').trim() || 'General';
@@ -1328,6 +1329,59 @@ app.post('/admin/alerts', requireRolesPage(['admin'], '/login'), async (req, res
   } catch (err) {
     console.error(err);
     return renderAdminPage(req, res, { error: 'Could not publish alert.' }, 500);
+  }
+});
+
+app.post('/admin/alerts/:id/update', requireRolesPage(['admin'], '/login'), async (req, res) => {
+  try {
+    await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Alert update DB connect timed out');
+    const alert = await Alert.findById(req.params.id);
+    if (!alert) {
+      return res.redirect(adminRedirectUrl(req, { err: 'Alert not found' }));
+    }
+
+    const title = String(req.body.title || '').trim();
+    const message = String(req.body.message || '').trim();
+    const disasterType = String(req.body.disasterType || 'General').trim() || 'General';
+    const severity = String(req.body.severity || 'High').trim() || 'High';
+
+    if (!title && !message) {
+      return renderAdminPage(req, res, { error: 'Alert title or message is required.' }, 400);
+    }
+
+    alert.title = title || `${disasterType} alert`;
+    alert.message = message || title;
+    alert.disasterType = disasterType;
+    alert.severity = severity;
+    alert.active = req.body.active !== 'false';
+    alert.sentBy = String(req.auth.fullName || req.auth.username || 'Admin').trim();
+    await alert.save();
+
+    await logAudit({
+      actorRole: 'admin',
+      actorId: String(req.auth.userId || ''),
+      actorName: String(req.auth.fullName || req.auth.username || 'Admin'),
+      action: 'ALERT_UPDATE',
+      targetType: 'alert',
+      targetId: String(alert._id),
+      details: `${alert.disasterType} ${alert.severity} alert updated`,
+    });
+
+    const realtimeAlert = formatAlertPayload(alert);
+    await emitRealtime('alert-updated', realtimeAlert);
+    await emitRealtime('admin-alert-updated', realtimeAlert);
+    const supabaseResult = await upsertSupabaseAlert(realtimeAlert);
+    await sendPushAlertToDevices(realtimeAlert);
+    const mirrorResult = await syncAlertToMobileBackend(realtimeAlert);
+
+    return res.redirect(adminRedirectUrl(req, {
+      ok: supabaseResult.ok && mirrorResult.ok
+        ? 'Alert updated'
+        : `Alert updated locally. ${supabaseResult.ok ? '' : `${supabaseResult.message} `}${mirrorResult.ok ? '' : mirrorResult.message}`.trim(),
+    }));
+  } catch (err) {
+    console.error(err);
+    return renderAdminPage(req, res, { error: 'Could not update alert.' }, 500);
   }
 });
 
