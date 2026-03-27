@@ -3,7 +3,7 @@
     { href: '/sos', key: 'sos', label: 'SOS' },
     { href: '/report', key: 'report', label: 'Report' },
     { href: '/track', key: 'track', label: 'Track' },
-    { href: '/about', key: 'about', label: 'About Us' },
+    { href: '/about', key: 'about', label: 'About' },
     { href: '/faq', key: 'faq', label: 'FAQ' },
   ];
   const activeKey = (typeof active === 'string' && active) || '';
@@ -14,7 +14,7 @@
   <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
     <div class="rounded-[1.6rem] border border-white/80 bg-white/75 px-4 py-3 shadow-[0_12px_34px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/70 sm:px-5">
       <div class="flex items-center justify-between gap-4">
-        <a class="flex min-w-0 items-center gap-3 no-underline group" href="/about">
+        <a class="flex min-w-0 items-center gap-3 no-underline group" href="/">
           <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 ring-1 ring-slate-200 transition-transform group-hover:scale-[1.03]">
             <img class="h-10 w-10 object-contain" src="/images/logo.png" alt="SVS logo">
           </div>
@@ -37,19 +37,28 @@
           <% }) %>
         </nav>
 
-        <div
-          id="<%= clockId %>"
-          class="hidden min-w-[172px] items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/55 px-3.5 py-2.5 text-slate-700 shadow-sm ring-1 ring-white/70 xl:flex"
-        >
-          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100/80 text-slate-500 ring-1 ring-slate-200/80">
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="8"></circle>
-              <path d="M12 7v5l3 2"></path>
-            </svg>
+        <div class="hidden items-center gap-2 xl:flex">
+          <div class="inline-flex min-w-[132px] items-center gap-2 rounded-2xl border border-emerald-200/80 bg-emerald-50/90 px-3 py-2 text-emerald-800 shadow-sm ring-1 ring-white/70">
+            <span class="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_0_5px_rgba(34,197,94,0.16)]"></span>
+            <div class="min-w-0">
+              <div class="font-mono text-[0.6rem] font-black uppercase tracking-[0.2em]">Public Service</div>
+              <div class="text-[0.72rem] font-bold text-emerald-900">Citizen access ready</div>
+            </div>
           </div>
-          <div class="flex flex-col justify-center">
-            <span class="clock-text font-mono text-[0.88rem] font-black tracking-[0.14em] leading-none text-slate-800">00:00:00</span>
-            <span class="date-text mt-1 font-mono text-[0.58rem] font-bold uppercase tracking-[0.18em] text-slate-500">Loading...</span>
+          <div
+            id="<%= clockId %>"
+            class="min-w-[172px] items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/55 px-3.5 py-2.5 text-slate-700 shadow-sm ring-1 ring-white/70 xl:flex"
+          >
+            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100/80 text-slate-500 ring-1 ring-slate-200/80">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="8"></circle>
+                <path d="M12 7v5l3 2"></path>
+              </svg>
+            </div>
+            <div class="flex flex-col justify-center">
+              <span class="clock-text font-mono text-[0.88rem] font-black tracking-[0.14em] leading-none text-slate-800">00:00:00</span>
+              <span class="date-text mt-1 font-mono text-[0.58rem] font-bold uppercase tracking-[0.18em] text-slate-500">Loading...</span>
+            </div>
           </div>
         </div>
       </div>

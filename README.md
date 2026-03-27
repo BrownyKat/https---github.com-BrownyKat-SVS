@@ -1,117 +1,210 @@
-# MDRRMO Emergency Report System
-**Powered by FRANZOLUTIONS**
+# SVS Emergency Reporting System
 
-Real-time emergency reporting system built with Node.js, Express, EJS, and Socket.IO.
-Icons: **Heroicons** (outlined, inline SVG). Logo: **Shield-check** mark.
+Smart Verification System (SVS) is a server-rendered emergency reporting platform for citizens, dispatchers, and admins. It is built with Node.js, Express, EJS, MongoDB via Mongoose, and Pusher for realtime updates.
 
----
+## Stack
 
-## Quick Start
+- Backend: Node.js, Express
+- Views: EJS
+- Styling: Tailwind CDN on public pages plus custom CSS in templates
+- Database: MongoDB with Mongoose
+- Realtime: Pusher
+- Push notifications: Firebase Admin
+- File storage: Supabase Storage for uploaded report photos
+- Deployment: Vercel-compatible via `api/index.js` rewrite adapter
 
-```bash
-# 1. Install dependencies
-npm install
+## What The App Does
 
-# 2. Copy env template
-cp .env.example .env
+- Citizens can send a one-tap SOS alert or submit a detailed emergency report
+- Dispatchers can log in, claim reports, update status, pass reports, review media, and manage profile details
+- Admins can manage dispatchers, review reports, publish alerts, and export data
+- Citizens can track a submitted report using its report ID
+- Mobile devices can register push tokens for alert delivery
 
-# 3. Run (production)
-npm start
+## Main Routes
 
-# 4. Run (development, auto-reload)
-npm run dev
-```
+### Public
 
-Required env:
-- `MONGODB_URI` (or `MONGO_URI` / `DATABASE_URL`)
-- `MONGODB_DB` (or `MONGO_DB` / `DB_NAME`; if omitted, DB name is read from URI path)
+- `/` -> SOS entry page
+- `/sos` -> SOS alert page
+- `/report` -> detailed report form
+- `/track` -> public report tracking page
+- `/about` -> public information page
+- `/faq` -> FAQ and feedback page
+
+### Auth
+
+- `/dispatcher/login`
+- `/dispatcher/reset`
+- `/login` -> admin login
+
+### Protected
+
+- `/dashboard` -> dispatcher dashboard
+- `/dispatcher/profile`
+- `/admin` -> admin console
+
+## Main API Routes
+
+### Public API
+
+- `GET /api/ping`
+- `GET /api/health`
+- `GET /api/alerts/latest`
+- `GET /api/alerts`
+- `GET /api/report-track/:id`
+- `GET /api/reverse-geocode`
+- `POST /api/report`
+- `POST /api/panic`
+- `POST /api/device-tokens/register`
+- `POST /api/device-tokens/unregister`
+
+### Dispatcher/Admin API
+
+- `GET /api/reports`
+- `GET /api/report/:id/media`
+- `GET /api/dispatchers/active`
+- `PATCH /api/report/:id/status`
+- `PATCH /api/report/:id/details`
+- `POST /api/report/:id/claim`
+- `POST /api/report/:id/pass`
+- `GET /api/call/:id/signal`
+- `POST /api/call/:id/offer`
+- `POST /api/call/:id/answer`
+- `POST /api/call/:id/candidate`
+- `DELETE /api/call/:id`
+- `DELETE /api/reports`
+
+### Admin API
+
+- `GET /api/admin/live`
+- `GET /api/admin/dispatchers/status`
+
+## Core Models
+
+- `Report`
+- `Counter`
+- `Admin`
+- `Dispatcher`
+- `AuditLog`
+- `Alert`
+- `DeviceToken`
+- `Session`
+- `LoginAttempt`
+- `FaqFeedback`
+
+## Realtime Events
+
+The app uses Pusher to broadcast operational events such as:
+
+- new reports
+- report updates
+- report assignment changes
+- audit log creation
+- admin alert creation, update, and deletion
+- report clear actions
+
+## Environment Variables
+
+### Required
+
+- `MONGODB_URI` or `MONGO_URI` or `DATABASE_URL`
 - `SESSION_SECRET`
 - `ADMIN_USERNAME`
 - `ADMIN_PASSWORD`
-- `DISPATCHER_USERNAME` (or `DEFAULT_DISPATCHER_USERNAME`)
-- `DISPATCHER_PASSWORD` (or `DEFAULT_DISPATCHER_PASSWORD`)
+- `DISPATCHER_USERNAME` or `DEFAULT_DISPATCHER_USERNAME`
+- `DISPATCHER_PASSWORD` or `DEFAULT_DISPATCHER_PASSWORD`
 
-Optional push-notification env for mobile-wide admin alerts:
+### Common Optional
+
+- `MONGODB_DB`
+- `MONGODB_DIRECT_URI`
+- `CORS_ORIGIN`
+- `COOKIE_SECURE`
+- `BASE_URL`
+- `APP_URL`
+- `PUBLIC_APP_URL`
+
+### Realtime
+
+- `PUSHER_APP_ID`
+- `PUSHER_KEY`
+- `PUSHER_SECRET`
+- `PUSHER_CLUSTER`
+- `PUSHER_CHANNEL`
+
+### Supabase
+
+- `SUPABASE_URL`
+- `SUPABASE_BUCKET`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_ALERTS_TABLE`
+- `SUPABASE_DEVICE_TOKENS_TABLE`
+
+### Firebase Push
+
+- `FIREBASE_SERVICE_ACCOUNT_JSON`
+
+or:
+
 - `FIREBASE_PROJECT_ID`
 - `FIREBASE_CLIENT_EMAIL`
 - `FIREBASE_PRIVATE_KEY`
-or `FIREBASE_SERVICE_ACCOUNT_JSON`
 
-Open in browser:
+## Local Development
 
-| Role       | URL                          |
-|------------|------------------------------|
-| Landing    | http://localhost:3000        |
-| Reporter   | http://localhost:3000/report |
-| Dispatcher | http://localhost:3000/dashboard |
+```bash
+npm install
+npm run dev
+```
 
----
+Open:
+
+- `http://localhost:3000/`
+- `http://localhost:3000/report`
+- `http://localhost:3000/track`
+- `http://localhost:3000/dashboard`
+- `http://localhost:3000/admin`
+
+## Production / Vercel Notes
+
+- `vercel.json` rewrites all public and API routes through `api/index.js`
+- `api/index.js` restores the original route so the Express app can run in Vercel serverless mode
+- public tracking also server-renders `/track?id=...` so report lookup works reliably in Vercel
+- cookies are role-based:
+  - `auth_token_dispatcher`
+  - `auth_token_admin`
 
 ## Project Structure
 
+```text
+.
+|-- api/
+|   |-- index.js
+|   |-- panic.js
+|   |-- report.js
+|   `-- reverse-geocode.js
+|-- models/
+|-- views/
+|   |-- partials/
+|   |-- about.ejs
+|   |-- admin.ejs
+|   |-- dashboard.ejs
+|   |-- dispatcher-login.ejs
+|   |-- faq.ejs
+|   |-- index.ejs
+|   |-- report.ejs
+|   |-- sos.ejs
+|   `-- track.ejs
+|-- server.js
+|-- vercel.json
+`-- package.json
 ```
-mdrrmo/
-├── server.js          ← Express + Socket.IO server
-├── package.json
-├── README.md
-├── views/
-│   ├── index.ejs      ← Role selection landing page
-│   ├── report.ejs     ← Citizen emergency report form  (/report)
-│   └── dashboard.ejs  ← Dispatcher console            (/dashboard)
-└── public/
-    └── css/
-        └── shared.css ← Design tokens (optional shared styles)
-```
 
----
+## Notes
 
-## API Reference
-
-| Method   | Endpoint                   | Description            |
-|----------|----------------------------|------------------------|
-| GET      | `/`                        | Landing page           |
-| GET      | `/report`                  | Reporter form          |
-| GET      | `/dashboard`               | Dispatcher dashboard   |
-| POST     | `/api/report`              | Submit a report        |
-| POST     | `/api/panic`               | Submit Panic SOS       |
-| PATCH    | `/api/report/:id/status`   | Update report status   |
-| DELETE   | `/api/reports`             | Clear all reports      |
-| GET      | `/api/reports`             | Fetch all reports      |
-
----
-
-## Features
-
-### /report — Citizen Reporter
-- 5-step form with **Heroicons** throughout
-- Emergency types: Fire, Flood, Medical, Accident, Landslide, Other
-- Severity: Low / Medium / High
-- GPS auto-detection
-- Photo upload (base64)
-- **Panic SOS** button — one tap sends location + phone to dispatchers
-
-### /dashboard — Dispatcher Console
-- Sidebar filter by status (All / New / Verifying / Dispatched / Resolved)
-- Real-time new report flash (green pulse on card arrival)
-- Workflow: New → Verifying → Dispatched → Resolved
-- False report flagging
-- Credibility scoring (High / Medium / Low)
-- Photo thumbnails
-- Socket.IO: all dispatcher windows sync instantly
-
-### Mobile Admin Alerts
-- Admin can publish alerts from the admin dashboard
-- Backend stores device push tokens and fans out alerts to all registered phones
-- Flutter app registers its FCM token and shows alert popup + vibration on receipt
-- Add `android/app/google-services.json` from your Firebase project before building the Flutter app
-
----
-
-## Tech Stack
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Realtime**: Socket.IO
-- **Templating**: EJS
-- **Icons**: Heroicons (outlined, inline SVG — no CDN needed)
-- **Fonts**: Outfit + JetBrains Mono (Google Fonts)
-- **Storage**: In-memory (replace with MongoDB/PostgreSQL for production)
+- This repo currently uses Pusher, not Socket.IO
+- Public pages mix Tailwind utility classes with custom CSS depending on the page
+- Admin alerts can be mirrored to mobile clients and stored in Supabase
+- Report photos are uploaded to Supabase Storage and MongoDB stores the resulting URL

@@ -2086,7 +2086,6 @@
           <svg class="field-icon" viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
           <input type="text" id="iName" placeholder="Juan dela Cruz" required>
         </div>
-        <div class="field-note">Use the name responders or dispatchers can ask for during verification.</div>
       </div>
       <div class="field">
         <label>Contact Number *</label>
@@ -2094,7 +2093,6 @@
           <svg class="field-icon" viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12L2.25 6.338Z"/></svg>
           <input type="tel" id="iContact" placeholder="+63 917 123 4567" inputmode="tel" autocomplete="tel" maxlength="16" required>
         </div>
-        <div class="field-note">Use an active PH mobile number so dispatchers can call or text back immediately.</div>
         <div class="sos-save-row">
           <label for="iPanicContact">SOS number (for one-tap panic):</label>
           <input type="tel" id="iPanicContact" placeholder="+63 9XX XXX XXXX" inputmode="tel" maxlength="16">
@@ -2254,7 +2252,6 @@
           <svg class="field-icon" viewBox="0 0 24 24"><path d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"/></svg>
           <input type="text" id="iBarangay" placeholder="e.g. Barangay Rizal" required>
         </div>
-        <div class="field-note">Keep this specific so responders can route the report to the correct area.</div>
       </div>
       <div class="field">
         <label>Nearest Landmark *</label>
@@ -2262,7 +2259,6 @@
           <svg class="field-icon" viewBox="0 0 24 24"><path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
           <input type="text" id="iLandmark" placeholder="e.g. Near Municipal Hall" required>
         </div>
-        <div class="field-note">Use a building, crossing, school, bridge, or any place responders can spot quickly.</div>
       </div>
     </div>
     <div class="field">
@@ -2271,7 +2267,6 @@
         <svg class="field-icon" viewBox="0 0 24 24"><path d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5"/></svg>
         <input type="text" id="iStreet" placeholder="Street name or additional details" required>
       </div>
-      <div class="field-note">Include purok, road direction, blocked access, or any detail that helps the team approach safely.</div>
     </div>
   </div>
 
@@ -2294,7 +2289,6 @@
     <div class="field">
       <label>Description (optional)</label>
       <textarea id="iDesc" placeholder="Describe what is happening. Include: number of people affected, current situation, any danger present..."></textarea>
-      <div class="field-note">Optional but helpful: injuries, trapped people, hazards, flooding depth, fire spread, or anything changing fast.</div>
     </div>
     <div class="field">
       <label>Upload Photo (optional)</label>
@@ -2308,35 +2302,16 @@
         <img class="upload-thumb" id="uploadThumb" alt="Selected upload preview">
         <div class="upload-file">
           <strong id="uploadFileName">No file selected</strong>
-          <span id="uploadFileHint">Optional but helpful for dispatch verification.</span>
         </div>
         <div class="upload-actions">
           <label class="upload-change" for="iPhoto">Change</label>
           <button class="upload-clear" type="button" onclick="clearReportPhoto()">Remove</button>
         </div>
       </div>
-      <div class="field-note">The image file is stored in Supabase, and MongoDB only keeps the resulting photo URL.</div>
     </div>
   </div>
 
   <div class="submit-panel">
-    <div class="submit-copy">
-      <div>
-        <h3>Ready to send the report?</h3>
-        <p>Check that your contact number, severity, and location are correct. The system will try to refresh GPS again before final submission.</p>
-      </div>
-      <div class="required-pill">
-        <svg viewBox="0 0 24 24"><path d="M9 12.75 11.25 15 15 9.75"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-        Required fields only
-      </div>
-    </div>
-    <div id="validationSummary" class="validation-summary">
-      <div class="validation-summary-head">
-        <strong id="validationSummaryTitle">Complete the required fields</strong>
-        <span id="validationSummaryCount">0 missing</span>
-      </div>
-      <ul id="validationSummaryList" class="validation-summary-list"></ul>
-    </div>
     <button class="submit-btn" type="button" onclick="submitReport()">
       <!-- Heroicon: paper-airplane -->
       <svg viewBox="0 0 24 24"><path d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
@@ -2756,20 +2731,6 @@
     }
     if (progressCount) progressCount.textContent = `${completeRequired} / ${requiredSteps.length} ready`;
 
-    const summary = document.getElementById('validationSummary');
-    const summaryTitle = document.getElementById('validationSummaryTitle');
-    const summaryCount = document.getElementById('validationSummaryCount');
-    const summaryList = document.getElementById('validationSummaryList');
-    if (summary && summaryTitle && summaryCount && summaryList) {
-      const ready = progress.missing.length === 0;
-      summary.classList.toggle('is-ready', ready);
-      summaryTitle.textContent = ready ? 'Ready to submit' : 'Before you submit';
-      summaryCount.textContent = ready ? '0 missing' : `${progress.missing.length} missing`;
-      summaryList.innerHTML = ready
-        ? `<li>All required fields are complete. Submit now or add optional details first.</li>`
-        : progress.missing.map(item => `<li>${item}</li>`).join('');
-    }
-
     return progress;
   }
 
@@ -2873,15 +2834,13 @@ function selType(el, t) {
     const meta = document.getElementById('uploadMeta');
     const thumb = document.getElementById('uploadThumb');
     const nameEl = document.getElementById('uploadFileName');
-    const hintEl = document.getElementById('uploadFileHint');
 
-    if (!meta || !thumb || !nameEl || !hintEl) return;
+    if (!meta || !thumb || !nameEl) return;
 
     if (!file || !reportPhotoData) {
       meta.classList.remove('show');
       thumb.removeAttribute('src');
       nameEl.textContent = 'No file selected';
-      hintEl.textContent = 'Optional but helpful for dispatch verification.';
       return;
     }
 
@@ -2889,7 +2848,6 @@ function selType(el, t) {
     thumb.src = reportPhotoData;
     nameEl.textContent = shortenFileName(file.name, 42);
     nameEl.title = file.name || 'Selected image';
-    hintEl.textContent = `${file.type.replace('image/', '').toUpperCase()} - ${bytesToReadableSize(file.size)}`;
   }
 
   function clearReportPhoto() {

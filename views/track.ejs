@@ -40,7 +40,7 @@
             Use the ID shown after submission, such as <span class="font-black text-blue-700">RPT-0001</span> or <span class="font-black text-red-600">SOS-0001</span>.
           </p>
 
-          <form id="trackForm" class="mt-5 space-y-4">
+          <form id="trackForm" class="mt-5 space-y-4" method="get" action="/track">
             <div>
               <label class="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-slate-500" for="trackIdInput">Report ID</label>
               <input
@@ -187,6 +187,8 @@
 
   <script>
     const INITIAL_TRACK_ID = <%- JSON.stringify(initialId || '') %>;
+    const INITIAL_TRACK_REPORT = <%- JSON.stringify(initialTrackReport || null) %>;
+    const INITIAL_TRACK_ERROR = <%- JSON.stringify(initialTrackError || '') %>;
     const TRACK_STORAGE_KEY = 'svs_last_report_id';
     const trackState = { report: null };
 
@@ -365,35 +367,21 @@
       document.getElementById('trackElapsed').textContent = formatElapsed(trackState.report.submittedAt);
     }
 
-    async function lookupTrack(id){
+    function goToTrack(id, replaceHistory = false){
       const normalized = normalizeTrackId(id);
       if (!normalized) {
         showError('Enter a valid report ID first.');
-        return;
+        return false;
       }
-
-      clearError();
-      document.getElementById('trackLookupHint').textContent = 'Loading tracking details...';
-
-      try {
-        const resp = await fetch(`/api/report-track/${encodeURIComponent(normalized)}`);
-        const data = await resp.json().catch(() => ({}));
-        if (!resp.ok || !data.success || !data.report) {
-          throw new Error(data.error || 'Could not find that report ID.');
-        }
-        document.getElementById('trackIdInput').value = normalized;
-        document.getElementById('trackLookupHint').textContent = 'Tracking details loaded successfully.';
-        history.replaceState({}, '', `/track?id=${encodeURIComponent(normalized)}`);
-        renderTrack(data.report);
-      } catch (err) {
-        document.getElementById('trackLookupHint').textContent = 'Tracking lookup failed.';
-        showError(err && err.message ? err.message : 'Could not find that report ID.');
-      }
+      const nextUrl = `/track?id=${encodeURIComponent(normalized)}`;
+      if (replaceHistory) window.location.replace(nextUrl);
+      else window.location.assign(nextUrl);
+      return true;
     }
 
     document.getElementById('trackForm').addEventListener('submit', (event) => {
       event.preventDefault();
-      lookupTrack(document.getElementById('trackIdInput').value);
+      goToTrack(document.getElementById('trackIdInput').value);
     });
 
     const lastIdBtn = document.getElementById('useLastIdBtn');
@@ -403,13 +391,20 @@
       lastIdBtn.hidden = false;
       lastIdBtn.classList.remove('hidden');
       lastIdBtn.textContent = `Use last submitted ID (${lastSavedId})`;
-      lastIdBtn.addEventListener('click', () => lookupTrack(lastSavedId));
+      lastIdBtn.addEventListener('click', () => goToTrack(lastSavedId));
     }
 
     setInterval(refreshElapsed, 1000);
 
     if (INITIAL_TRACK_ID) {
-      lookupTrack(INITIAL_TRACK_ID);
+      document.getElementById('trackIdInput').value = INITIAL_TRACK_ID;
+    }
+    if (INITIAL_TRACK_REPORT) {
+      document.getElementById('trackLookupHint').textContent = 'Tracking details loaded successfully.';
+      renderTrack(INITIAL_TRACK_REPORT);
+    } else if (INITIAL_TRACK_ERROR) {
+      document.getElementById('trackLookupHint').textContent = 'Tracking lookup failed.';
+      showError(INITIAL_TRACK_ERROR);
     }
   </script>
 </body>
