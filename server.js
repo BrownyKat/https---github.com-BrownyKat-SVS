@@ -767,20 +767,45 @@ app.use((req, res, next) => {
   res.locals.photoStorageConfigured = hasSupabaseRestAccess();
   next();
 });
+
+function parseHostCandidate(value) {
+  const raw = String(value || '').trim().split(',')[0].trim().toLowerCase();
+  if (!raw) return null;
+  try {
+    const parsed = new URL(raw.includes('://') ? raw : `http://${raw}`);
+    const hostname = String(parsed.hostname || '').trim().toLowerCase();
+    if (!hostname) return null;
+    const port = String(parsed.port || '').trim();
+    const normalizedPort = port === '80' || port === '443' ? '' : port;
+    return normalizedPort ? `${hostname}:${normalizedPort}` : hostname;
+  } catch (_err) {
+    return null;
+  }
+}
+
+function requestHostCandidates(req) {
+  const values = [
+    req && req.get ? req.get('x-forwarded-host') : '',
+    req && req.get ? req.get('host') : '',
+    req && req.headers ? req.headers['x-original-host'] : '',
+    process.env.BASE_URL || '',
+    process.env.APP_URL || '',
+    process.env.PUBLIC_APP_URL || '',
+    process.env.VERCEL_URL || '',
+  ];
+  return Array.from(new Set(values.map(parseHostCandidate).filter(Boolean)));
+}
+
 app.use('/api', (req, res, next) => {
   if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
   const origin = String(req.get('origin') || '').trim();
-  if (!origin) return next();
+  const referer = String(req.get('referer') || '').trim();
+  if (!origin && !referer) return next();
 
-  let originHost = '';
-  try {
-    originHost = new URL(origin).host;
-  } catch (_e) {
-    return res.status(403).json({ error: 'Forbidden origin' });
-  }
-
-  const requestHost = String(req.get('x-forwarded-host') || req.get('host') || '').trim();
-  if (!originHost || !requestHost || originHost !== requestHost) {
+  const source = origin || referer;
+  const sourceHost = parseHostCandidate(source);
+  const allowedHosts = requestHostCandidates(req);
+  if (!sourceHost || !allowedHosts.includes(sourceHost)) {
     return res.status(403).json({ error: 'Forbidden origin' });
   }
   return next();
@@ -983,10 +1008,31 @@ app.get('/faq', (req, res) => {
   });
 });
 app.get('/report', (_req, res) => res.render('report'));
-app.get('/track', (req, res) => {
-  const initialId = String(req.query.id || '').trim().toUpperCase();
+app.get('/track', async (req, res) => {
+  const requestedId = String(req.query.id || '').trim().toUpperCase();
+  const initialId = /^[A-Z]+-\d{4,}$/i.test(requestedId) ? requestedId : '';
+  let initialTrackReport = null;
+  let initialTrackError = '';
+
+  if (initialId) {
+    try {
+      await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Public track page DB connect timed out');
+      const report = await Report.findOne(reportLookupQuery(initialId)).lean({ virtuals: true });
+      if (report) {
+        initialTrackReport = buildPublicTrackPayload(report);
+      } else {
+        initialTrackError = 'Could not find that report ID.';
+      }
+    } catch (err) {
+      console.error('[public-track-page] lookup failed:', err && err.message ? err.message : err);
+      initialTrackError = 'Could not load report tracking details';
+    }
+  }
+
   res.render('track', {
-    initialId: /^[A-Z]+-\d{4,}$/i.test(initialId) ? initialId : '',
+    initialId,
+    initialTrackReport,
+    initialTrackError,
   });
 });
 
