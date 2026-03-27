@@ -724,12 +724,29 @@
             <p class="section-intro">Start here for the current system picture. The cards and charts summarize report volume, dispatcher readiness, and false report trends without changing the underlying admin process.</p>
           </div>
           <div class="section-actions">
-            <p class="section-note"><strong>Use this panel for quick situational awareness.</strong> Drill into Reports for detailed history, Dispatchers for account changes, and Audit Trail for action review.</p>
             <div class="alert-mini">
               <span class="alert-mini-label">Admin Alert</span>
               <% if (latestAlert) { %>
                 <strong><%= latestAlert.title || 'Active alert' %></strong>
                 <p><%= latestAlert.disasterType || 'General' %> - <%= latestAlert.severity || 'High' %><br><%= latestAlert.message || 'No message provided.' %></p>
+                <div class="alert-mini-actions">
+                  <button
+                    class="btn"
+                    type="button"
+                    id="editLatestAlertBtn"
+                    data-alert-id="<%= latestAlert._id %>"
+                    data-alert-title="<%= latestAlert.title || '' %>"
+                    data-alert-type="<%= latestAlert.disasterType || 'General' %>"
+                    data-alert-severity="<%= latestAlert.severity || 'High' %>"
+                    data-alert-message="<%= latestAlert.message || '' %>"
+                    data-alert-active="<%= latestAlert.active === false ? '0' : '1' %>">Edit</button>
+                  <form method="post" action="/admin/alerts/<%= latestAlert._id %>/delete">
+                    <input type="hidden" name="tab" value="dashboard">
+                    <input type="hidden" name="reportPage" value="<%= (reportPagination && reportPagination.page) || 1 %>">
+                    <input type="hidden" name="auditPage" value="<%= (auditPagination && auditPagination.page) || 1 %>">
+                    <button class="btn danger" type="submit">Delete</button>
+                  </form>
+                </div>
               <% } else { %>
                 <strong>No active alert</strong>
                 <p>Use the button below to publish a dashboard alert for current operations.</p>
@@ -1091,7 +1108,7 @@
         <h3 class="modal-title" id="alertModalTitle">Publish Alert</h3>
         <button class="modal-close" type="button" data-close-modal="#alertModal">Close</button>
       </div>
-      <form class="modal-form" method="post" action="/admin/alerts">
+      <form id="alertForm" class="modal-form" method="post" action="/admin/alerts">
         <input type="hidden" name="tab" value="dashboard">
         <input type="hidden" name="reportPage" value="<%= (reportPagination && reportPagination.page) || 1 %>">
         <input type="hidden" name="auditPage" value="<%= (auditPagination && auditPagination.page) || 1 %>">
@@ -1126,7 +1143,7 @@
         </div>
         <div class="modal-actions">
           <button class="btn" type="button" data-close-modal="#alertModal">Cancel</button>
-          <button class="btn danger" type="submit">Publish Alert</button>
+          <button class="btn danger" type="submit" id="alertSubmitBtn">Publish Alert</button>
         </div>
       </form>
     </div>
@@ -1191,8 +1208,48 @@
         if (e.target === backdrop) closeModal('#' + backdrop.id);
       });
     });
+    const alertForm = document.getElementById('alertForm');
+    const alertModalTitle = document.getElementById('alertModalTitle');
+    const alertSubmitBtn = document.getElementById('alertSubmitBtn');
+    const alertTitleInput = document.getElementById('alertTitle');
+    const alertTypeInput = document.getElementById('alertType');
+    const alertSeverityInput = document.getElementById('alertSeverity');
+    const alertMessageInput = document.getElementById('alertMessage');
+    const alertActiveInput = document.querySelector('#alertForm input[name="active"]');
+
+    function openCreateAlertModal() {
+      if (!alertForm) return;
+      alertForm.action = '/admin/alerts';
+      if (alertModalTitle) alertModalTitle.textContent = 'Publish Alert';
+      if (alertSubmitBtn) alertSubmitBtn.textContent = 'Publish Alert';
+      if (alertTitleInput) alertTitleInput.value = '';
+      if (alertTypeInput) alertTypeInput.value = 'General';
+      if (alertSeverityInput) alertSeverityInput.value = 'High';
+      if (alertMessageInput) alertMessageInput.value = '';
+      if (alertActiveInput) alertActiveInput.checked = true;
+      openModal('#alertModal');
+    }
+
+    function openEditAlertModal(btn) {
+      if (!btn || !alertForm) return;
+      const alertId = btn.getAttribute('data-alert-id');
+      if (!alertId) return;
+      alertForm.action = '/admin/alerts/' + encodeURIComponent(alertId) + '/update';
+      if (alertModalTitle) alertModalTitle.textContent = 'Edit Alert';
+      if (alertSubmitBtn) alertSubmitBtn.textContent = 'Save Alert';
+      if (alertTitleInput) alertTitleInput.value = btn.getAttribute('data-alert-title') || '';
+      if (alertTypeInput) alertTypeInput.value = btn.getAttribute('data-alert-type') || 'General';
+      if (alertSeverityInput) alertSeverityInput.value = btn.getAttribute('data-alert-severity') || 'High';
+      if (alertMessageInput) alertMessageInput.value = btn.getAttribute('data-alert-message') || '';
+      if (alertActiveInput) alertActiveInput.checked = btn.getAttribute('data-alert-active') !== '0';
+      openModal('#alertModal');
+    }
+
     document.getElementById('openAddDispatcher')?.addEventListener('click', () => openModal('#addDispatcherModal'));
-    document.getElementById('openAlertModal')?.addEventListener('click', () => openModal('#alertModal'));
+    document.getElementById('openAlertModal')?.addEventListener('click', openCreateAlertModal);
+    document.getElementById('editLatestAlertBtn')?.addEventListener('click', function () {
+      openEditAlertModal(this);
+    });
 
     const editForm = document.getElementById('editDispatcherForm');
     const deleteForm = document.getElementById('deleteDispatcherForm');
