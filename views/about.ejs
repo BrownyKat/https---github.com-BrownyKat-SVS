@@ -421,6 +421,56 @@
         <% }) %>
       </div>
     </section>
+
+    <!-- Evacuation Centers Map -->
+    <section data-animate="fade-up" class="mt-12 rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
+      <h2 class="text-2xl font-black mb-4 text-slate-800">Mapandan Disaster Response: Evacuation Centers</h2>
+      <div style="border-radius: 16px; overflow: hidden; border: 1.5px solid #e2e8f0;">
+        <iframe 
+          title="Mapandan Map"
+          style="width: 100%; height: 500px; border: none;"
+          srcdoc='
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+              <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+              <style>
+                body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
+                #map { height: 100vh; width: 100vw; }
+                .my-label { font-weight: bold; background: white; border: 1px solid #d32f2f; color: #d32f2f; padding: 2px 5px; border-radius: 4px; font-family: sans-serif; }
+              </style>
+            </head>
+            <body>
+              <div id="map"></div>
+              <script>
+                var map = L.map("map").setView([16.0285, 120.4517], 13);
+                L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", { attribution: "&copy; CARTO" }).addTo(map);
+                var centers = [
+                  { name: "Mapandan Central School", lat: 16.0298, lng: 120.4526 },
+                  { name: "Aloha Building", lat: 16.0278, lng: 120.4515 },
+                  { name: "Cong. Tulagan Gym", lat: 16.0275, lng: 120.4510 },
+                  { name: "Coral Barangay Hall", lat: 16.0264, lng: 120.4716 },
+                  { name: "Primicias Elem/High School", lat: 15.9898, lng: 120.4568 },
+                  { name: "Sta. Maria Elementary School", lat: 16.0425, lng: 120.4678 },
+                  { name: "Baloling Elementary School", lat: 16.0475, lng: 120.4580 },
+                  { name: "Nilombot Elementary School", lat: 16.0125, lng: 120.4428 },
+                  { name: "Torres Elementary School", lat: 16.0465, lng: 120.4285 },
+                  { name: "Golden Elementary School", lat: 16.0195, lng: 120.4320 },
+                  { name: "Jimenez Elementary School", lat: 16.0020, lng: 120.4655 },
+                  { name: "Lambayan Elementary School", lat: 16.0350, lng: 120.4410 }
+                ];
+                centers.forEach(function(center) {
+                  var marker = L.marker([center.lat, center.lng]).addTo(map);
+                  marker.bindTooltip(center.name, { permanent: true, direction: "top", className: "my-label" }).openTooltip();
+                });
+              </script>
+            </body>
+            </html>
+          '>
+        </iframe>
+      </div>
+    </section>
   </main>
 
   <%- include('partials/footer') %>
