@@ -83,101 +83,101 @@
 
     <div id="trackErrorState" class="mt-8 hidden rounded-[1.8rem] border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700 shadow-[0_14px_28px_rgba(239,68,68,0.08)]"></div>
 
-    <section id="trackResult" class="mt-8 hidden space-y-6">
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article data-animate="fade-up" style="--animate-order:0" class="rounded-[1.7rem] border border-slate-200 bg-white/90 p-5 shadow-[0_18px_38px_rgba(15,23,42,0.1)]">
-          <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Report ID</div>
-          <div id="trackReportId" class="mt-3 text-2xl font-black tracking-tight text-slate-950">-</div>
+    <section id="trackResult" class="mx-auto mt-8 hidden max-w-[1200px] space-y-6">
+      <div class="grid gap-4 lg:grid-cols-2 2xl:grid-cols-4">
+        <article data-animate="fade-up" style="--animate-order:0" class="rounded-[1.7rem] border border-slate-200 bg-white/90 p-5 shadow-[0_18px_38px_rgba(15,23,42,0.1)] sm:p-6">
+          <div class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-slate-500">Report ID</div>
+          <div id="trackReportId" class="mt-3 break-words text-2xl font-black tracking-tight text-slate-950">-</div>
           <p class="mt-3 text-sm leading-7 text-slate-600">Use this ID for future follow-up and status checks.</p>
         </article>
 
-        <article data-animate="fade-up" style="--animate-order:1" class="rounded-[1.7rem] border border-slate-200 bg-white/90 p-5 shadow-[0_18px_38px_rgba(15,23,42,0.1)]">
-          <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Current Status</div>
+        <article data-animate="fade-up" style="--animate-order:1" class="rounded-[1.7rem] border border-slate-200 bg-white/90 p-5 shadow-[0_18px_38px_rgba(15,23,42,0.1)] sm:p-6">
+          <div class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-slate-500">Current Status</div>
           <div id="trackStatusWrap" class="mt-3 inline-flex rounded-full border px-3 py-1.5 text-sm font-black uppercase tracking-[0.16em]">
             <span id="trackStatus">-</span>
           </div>
           <p class="mt-3 text-sm leading-7 text-slate-600">Status updates reflect the latest dispatcher workflow state.</p>
         </article>
 
-        <article data-animate="fade-up" style="--animate-order:2" class="rounded-[1.7rem] border border-slate-200 bg-white/90 p-5 shadow-[0_18px_38px_rgba(15,23,42,0.1)]">
-          <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Current Dispatcher</div>
-          <div id="trackDispatcher" class="mt-3 text-2xl font-black tracking-tight text-slate-950">-</div>
-          <div id="trackDispatcherUser" class="mt-2 text-sm font-bold uppercase tracking-[0.16em] text-blue-700">-</div>
+        <article data-animate="fade-up" style="--animate-order:2" class="rounded-[1.7rem] border border-slate-200 bg-white/90 p-5 shadow-[0_18px_38px_rgba(15,23,42,0.1)] sm:p-6">
+          <div class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-slate-500">Current Dispatcher</div>
+          <div id="trackDispatcher" class="mt-3 break-words text-2xl font-black tracking-tight text-slate-950">-</div>
+          <div id="trackDispatcherUser" class="mt-2 break-all font-mono text-xs font-bold tracking-[0.12em] text-blue-700">-</div>
           <p class="mt-3 text-sm leading-7 text-slate-600">If the report is reassigned, this card shows the latest dispatcher handling it.</p>
         </article>
 
-        <article data-animate="fade-up" style="--animate-order:3" class="rounded-[1.7rem] border border-slate-200 bg-white/90 p-5 shadow-[0_18px_38px_rgba(15,23,42,0.1)]">
-          <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Time Passed</div>
+        <article data-animate="fade-up" style="--animate-order:3" class="rounded-[1.7rem] border border-slate-200 bg-white/90 p-5 shadow-[0_18px_38px_rgba(15,23,42,0.1)] sm:p-6">
+          <div class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-slate-500">Time Passed</div>
           <div id="trackElapsed" class="mt-3 text-2xl font-black tracking-tight text-slate-950">-</div>
           <div id="trackSubmittedAt" class="mt-2 text-sm font-semibold text-slate-500">-</div>
           <p class="mt-3 text-sm leading-7 text-slate-600">This timer updates in real time based on the original report timestamp.</p>
         </article>
       </div>
 
-      <div class="grid gap-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)]">
-        <section data-animate="fade-up" style="--animate-order:4" class="rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#eff6ff_0%,#ffffff_100%)] p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-8">
-          <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-blue-700">Location</div>
-          <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950">Reported location</h2>
-          <div id="trackLocation" class="mt-4 rounded-[1.5rem] border border-slate-200 bg-white px-5 py-5 text-base font-black leading-8 text-slate-950 shadow-[0_12px_24px_rgba(15,23,42,0.08)]">
-            -
-          </div>
-          <div class="mt-4 grid gap-3 md:grid-cols-2">
-            <div class="rounded-[1.3rem] border border-slate-200 bg-white px-4 py-4">
-              <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Barangay</div>
-              <div id="trackBarangay" class="mt-2 text-sm font-bold leading-7 text-slate-800">-</div>
+      <div class="grid gap-6 xl:grid-cols-2">
+        <section data-animate="fade-up" style="--animate-order:4" class="flex h-full flex-col rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-7">
+          <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-red-600">Handling</div>
+          <h2 class="mt-4 text-xl font-black tracking-tight text-slate-950 sm:text-2xl">Dispatcher activity</h2>
+          <div class="mt-4 flex-1 space-y-4">
+            <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-4">
+              <div class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-slate-500">Current dispatcher</div>
+              <div id="trackHandlingName" class="mt-2 break-words text-lg font-black text-slate-950">Waiting for dispatcher</div>
             </div>
-            <div class="rounded-[1.3rem] border border-slate-200 bg-white px-4 py-4">
-              <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Landmark / Street</div>
-              <div id="trackLandmarkStreet" class="mt-2 text-sm font-bold leading-7 text-slate-800">-</div>
+            <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-4">
+              <div class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-slate-500">Transfer count</div>
+              <div id="trackPassCount" class="mt-2 text-lg font-black text-slate-950">0</div>
+            </div>
+            <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-4">
+              <div class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-slate-500">Last handoff</div>
+              <div id="trackLastPassed" class="mt-2 break-words text-sm font-bold leading-6 text-slate-800">No reassignment yet.</div>
             </div>
           </div>
         </section>
 
-        <aside class="space-y-6">
-          <section data-animate="fade-up" style="--animate-order:5" class="rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)]">
-            <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-red-600">Handling</div>
-            <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950">Dispatcher activity</h2>
-            <div class="mt-4 space-y-4">
-              <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-4">
-                <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Current dispatcher</div>
-                <div id="trackHandlingName" class="mt-2 text-lg font-black text-slate-950">Waiting for dispatcher</div>
-              </div>
-              <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-4">
-                <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Transfer count</div>
-                <div id="trackPassCount" class="mt-2 text-lg font-black text-slate-950">0</div>
-              </div>
-              <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-4">
-                <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Last handoff</div>
-                <div id="trackLastPassed" class="mt-2 text-sm font-bold leading-7 text-slate-800">No reassignment yet.</div>
-              </div>
-            </div>
-          </section>
+        <section data-animate="fade-up" style="--animate-order:5" class="flex h-full flex-col rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-7">
+          <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-blue-700">Timeline</div>
+          <h2 class="mt-4 text-xl font-black tracking-tight text-slate-950 sm:text-2xl">Progress timeline</h2>
+          <ol id="trackTimeline" class="mt-4 space-y-3"></ol>
+        </section>
+      </div>
 
-          <section data-animate="fade-up" style="--animate-order:6" class="rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)]">
-            <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-blue-700">Timeline</div>
-            <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950">Progress timeline</h2>
-            <ol id="trackTimeline" class="mt-4 space-y-3"></ol>
-          </section>
-
-          <section data-animate="fade-up" style="--animate-order:7" class="rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#fff8ef_0%,#ffffff_100%)] p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)]">
-            <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-amber-600">Report info</div>
-            <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950">Submitted details</h2>
-            <div class="mt-4 space-y-3 text-sm leading-7 text-slate-700">
-              <div class="rounded-[1.4rem] border border-slate-200 bg-white px-4 py-3">
-                <span class="font-black text-slate-950">Reporter:</span>
-                <span id="trackReporterName">-</span>
-              </div>
-              <div class="rounded-[1.4rem] border border-slate-200 bg-white px-4 py-3">
-                <span class="font-black text-slate-950">Type:</span>
-                <span id="trackEmergencyType">-</span>
-              </div>
-              <div class="rounded-[1.4rem] border border-slate-200 bg-white px-4 py-3">
-                <span class="font-black text-slate-950">GPS:</span>
-                <span id="trackGps">Not available</span>
-              </div>
+      <div class="grid gap-6 xl:grid-cols-2">
+        <section data-animate="fade-up" style="--animate-order:6" class="flex h-full flex-col rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#eff6ff_0%,#ffffff_100%)] p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-7">
+          <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-blue-700">Location</div>
+          <h2 class="mt-4 text-xl font-black tracking-tight text-slate-950 sm:text-2xl">Reported location</h2>
+          <div id="trackLocation" class="mt-4 rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 text-sm font-black leading-7 text-slate-950 shadow-[0_12px_24px_rgba(15,23,42,0.08)] sm:px-5 sm:text-base">
+            -
+          </div>
+          <div class="mt-4 grid gap-3 md:grid-cols-2">
+            <div class="rounded-[1.3rem] border border-slate-200 bg-white px-4 py-4">
+              <div class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-slate-500">Barangay</div>
+              <div id="trackBarangay" class="mt-2 break-words text-sm font-bold leading-6 text-slate-800">-</div>
             </div>
-          </section>
-        </aside>
+            <div class="rounded-[1.3rem] border border-slate-200 bg-white px-4 py-4">
+              <div class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-slate-500">Landmark / Street</div>
+              <div id="trackLandmarkStreet" class="mt-2 break-words text-sm font-bold leading-6 text-slate-800">-</div>
+            </div>
+          </div>
+        </section>
+
+        <section data-animate="fade-up" style="--animate-order:7" class="flex h-full flex-col rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#fff8ef_0%,#ffffff_100%)] p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-7">
+          <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-amber-600">Report info</div>
+          <h2 class="mt-4 text-xl font-black tracking-tight text-slate-950 sm:text-2xl">Submitted details</h2>
+          <div class="mt-4 flex-1 space-y-3 text-sm leading-7 text-slate-700">
+            <div class="rounded-[1.4rem] border border-slate-200 bg-white px-4 py-3">
+              <div class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-slate-500">Reporter</div>
+              <div id="trackReporterName" class="mt-1 break-words text-sm font-bold leading-6 text-slate-900">-</div>
+            </div>
+            <div class="rounded-[1.4rem] border border-slate-200 bg-white px-4 py-3">
+              <div class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-slate-500">Type</div>
+              <div id="trackEmergencyType" class="mt-1 break-words text-sm font-bold leading-6 text-slate-900">-</div>
+            </div>
+            <div class="rounded-[1.4rem] border border-slate-200 bg-white px-4 py-3">
+              <div class="text-[0.68rem] font-black uppercase tracking-[0.18em] text-slate-500">GPS</div>
+              <div id="trackGps" class="mt-1 break-all text-sm font-bold leading-6 text-slate-900">Not available</div>
+            </div>
+          </div>
+        </section>
       </div>
     </section>
   </main>

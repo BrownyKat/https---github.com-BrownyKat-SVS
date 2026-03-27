@@ -2274,20 +2274,21 @@
     const lat = p.lat.toFixed(6);
     const lng = p.lng.toFixed(6);
     const open = `https://www.google.com/maps?q=${lat},${lng}`;
-    const embed = `https://maps.google.com/maps?q=${lat},${lng}&t=m&z=20&output=embed`;
+    const embed = `https://www.google.com/maps?output=embed&q=${lat},${lng}&z=20`;
     const shouldLoadPreview = !!rid && loadedReportMaps.has(rid);
     return `
       <div class="rcard-map">
         <div class="rcard-map-head">
           <span>GPS: ${lat}, ${lng}</span>
-          <a class="map-open" href="${open}" target="_blank" rel="noopener noreferrer">Open map</a>
+          ${shouldLoadPreview
+            ? `<a class="map-open" href="${open}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>`
+            : `<button type="button" class="map-open map-preview-btn" data-map-preview="${rid}">Preview map</button>`}
         </div>
         ${shouldLoadPreview
-          ? `<iframe class="rcard-map-canvas" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${embed}"></iframe>`
+          ? `<iframe class="rcard-map-canvas" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" src="${embed}" allowfullscreen></iframe>`
           : `<div class="rcard-map-placeholder">
               <strong>Map preview paused for performance</strong>
-              <p>Large queues stay smoother when embedded maps load only on demand. You can still open Google Maps instantly.</p>
-              <button type="button" class="map-preview-btn" onclick="loadReportMapPreview('${rid}')">Load preview</button>
+              <p>Press the preview button to load the map only for this report or SOS card.</p>
             </div>`}
       </div>
     `;
@@ -2559,10 +2560,13 @@
     renderReportPager(filtered.length, totalPages, curListPage);
     list.innerHTML = paged.map(r => cardHTML(r, searchTerm && matchesSearch(r, searchTerm))).join('');
 
-    // Reuse already-loaded map nodes so map iframes do not reload on data refresh.
+    // Reuse only already-loaded iframe maps so placeholders do not overwrite freshly requested previews.
     existingMaps.forEach((oldMapNode, cardId) => {
       const card = document.getElementById(cardId);
       if (!card) return;
+      const reportId = cardId.startsWith('card-') ? normalizeId(cardId.slice(5)) : '';
+      if (!reportId || !loadedReportMaps.has(reportId)) return;
+      if (!oldMapNode.querySelector('.rcard-map-canvas')) return;
       const freshMapNode = card.querySelector('.rcard-map');
       if (!freshMapNode) return;
       freshMapNode.replaceWith(oldMapNode);
@@ -3175,6 +3179,11 @@
   }
 
   document.addEventListener('click', (e)=>{
+    const mapPreviewBtn = e.target.closest('.map-preview-btn');
+    if (mapPreviewBtn) {
+      loadReportMapPreview(mapPreviewBtn.dataset.mapPreview || '');
+      return;
+    }
     const launch = e.target.closest('.photo-launch');
     if (launch) {
       const reportId = launch.dataset.report || '';
