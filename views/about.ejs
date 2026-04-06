@@ -423,6 +423,15 @@
     </section>
   </main>
 
+  <%- include('partials/help-chatbot', {
+    chatbotContext: 'about',
+    chatbotPageLabel: 'About SVS',
+    chatbotPrompts: [
+      'What is SVS for?',
+      'Where can I find hotline numbers?',
+      'What disaster guides are on this page?'
+    ]
+  }) %>
   <%- include('partials/footer') %>
   <%- include('partials/public-motion-script') %>
 
