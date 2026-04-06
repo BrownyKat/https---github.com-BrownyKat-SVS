@@ -94,10 +94,18 @@
       font-family:var(--font-body);
       position:relative;
       box-shadow:0 9px 18px rgba(15,23,42,.08);
+      appearance:none;
+      -webkit-appearance:none;
+      -webkit-text-fill-color:currentColor;
     }
     .nav-item svg,.nav button svg{
       width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9;
       stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;
+    }
+    .nav-label{
+      color:inherit;
+      display:inline-block;
+      -webkit-text-fill-color:currentColor;
     }
     .nav-item:hover,.nav button:hover{
       border-color:var(--blue);background:linear-gradient(180deg,#fff,#eef4ff);transform:translateY(-1px);
@@ -675,21 +683,25 @@
       <div class="nav-title">Navigation</div>
       <nav class="nav">
         <button class="nav-item active" type="button" data-tab="dashboard">
-          <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg> Dashboard
+          <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          <span class="nav-label">Dashboard</span>
         </button>
         <button class="nav-item" type="button" data-tab="reports">
-          <svg viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25"/></svg> Reports
+          <svg viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25"/></svg>
+          <span class="nav-label">Reports</span>
         </button>
         <button class="nav-item" type="button" data-tab="dispatchers">
-          <svg viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0M4.5 20.25a7.5 7.5 0 0 1 15 0"/></svg> Dispatchers
+          <svg viewBox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0M4.5 20.25a7.5 7.5 0 0 1 15 0"/></svg>
+          <span class="nav-label">Dispatchers</span>
         </button>
         <button class="nav-item" type="button" data-tab="audit">
-          <svg viewBox="0 0 24 24"><path d="M12 6v6l4 2m5-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg> Audit Trail
+          <svg viewBox="0 0 24 24"><path d="M12 6v6l4 2m5-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+          <span class="nav-label">Audit Trail</span>
         </button>
         <form method="get" action="/admin/logout" style="margin:0" id="adminLogoutForm">
           <button class="logout-item" type="submit">
             <svg viewBox="0 0 24 24"><path d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3-3-3-3m3 3-3 3m3-3H9"/></svg>
-            Logout
+            <span class="nav-label">Logout</span>
           </button>
         </form>
       </nav>
