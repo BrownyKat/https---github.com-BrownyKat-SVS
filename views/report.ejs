@@ -208,10 +208,31 @@
     .card-title{font-weight:820;font-size:1.08rem;color:var(--blue);letter-spacing:-.25px;}
     .card-sub{font-size:.77rem;color:var(--muted);margin-top:2px;}
 
-    .row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
-    @media(max-width:1500px){.row2{grid-template-columns:1fr;}}
-    @media(max-width:520px){.row2{grid-template-columns:1fr;}}
-    .field{margin-bottom:1rem;}
+    .row2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      width: 100%;
+    }
+    @media(max-width: 768px) { .row2 { grid-template-columns: 1fr; gap: 1rem; } }
+    .field { margin-bottom: 1rem; }
+
+    /* Center alignment for Location and Description fields */
+    #step-location label, 
+    #step-location input,
+    #step-details label, 
+    #step-details textarea {
+      text-align: center;
+    }
+
+    /* Balance padding for centered inputs that have icons */
+    #step-location .input-wrap.has-icon input {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    /* Optionally hide icons in centered fields for a cleaner look */
+    #step-location .field-icon { display: none; }
+
     .field:last-child{margin-bottom:0;}
     .field label{display:block;font-size:.75rem;font-weight:700;color:var(--text2);margin-bottom:.45rem;text-transform:uppercase;letter-spacing:.5px;}
     .input-wrap{position:relative;}
@@ -1905,6 +1926,7 @@
     @media(max-width:520px){
       .form-wrap{
         padding:.3rem .15rem 1rem;
+        padding: 1rem 1.25rem;
       }
       .intro-grid{
         margin-top:1rem;
@@ -2260,7 +2282,7 @@
         <label>Nearest Landmark *</label>
         <div class="input-wrap has-icon">
           <svg class="field-icon" viewBox="0 0 24 24"><path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
-          <input type="text" id="iLandmark" placeholder="e.g. Near Municipal Hall" required>
+          <input type="text" id="iLandmark" placeholder="e.g.Municipal Hall" required>
         </div>
       </div>
     </div>

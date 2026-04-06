@@ -16,8 +16,8 @@
     <section data-animate="zoom-in" class="overflow-hidden rounded-[2.2rem] border border-slate-200/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.95),rgba(236,244,255,0.92))] shadow-[0_28px_70px_rgba(15,23,42,0.12)]">
       <div class="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)] lg:items-center">
         <div data-animate="fade-right" style="--animate-order:0">
-          <div class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/90 px-3 py-1 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-blue-700">
-            Track Report
+          <div class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white/90 px-3 py-1 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-red-600">
+           Track Report
           </div>
           <h1 class="mt-5 max-w-3xl text-3xl font-black leading-[1.02] tracking-tight text-slate-950 sm:text-[3.35rem]">
             See your report progress without guessing what happens next.
@@ -25,16 +25,9 @@
           <p class="mt-5 max-w-3xl text-base leading-8 text-slate-700 sm:text-lg">
             Enter your report ID to check its current status, the dispatcher currently handling it, the time passed since submission, and the location tied to the report.
           </p>
-          <div class="mt-6 flex flex-wrap gap-2">
-            <span class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-black text-blue-700">Report ID lookup</span>
-            <span class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">Live status</span>
-            <span class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">Current dispatcher</span>
-            <span class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">Location summary</span>
-          </div>
         </div>
 
         <div data-animate="fade-left" style="--animate-order:1" class="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur">
-          <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-slate-500">Search</div>
           <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950">Enter your report ID</h2>
           <p class="mt-3 text-sm leading-7 text-slate-700 sm:text-base">
             Use the ID shown after submission, such as <span class="font-black text-blue-700">RPT-0001</span> or <span class="font-black text-red-600">SOS-0001</span>.
@@ -66,9 +59,6 @@
           <button id="useLastIdBtn" class="mt-4 hidden w-full rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-black uppercase tracking-[0.16em] text-blue-700 transition hover:border-blue-300 hover:bg-blue-100" type="button">
             Use last submitted ID
           </button>
-          <p id="trackLookupHint" class="mt-4 text-sm leading-7 text-slate-500">
-            Tracking is read-only and will not change your report.
-          </p>
         </div>
       </div>
     </section>
@@ -400,10 +390,12 @@
       document.getElementById('trackIdInput').value = INITIAL_TRACK_ID;
     }
     if (INITIAL_TRACK_REPORT) {
-      document.getElementById('trackLookupHint').textContent = 'Tracking details loaded successfully.';
+      const hint = document.getElementById('trackLookupHint');
+      if (hint) hint.textContent = 'Tracking details loaded successfully.';
       renderTrack(INITIAL_TRACK_REPORT);
     } else if (INITIAL_TRACK_ERROR) {
-      document.getElementById('trackLookupHint').textContent = 'Tracking lookup failed.';
+      const hint = document.getElementById('trackLookupHint');
+      if (hint) hint.textContent = 'Tracking lookup failed.';
       showError(INITIAL_TRACK_ERROR);
     }
   </script>
