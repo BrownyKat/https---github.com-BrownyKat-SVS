@@ -280,7 +280,7 @@
     }
 
     /* emergency type grid */
-    .etype-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;}
+    .etype-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;position:relative;z-index:2;}
     @media(max-width:440px){.etype-grid{grid-template-columns:repeat(2,1fr);}}
     .etype-btn{
       display:flex;flex-direction:column;align-items:center;gap:9px;
@@ -288,6 +288,8 @@
       border:1.5px solid var(--border);border-radius:13px;
       background:var(--bg);color:var(--muted);
       cursor:pointer;font-family:var(--font-body);font-weight:700;font-size:.82rem;
+      width:100%;appearance:none;-webkit-appearance:none;text-align:left;
+      position:relative;pointer-events:auto;touch-action:manipulation;user-select:none;
       transition:all .2s;
     }
     .etype-icon{
@@ -307,12 +309,13 @@
     .etype-btn:hover .etype-copy strong,.etype-btn.sel .etype-copy strong{color:var(--amber-deep);}
 
     /* severity */
-    .sev-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;}
+    .sev-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem;position:relative;z-index:2;}
     .sev-btn{
       display:flex;align-items:center;justify-content:center;gap:7px;
       padding:.9rem;border:1.5px solid var(--border);border-radius:11px;
       background:var(--bg);color:var(--muted);
       cursor:pointer;font-family:var(--font-body);font-weight:700;font-size:.9rem;
+      position:relative;pointer-events:auto;touch-action:manipulation;user-select:none;
       transition:all .2s;
     }
     .sev-btn svg{width:17px;height:17px;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s;}
@@ -2120,48 +2123,48 @@
       <div class="step-badge">Choose one</div>
     </div>
     <div class="etype-grid" id="typeGrid">
-      <div class="etype-btn" onclick="selType(this,'Fire')">
+      <button class="etype-btn" type="button" data-emergency-type="Fire" aria-pressed="false">
         <div class="etype-icon">
           <!-- Heroicon: fire -->
           <svg viewBox="0 0 24 24"><path d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z"/><path d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z"/></svg>
         </div>
         <div class="etype-copy"><strong>Fire</strong><span>House, building, grass, or electrical fire</span></div>
-      </div>
-      <div class="etype-btn" onclick="selType(this,'Flood')">
+      </button>
+      <button class="etype-btn" type="button" data-emergency-type="Flood" aria-pressed="false">
         <div class="etype-icon">
           <!-- Heroicon: cloud -->
           <svg viewBox="0 0 24 24"><path d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z"/></svg>
         </div>
         <div class="etype-copy"><strong>Flood</strong><span>Rising water, overflow, or stranded areas</span></div>
-      </div>
-      <div class="etype-btn" onclick="selType(this,'Medical')">
+      </button>
+      <button class="etype-btn" type="button" data-emergency-type="Medical" aria-pressed="false">
         <div class="etype-icon">
           <!-- Heroicon: heart -->
           <svg viewBox="0 0 24 24"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z"/></svg>
         </div>
         <div class="etype-copy"><strong>Medical</strong><span>Injury, illness, collapse, or urgent rescue</span></div>
-      </div>
-      <div class="etype-btn" onclick="selType(this,'Accident')">
+      </button>
+      <button class="etype-btn" type="button" data-emergency-type="Accident" aria-pressed="false">
         <div class="etype-icon">
           <!-- Heroicon: truck -->
           <svg viewBox="0 0 24 24"><path d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M8.25 18.75V3.375c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v.75"/></svg>
         </div>
         <div class="etype-copy"><strong>Accident</strong><span>Vehicle crash, impact, or road incident</span></div>
-      </div>
-      <div class="etype-btn" onclick="selType(this,'Landslide')">
+      </button>
+      <button class="etype-btn" type="button" data-emergency-type="Landslide" aria-pressed="false">
         <div class="etype-icon">
           <!-- Heroicon: chart-bar -->
           <svg viewBox="0 0 24 24"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
         </div>
         <div class="etype-copy"><strong>Landslide</strong><span>Soil movement, collapse, or debris fall</span></div>
-      </div>
-      <div class="etype-btn" onclick="selType(this,'Other')">
+      </button>
+      <button class="etype-btn" type="button" data-emergency-type="Other" aria-pressed="false">
         <div class="etype-icon">
           <!-- Heroicon: ellipsis-horizontal-circle -->
           <svg viewBox="0 0 24 24"><path d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
         </div>
         <div class="etype-copy"><strong>Other</strong><span>Use when no listed category fits the incident</span></div>
-      </div>
+      </button>
     </div>
     <input type="hidden" id="iType">
   </div>
@@ -2183,15 +2186,15 @@
       <div class="step-badge">Priority</div>
     </div>
     <div class="sev-row" id="sevGrid">
-      <button class="sev-btn low" type="button" onclick="selSev(this,'Low')">
+      <button class="sev-btn low" type="button" data-severity="Low" aria-pressed="false">
         <!-- Heroicon: check-circle -->
         <svg viewBox="0 0 24 24"><path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>Low
       </button>
-      <button class="sev-btn med" type="button" onclick="selSev(this,'Medium')">
+      <button class="sev-btn med" type="button" data-severity="Medium" aria-pressed="false">
         <!-- Heroicon: exclamation-circle -->
         <svg viewBox="0 0 24 24"><path d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>Medium
       </button>
-      <button class="sev-btn high" type="button" onclick="selSev(this,'High')">
+      <button class="sev-btn high" type="button" data-severity="High" aria-pressed="false">
         <!-- Heroicon: exclamation-triangle -->
         <svg viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>High
       </button>
@@ -2956,7 +2959,10 @@
     clearReportPhoto();
     document.querySelectorAll('.etype-btn').forEach(b=>b.classList.remove('sel'));
     document.querySelectorAll('.sev-btn').forEach(b=>b.classList.remove('sel'));
+    document.querySelectorAll('.etype-btn,.sev-btn').forEach(b=>b.setAttribute('aria-pressed', 'false'));
     selType_=''; selSev_='';
+    document.getElementById('iType').value='';
+    document.getElementById('iSev').value='';
     const g=document.getElementById('gpsBtn');
     g.classList.remove('got'); g.disabled=false;
     resetMapToDefaultView();
