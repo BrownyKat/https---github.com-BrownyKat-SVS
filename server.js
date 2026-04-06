@@ -163,10 +163,12 @@ async function initDatabase() {
       try {
         await mongoose.connect(mongoUri, buildConnectOptions(mongoUri));
       } catch (err) {
-        const canRetryDirect = !!directMongoUri
-          && directMongoUri !== primaryMongoUri
-          && /^mongodb\+srv:/i.test(primaryMongoUri)
-          && /querySrv|ENOTFOUND|ECONNREFUSED|ETIMEOUT|ETIMEDOUT/i.test(String(err && err.message || ''));
+        const canRetryDirect = (
+          !!directMongoUri &&
+          directMongoUri !== primaryMongoUri &&
+          /^mongodb\+srv:/i.test(primaryMongoUri) &&
+          /querySrv|ENOTFOUND|ECONNREFUSED|ETIMEOUT|ETIMEDOUT/i.test(String(err && err.message || ''))
+        );
         if (!canRetryDirect) throw err;
         console.warn('[db] SRV lookup failed; retrying with direct Mongo URI fallback.');
         mongoUri = directMongoUri;
@@ -878,8 +880,7 @@ app.post('/dispatcher/login', guardDispatcherLoginRate, async (req, res) => {
   try {
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '');
-      const remember = String(req.body.remember || '').toLowerCase() === 'on'
-      || String(req.body.remember || '').toLowerCase() === 'true';
+    const remember = String(req.body.remember || '').toLowerCase() === 'on' || String(req.body.remember || '').toLowerCase() === 'true';
     if (!username || !password) {
       if (res.locals.loginRateKey) await recordLoginAttempt(res.locals.loginRateKey);
       return res.status(400).render('dispatcher-login', { error: 'Invalid login details.' });
@@ -1008,7 +1009,7 @@ app.get('/faq', (req, res) => {
 });
 app.get('/report', (_req, res) => res.render('report'));
 app.get('/track', async (req, res) => {
-  const requestedId = String(req.query.id || '').trim().toUpperCase();
+  const requestedId = String(req.query.reportId || req.query.id || '').trim().toUpperCase();
   const initialId = /^[A-Z]+-\d{4,}$/i.test(requestedId) ? requestedId : '';
   let initialTrackReport = null;
   let initialTrackError = '';
