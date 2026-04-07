@@ -2512,6 +2512,34 @@
   const MAP_TYPE_CODES = { map: 'm', satellite: 'k' };
   const API_TIMEOUT_MS = 15000;
   const PENDING_KEY = 'svs_pending_reports_v1';
+  const fy = document.getElementById('footerYear');
+  if (fy) fy.textContent = String(new Date().getFullYear());
+  try { panicNum = localStorage.getItem('mdrrmo_panic') || ''; } catch(e) {}
+  panicNum = toIntlPhone(panicNum) || '';
+  bindInputSecurity();
+  initReportInteractiveControls();
+  bindRequiredFieldWatchers();
+  bindPrimaryActionControls();
+  flushPendingQueue();
+  updatePendingCount();
+  renderReportProgress();
+  window.addEventListener('online', flushPendingQueue);
+  window.addEventListener('resize', renderReportProgress);
+  if (panicNum) {
+    initPanicUI();
+    const mainContact = document.getElementById('iContact');
+    if (mainContact && !mainContact.value) mainContact.value = formatPhoneForDisplay(panicNum);
+    const sosField = document.getElementById('iPanicContact');
+    const sosBtn = document.getElementById('btnSavePanic');
+    const status = document.getElementById('panicSavedStatus');
+    if (sosField) {
+      sosField.value = formatPhoneForDisplay(panicNum);
+      sosField.disabled = true;
+    }
+    if (sosBtn) sosBtn.textContent = 'Edit';
+    if (status) { status.textContent = 'Saved'; status.style.color = 'var(--green)'; }
+  }
+  renderReportProgress();
 
   function bindInputSecurity() {
     const contactInput = document.getElementById('iContact');
@@ -2542,6 +2570,73 @@
         evt.preventDefault();
         const pasted = (evt.clipboardData || window.clipboardData).getData('text');
         sosField.value = formatPhoneForDisplay(pasted);
+      });
+    }
+  }
+
+  function setSelectedButton(buttons, activeButton) {
+    buttons.forEach((btn) => {
+      const isActive = btn === activeButton;
+      btn.classList.toggle('sel', isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+  }
+
+  function selectEmergencyType(value, sourceButton = null) {
+    const normalized = String(value || '').trim();
+    if (!normalized) return;
+    selType_ = normalized;
+    const hidden = document.getElementById('iType');
+    if (hidden) hidden.value = normalized;
+    const buttons = Array.from(document.querySelectorAll('.etype-btn[data-emergency-type]'));
+    const active = sourceButton || buttons.find((btn) => btn.dataset.emergencyType === normalized) || null;
+    setSelectedButton(buttons, active);
+    setRequiredError(document.getElementById('typeGrid'), false);
+    renderReportProgress();
+  }
+
+  function selectSeverity(value, sourceButton = null) {
+    const normalized = String(value || '').trim();
+    if (!normalized) return;
+    selSev_ = normalized;
+    const hidden = document.getElementById('iSev');
+    if (hidden) hidden.value = normalized;
+    const buttons = Array.from(document.querySelectorAll('.sev-btn[data-severity]'));
+    const active = sourceButton || buttons.find((btn) => btn.dataset.severity === normalized) || null;
+    setSelectedButton(buttons, active);
+    setRequiredError(document.getElementById('sevGrid'), false);
+    renderReportProgress();
+  }
+
+  function initReportInteractiveControls() {
+    const typeGrid = document.getElementById('typeGrid');
+    if (typeGrid && !typeGrid.dataset.bound) {
+      typeGrid.dataset.bound = '1';
+      typeGrid.addEventListener('click', (event) => {
+        const btn = event.target.closest('.etype-btn[data-emergency-type]');
+        if (!btn) return;
+        event.preventDefault();
+        selectEmergencyType(btn.dataset.emergencyType, btn);
+      });
+    }
+
+    const sevGrid = document.getElementById('sevGrid');
+    if (sevGrid && !sevGrid.dataset.bound) {
+      sevGrid.dataset.bound = '1';
+      sevGrid.addEventListener('click', (event) => {
+        const btn = event.target.closest('.sev-btn[data-severity]');
+        if (!btn) return;
+        event.preventDefault();
+        selectSeverity(btn.dataset.severity, btn);
+      });
+    }
+
+    const gpsBtn = document.getElementById('gpsBtn');
+    if (gpsBtn && !gpsBtn.dataset.bound) {
+      gpsBtn.dataset.bound = '1';
+      gpsBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        void detectGPS();
       });
     }
   }
@@ -2822,47 +2917,6 @@
 
   
   // Draft helper functions removed.
-function selType(el, t) {
-    document.querySelectorAll('.etype-btn').forEach(b => {
-      b.classList.remove('sel');
-      b.setAttribute('aria-pressed', 'false');
-    });
-    el.classList.add('sel');
-    el.setAttribute('aria-pressed', 'true');
-    selType_ = t;
-    const typeInput = document.getElementById('iType');
-    if (typeInput) typeInput.value = t;
-    setRequiredError(document.getElementById('typeGrid'), false);
-    renderReportProgress();
-  }
-  function selSev(el, s) {
-    document.querySelectorAll('.sev-btn').forEach(b => {
-      b.classList.remove('sel');
-      b.setAttribute('aria-pressed', 'false');
-    });
-    el.classList.add('sel');
-    el.setAttribute('aria-pressed', 'true');
-    selSev_ = s;
-    const severityInput = document.getElementById('iSev');
-    if (severityInput) severityInput.value = s;
-    setRequiredError(document.getElementById('sevGrid'), false);
-    renderReportProgress();
-  }
-
-  function bindSelectionControls() {
-    document.querySelectorAll('[data-emergency-type]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        selType(btn, btn.getAttribute('data-emergency-type') || '');
-      });
-    });
-
-    document.querySelectorAll('[data-severity]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        selSev(btn, btn.getAttribute('data-severity') || '');
-      });
-    });
-  }
-
   function bytesToReadableSize(bytes) {
     const value = Number(bytes) || 0;
     if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
@@ -2911,7 +2965,57 @@ function selType(el, t) {
     renderReportProgress();
   }
 
-  function handleReportPhotoChange(event) {
+  function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+      reader.onerror = () => reject(new Error('file_read_failed'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function loadImage(dataUrl) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('image_decode_failed'));
+      img.src = dataUrl;
+    });
+  }
+
+  async function compressReportPhoto(file) {
+    const originalDataUrl = await readFileAsDataUrl(file);
+    if (!originalDataUrl) throw new Error('file_read_failed');
+
+    const image = await loadImage(originalDataUrl);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return originalDataUrl;
+
+    const MAX_DIMENSION = 1600;
+    const MAX_BYTES = 900 * 1024;
+    const scale = Math.min(1, MAX_DIMENSION / Math.max(image.width || 1, image.height || 1));
+    canvas.width = Math.max(1, Math.round((image.width || 1) * scale));
+    canvas.height = Math.max(1, Math.round((image.height || 1) * scale));
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    const mimeType = /image\/png/i.test(file.type) ? 'image/jpeg' : (file.type || 'image/jpeg');
+    let quality = mimeType === 'image/jpeg' || mimeType === 'image/webp' ? 0.88 : undefined;
+    let best = canvas.toDataURL(mimeType, quality);
+
+    while (best.length * 0.75 > MAX_BYTES && quality && quality > 0.45) {
+      quality -= 0.08;
+      best = canvas.toDataURL(mimeType, quality);
+    }
+
+    if (best.length * 0.75 > MAX_BYTES) {
+      best = canvas.toDataURL('image/jpeg', 0.72);
+    }
+
+    return best.length < originalDataUrl.length ? best : originalDataUrl;
+  }
+
+  async function handleReportPhotoChange(event) {
     const input = event?.target;
     const file = input?.files?.[0];
 
@@ -2931,17 +3035,17 @@ function selType(el, t) {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      reportPhotoData = typeof reader.result === 'string' ? reader.result : '';
+    try {
+      reportPhotoData = await compressReportPhoto(file);
       updateReportPhotoUi(file);
       renderReportProgress();
-    };
-    reader.onerror = () => {
+      if (reportPhotoData && reportPhotoData.length * 0.75 > 1024 * 1024) {
+        toast('Photo optimized', 'The image was compressed to improve Vercel upload reliability.','info');
+      }
+    } catch (_err) {
       clearReportPhoto();
       toast('Upload failed', 'The selected image could not be read. Please try another file.','warn');
-    };
-    reader.readAsDataURL(file);
+    }
   }
 
   async function submitReport() {
@@ -3184,32 +3288,6 @@ function selType(el, t) {
   s.textContent='@keyframes spin{to{transform:rotate(360deg)}}';
   document.head.appendChild(s);
 
-  function parseGps(gps) {
-    if (!gps || typeof gps !== 'string') return null;
-    const m = gps.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
-    if (!m) return null;
-    const lat = Number(m[1]);
-    const lng = Number(m[2]);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
-    return { lat, lng };
-  }
-
-  function toEmbedUrl(lat, lng, view = 'map', zoom = 16) {
-    const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
-    return `https://www.google.com/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
-  }
-
-  function toQueryEmbedUrl(query, view = 'map', zoom = 14) {
-    const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
-    return `https://www.google.com/maps?q=${encodeURIComponent(query)}&t=${type}&z=${zoom}&output=embed`;
-  }
-
-  function toCenterEmbedUrl(lat, lng, view = 'map', zoom = 14) {
-    const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
-    return `https://www.google.com/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
-  }
-
   function renderReporterMap(gps, label = 'Detected location') {
     const p = parseGps(gps);
     const wrap = document.getElementById('gpsMapWrap');
@@ -3380,21 +3458,51 @@ function selType(el, t) {
   // GPS accuracy + repeat-detect overrides
   async function detectGPS() {
     const btn = document.getElementById('gpsBtn');
+    if (!btn) return;
+    if (btn.disabled) return;
     btn.disabled = true;
     btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;animation:spin .9s linear infinite"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> Detecting...`;
-    if (!navigator.geolocation) { btn.textContent = 'GPS not available on this device'; btn.disabled = false; return; }
+    if (!window.isSecureContext) {
+      btn.textContent = 'GPS needs HTTPS or localhost';
+      toast('Location unavailable', 'Geolocation only works on HTTPS or localhost.', 'warn');
+      btn.disabled = false;
+      return;
+    }
+    if (!navigator.geolocation) {
+      btn.textContent = 'GPS not available on this device';
+      toast('Location unavailable', 'This browser or device does not support geolocation.', 'warn');
+      btn.disabled = false;
+      return;
+    }
+    try {
+      if (navigator.permissions && typeof navigator.permissions.query === 'function') {
+        const status = await navigator.permissions.query({ name: 'geolocation' });
+        if (status && status.state === 'denied') {
+          btn.textContent = 'Location permission blocked';
+          toast('Location blocked', 'Enable location permission for this site in your browser settings.', 'warn');
+          return;
+        }
+      }
+    } catch (_err) {}
     try {
       const pos = await acquireBestGpsPosition(14000, 25);
       if (!pos) {
         btn.textContent = 'Could not detect location - fill in manually.';
+        toast('Location timeout', 'We could not get a GPS fix. Check permission, signal, or try outdoors.', 'warn');
         return;
       }
       await applyDetectedCoords(pos, { overwriteExisting: true });
       setRequiredError(btn, false);
       btn.classList.add('got');
       btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4.5 12.75l6 6 9-13.5"/></svg> Detected: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} (+/-${Math.round(pos.coords.accuracy || 0)}m)`;
-    } catch (_e) {
+    } catch (err) {
       btn.textContent = 'Could not detect location - fill in manually.';
+      const message = err && err.message ? err.message : '';
+      if (/denied/i.test(message)) {
+        toast('Location blocked', 'Allow location access for this site, then try again.', 'warn');
+      } else {
+        toast('Location failed', 'GPS detection failed. You can still enter the location manually.', 'warn');
+      }
     } finally {
       btn.disabled = false;
     }
@@ -3585,4 +3693,3 @@ function selType(el, t) {
 </script>
 </body>
 </html>
-

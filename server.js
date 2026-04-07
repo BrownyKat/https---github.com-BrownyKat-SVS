@@ -23,6 +23,7 @@ const DeviceToken = require('./models/DeviceToken');
 const Session     = require('./models/Session');
 const LoginAttempt = require('./models/LoginAttempt');
 const FaqFeedback = require('./models/FaqFeedback');
+const WebCall = require('./models/WebCall');
 
 const app    = express();
 const STATIC_CACHE_OPTIONS = { maxAge: '1d' };
@@ -55,7 +56,7 @@ const ROLE_COOKIE_NAMES = {
 const REALTIME_CHANNEL = process.env.PUSHER_CHANNEL || 'mdrrmo-reports';
 const VALID_REPORT_STATUSES = new Set(['new', 'verifying', 'dispatched', 'resolved', 'false-report']);
 const VALID_EMERGENCY_TYPES = new Set(['Fire', 'Flood', 'Medical', 'Accident', 'Landslide', 'Other', 'PANIC SOS']);
-const VALID_SEVERITIES = new Set(['Zion','High', 'Medium', 'Low']);
+const VALID_SEVERITIES = new Set(['High', 'Medium', 'Low']);
 const VALID_REPORT_TAGS = [
   'people_trapped',
   'injured',
@@ -69,7 +70,6 @@ const VALID_REPORT_TAGS = [
   'missing_persons',
   'medical_needed',
   'evac_needed',
-  'missing_Zion',
 ];
 const SIGNED_SESSION_PREFIX = 'v1.';
 let dbInitPromise = null;
@@ -81,8 +81,6 @@ const LOGIN_ATTEMPT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 const loginAttemptStore = new Map(); // in-memory cache (best effort; persisted via Mongo below)
 const WEB_CALL_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const DB_HEALTHCHECK_INTERVAL_MS = Math.max(3000, Number.parseInt(process.env.DB_HEALTHCHECK_INTERVAL_MS || '5000', 10) || 5000);
-// In-memory signal store for ad-hoc WebRTC calls keyed by reportId.
-const webCallSignals = new Map();
 mongoose.set('strictQuery', true);
 mongoose.set('bufferCommands', false);
 mongoose.connection.on('disconnected', () => {
@@ -260,6 +258,7 @@ async function ensureOperationalIndexes() {
       Report.collection.createIndex({ timestamp: -1 }, { background: true, name: 'timestamp_-1' }),
       AuditLog.collection.createIndex({ timestamp: -1 }, { background: true, name: 'timestamp_-1' }),
       Alert.collection.createIndex({ timestamp: -1 }, { background: true, name: 'timestamp_-1' }),
+      WebCall.collection.createIndex({ expiresAt: 1 }, { background: true, expireAfterSeconds: 0, name: 'expiresAt_ttl' }),
     ]);
   } catch (err) {
     console.warn('[db] index ensure failed:', err && err.message ? err.message : err);
@@ -783,6 +782,28 @@ function parseHostCandidate(value) {
   }
 }
 
+function normalizeAllowedOriginEntry(value) {
+  const raw = String(value || '').trim();
+  if (!raw || raw === '*') return '';
+  try {
+    const parsed = new URL(raw.includes('://') ? raw : `https://${raw}`);
+    return parsed.origin.toLowerCase();
+  } catch (_err) {
+    return '';
+  }
+}
+
+function configuredAllowedOrigins() {
+  const raw = String(process.env.CORS_ORIGIN || '').trim();
+  if (!raw || raw === '*') return [];
+  return Array.from(new Set(
+    raw
+      .split(',')
+      .map(normalizeAllowedOriginEntry)
+      .filter(Boolean)
+  ));
+}
+
 function requestHostCandidates(req) {
   const values = [
     req && req.get ? req.get('x-forwarded-host') : '',
@@ -805,7 +826,11 @@ app.use('/api', (req, res, next) => {
   const source = origin || referer;
   const sourceHost = parseHostCandidate(source);
   const allowedHosts = requestHostCandidates(req);
-  if (!sourceHost || !allowedHosts.includes(sourceHost)) {
+  const allowedOrigins = configuredAllowedOrigins();
+  const normalizedSourceOrigin = normalizeAllowedOriginEntry(source);
+  const allowByConfiguredOrigin = normalizedSourceOrigin && allowedOrigins.includes(normalizedSourceOrigin);
+  const allowBySameHost = sourceHost && allowedHosts.includes(sourceHost);
+  if (!allowByConfiguredOrigin && !allowBySameHost) {
     return res.status(403).json({ error: 'Forbidden origin' });
   }
   return next();
@@ -1909,8 +1934,9 @@ app.patch('/api/report/:id/details', requireRolesApi(['dispatcher', 'admin']), a
 });
 
 // WebRTC signaling for browser-to-browser calls between dispatchers.
-app.get('/api/call/:id/signal', requireRolesApi(['dispatcher', 'admin']), (req, res) => {
-  const slot = getWebCallSlot(req.params.id);
+app.get('/api/call/:id/signal', requireRolesApi(['dispatcher', 'admin']), async (req, res) => {
+  await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Call signal DB connect timed out');
+  const slot = await getWebCallSlot(req.params.id);
   if (!slot) return res.json({});
   return res.json({
     offer: slot.offer,
@@ -1921,11 +1947,12 @@ app.get('/api/call/:id/signal', requireRolesApi(['dispatcher', 'admin']), (req, 
   });
 });
 
-app.post('/api/call/:id/offer', requireRolesApi(['dispatcher', 'admin']), (req, res) => {
+app.post('/api/call/:id/offer', requireRolesApi(['dispatcher', 'admin']), async (req, res) => {
+  await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Call offer DB connect timed out');
   const sdp = req.body && req.body.sdp;
   const type = req.body && req.body.type;
   if (!sdp) return res.status(400).json({ error: 'Missing offer SDP' });
-  const slot = touchWebCallSlot(req.params.id);
+  const slot = await touchWebCallSlot(req.params.id);
   slot.offer = {
     sdp,
     type: type || 'offer',
@@ -1935,14 +1962,16 @@ app.post('/api/call/:id/offer', requireRolesApi(['dispatcher', 'admin']), (req, 
   slot.answer = slot.answer || null;
   slot.offerCandidates = [];
   slot.answerCandidates = [];
+  await saveWebCallSlot(req.params.id, slot);
   return res.json({ success: true });
 });
 
-app.post('/api/call/:id/answer', requireRolesApi(['dispatcher', 'admin']), (req, res) => {
+app.post('/api/call/:id/answer', requireRolesApi(['dispatcher', 'admin']), async (req, res) => {
+  await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Call answer DB connect timed out');
   const sdp = req.body && req.body.sdp;
   const type = req.body && req.body.type;
   if (!sdp) return res.status(400).json({ error: 'Missing answer SDP' });
-  const slot = touchWebCallSlot(req.params.id);
+  const slot = await touchWebCallSlot(req.params.id);
   slot.answer = {
     sdp,
     type: type || 'answer',
@@ -1950,24 +1979,28 @@ app.post('/api/call/:id/answer', requireRolesApi(['dispatcher', 'admin']), (req,
     fromName: String(req.auth.fullName || req.auth.username || 'Dispatcher'),
   };
   slot.answerCandidates = slot.answerCandidates || [];
+  await saveWebCallSlot(req.params.id, slot);
   return res.json({ success: true });
 });
 
-app.post('/api/call/:id/candidate', requireRolesApi(['dispatcher', 'admin']), (req, res) => {
+app.post('/api/call/:id/candidate', requireRolesApi(['dispatcher', 'admin']), async (req, res) => {
+  await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Call candidate DB connect timed out');
   const role = req.body && req.body.role === 'answer' ? 'answer' : 'offer';
   const candidate = req.body && req.body.candidate;
   if (!candidate || typeof candidate !== 'object' || !candidate.candidate) {
     return res.status(400).json({ error: 'Invalid ICE candidate' });
   }
-  const slot = touchWebCallSlot(req.params.id);
+  const slot = await touchWebCallSlot(req.params.id);
   const listKey = role === 'answer' ? 'answerCandidates' : 'offerCandidates';
   if (!Array.isArray(slot[listKey])) slot[listKey] = [];
   slot[listKey].push(candidate);
+  await saveWebCallSlot(req.params.id, slot);
   return res.json({ success: true });
 });
 
-app.delete('/api/call/:id', requireRolesApi(['dispatcher', 'admin']), (_req, res) => {
-  clearWebCallSlot(_req.params.id);
+app.delete('/api/call/:id', requireRolesApi(['dispatcher', 'admin']), async (_req, res) => {
+  await ensureDbReadyQuick(DB_READY_ROUTE_TIMEOUT_MS, 'Call clear DB connect timed out');
+  await clearWebCallSlot(_req.params.id);
   return res.json({ success: true });
 });
 // ── API: delete all reports ──────────────────────────────────────────────────
@@ -2669,19 +2702,12 @@ function requireRolesApi(roles) {
   };
 }
 
-function cleanupStaleWebCalls() {
-  const now = Date.now();
-  for (const [key, entry] of webCallSignals.entries()) {
-    if (!entry || entry.expiresAt < now) webCallSignals.delete(key);
-  }
-}
-setInterval(cleanupStaleWebCalls, 60 * 1000).unref();
-
-function touchWebCallSlot(reportId) {
+async function touchWebCallSlot(reportId) {
   const id = String(reportId || '').trim();
   if (!id) return null;
   const now = Date.now();
-  const slot = webCallSignals.get(id) || {
+  const stored = await getWebCallSlot(id);
+  const slot = stored || {
     offer: null,
     answer: null,
     offerCandidates: [],
@@ -2691,25 +2717,66 @@ function touchWebCallSlot(reportId) {
   };
   slot.updatedAt = now;
   slot.expiresAt = now + WEB_CALL_TTL_MS;
-  webCallSignals.set(id, slot);
   return slot;
 }
 
-function getWebCallSlot(reportId) {
+async function getWebCallSlot(reportId) {
   const id = String(reportId || '').trim();
   if (!id) return null;
-  const slot = webCallSignals.get(id);
-  if (!slot) return null;
-  if (slot.expiresAt < Date.now()) {
-    webCallSignals.delete(id);
-    return null;
+  if (mongoose.connection.readyState === 1) {
+    try {
+      const doc = await WebCall.findOne({ reportId: id }).lean();
+      if (!doc) return null;
+      if (doc.expiresAt && new Date(doc.expiresAt).getTime() < Date.now()) {
+        await WebCall.deleteOne({ reportId: id }).catch(() => {});
+        return null;
+      }
+      return {
+        offer: doc.offer || null,
+        answer: doc.answer || null,
+        offerCandidates: Array.isArray(doc.offerCandidates) ? doc.offerCandidates : [],
+        answerCandidates: Array.isArray(doc.answerCandidates) ? doc.answerCandidates : [],
+        updatedAt: doc.updatedAt ? new Date(doc.updatedAt).getTime() : Date.now(),
+        expiresAt: doc.expiresAt ? new Date(doc.expiresAt).getTime() : (Date.now() + WEB_CALL_TTL_MS),
+      };
+    } catch (err) {
+      console.warn('[webrtc] failed to load shared signal state:', err && err.message ? err.message : err);
+    }
   }
-  return slot;
+  return null;
 }
 
-function clearWebCallSlot(reportId) {
+async function saveWebCallSlot(reportId, slot) {
   const id = String(reportId || '').trim();
-  if (id) webCallSignals.delete(id);
+  if (!id || !slot || mongoose.connection.readyState !== 1) return;
+  try {
+    await WebCall.findOneAndUpdate(
+      { reportId: id },
+      {
+        $set: {
+          reportId: id,
+          offer: slot.offer || null,
+          answer: slot.answer || null,
+          offerCandidates: Array.isArray(slot.offerCandidates) ? slot.offerCandidates : [],
+          answerCandidates: Array.isArray(slot.answerCandidates) ? slot.answerCandidates : [],
+          expiresAt: new Date(Number(slot.expiresAt) || (Date.now() + WEB_CALL_TTL_MS)),
+        },
+      },
+      { upsert: true, new: false }
+    );
+  } catch (err) {
+    console.warn('[webrtc] failed to persist signal state:', err && err.message ? err.message : err);
+  }
+}
+
+async function clearWebCallSlot(reportId) {
+  const id = String(reportId || '').trim();
+  if (!id || mongoose.connection.readyState !== 1) return;
+  try {
+    await WebCall.deleteOne({ reportId: id });
+  } catch (err) {
+    console.warn('[webrtc] failed to clear signal state:', err && err.message ? err.message : err);
+  }
 }
 
 function hashPassword(password) {
@@ -3524,7 +3591,7 @@ async function sendPushAlertToDevices(alertPayload) {
   try {
     const app = getFirebaseAdminApp();
     if (!alertPayload) return;
-    if (!app) {
+    if (!firebaseAdmin || !app) {
       console.warn('[push] Push skipped because Firebase Admin is not configured.');
       return;
     }
