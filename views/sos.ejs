@@ -116,6 +116,15 @@
     </section>
   </main>
 
+  <%- include('partials/help-chatbot', {
+    chatbotContext: 'sos',
+    chatbotPageLabel: 'SOS',
+    chatbotPrompts: [
+      'How do I send an SOS?',
+      'What number should I save here?',
+      'What happens after I tap PANIC SOS?'
+    ]
+  }) %>
   <%- include('partials/footer') %>
   <%- include('partials/public-motion-script') %>
 

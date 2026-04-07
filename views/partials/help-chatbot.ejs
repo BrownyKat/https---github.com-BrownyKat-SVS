@@ -1,0 +1,729 @@
+<%
+  const chatbotContextValue = typeof chatbotContext === 'string' && chatbotContext ? chatbotContext : 'general';
+  const chatbotPageLabelValue = typeof chatbotPageLabel === 'string' && chatbotPageLabel ? chatbotPageLabel : 'this page';
+  const chatbotPromptsValue = Array.isArray(chatbotPrompts) && chatbotPrompts.length
+    ? chatbotPrompts
+    : [
+        'How do I use this page?',
+        'What should I do if I am not sure what to enter?',
+        'When should I use SOS instead?',
+      ];
+%>
+
+<section
+  id="svsChatbot"
+  class="svs-chatbot"
+  data-context="<%= chatbotContextValue %>"
+  data-page-label="<%= chatbotPageLabelValue %>"
+>
+  <style>
+    .svs-chatbot{
+      position:fixed;
+      right:1rem;
+      bottom:1rem;
+      z-index:70;
+      font-family:inherit;
+    }
+    .svs-chatbot.is-open{
+      width:min(24rem,calc(100vw - 1.5rem));
+    }
+    .svs-chatbot__launcher{
+      display:inline-flex;
+      align-items:center;
+      gap:.75rem;
+      border:1px solid rgba(249,115,22,.35);
+      border-radius:999px;
+      background:linear-gradient(135deg,#f97316,#dc2626);
+      color:#fff;
+      box-shadow:0 20px 42px rgba(220,38,38,.28);
+      cursor:pointer;
+      padding:.85rem 1rem;
+      transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .svs-chatbot__launcher:hover,
+    .svs-chatbot__launcher:focus-visible{
+      transform:translateY(-1px);
+      box-shadow:0 24px 50px rgba(220,38,38,.34);
+      outline:none;
+    }
+    .svs-chatbot__launcher-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:2.65rem;
+      height:2.65rem;
+      border-radius:999px;
+      background:linear-gradient(135deg,#facc15,#f97316);
+      border:1px solid rgba(255,255,255,.22);
+      flex-shrink:0;
+      color:#1f2937;
+    }
+    .svs-chatbot__launcher-copy{
+      min-width:0;
+      text-align:left;
+    }
+    .svs-chatbot__launcher-copy strong{
+      display:block;
+      font-size:.92rem;
+      font-weight:900;
+      letter-spacing:.01em;
+    }
+    .svs-chatbot__launcher-copy span{
+      display:block;
+      margin-top:.12rem;
+      font-size:.72rem;
+      color:rgba(255,255,255,.92);
+      line-height:1.35;
+    }
+    .svs-chatbot__panel{
+      position:fixed;
+      right:1rem;
+      bottom:1rem;
+      width:min(24rem,calc(100vw - 1.5rem));
+      max-height:calc(100dvh - var(--header-h, 88px) - 1.5rem - 1rem);
+      display:none;
+      flex-direction:column;
+      overflow:hidden;
+      border:1px solid rgba(249,115,22,.8);
+      border-radius:1.8rem;
+      background:linear-gradient(180deg,#fff7ed 0%,#ffedd5 45%,#fef3c7 100%);
+      box-shadow:0 28px 72px rgba(120,55,0,.22);
+      backdrop-filter:blur(18px);
+    }
+    .svs-chatbot.is-open .svs-chatbot__launcher{display:none;}
+    .svs-chatbot.is-open .svs-chatbot__panel{display:flex;}
+    .svs-chatbot__header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:1rem;
+      padding:1rem 1rem .8rem;
+      border-bottom:1px solid rgba(249,115,22,.35);
+      background:linear-gradient(180deg,rgba(249,115,22,.14),rgba(255,255,255,.92));
+    }
+    .svs-chatbot__eyebrow{
+      font-size:.68rem;
+      font-weight:900;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:#c2410c;
+    }
+    .svs-chatbot__title{
+      margin-top:.35rem;
+      font-size:1rem;
+      font-weight:900;
+      color:#7c2d12;
+    }
+    .svs-chatbot__subtitle{
+      margin-top:.25rem;
+      font-size:.78rem;
+      line-height:1.5;
+      color:#92400e;
+    }
+    .svs-chatbot__icon-btn{
+      border:1px solid rgba(226,232,240,.9);
+      background:#fff;
+      color:#7c2d12;
+      width:2rem;
+      height:2rem;
+      border-radius:999px;
+      font-weight:900;
+      cursor:pointer;
+      flex-shrink:0;
+    }
+    .svs-chatbot__body{
+      padding:1rem;
+      background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,247,237,.97));
+      display:flex;
+      flex:1;
+      min-height:0;
+      flex-direction:column;
+    }
+    .svs-chatbot__messages{
+      flex:1;
+      min-height:0;
+      overflow:auto;
+      display:flex;
+      flex-direction:column;
+      gap:.75rem;
+      padding-right:.2rem;
+    }
+    .svs-chatbot__message{
+      max-width:92%;
+      border-radius:1.15rem;
+      padding:.8rem .95rem;
+      font-size:.88rem;
+      line-height:1.6;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .svs-chatbot__message--bot{
+      align-self:flex-start;
+      background:#fff4e6;
+      border:1px solid rgba(251,146,60,.32);
+      color:#7c2d12;
+      box-shadow:0 10px 24px rgba(120,55,0,.08);
+    }
+    .svs-chatbot__message--user{
+      align-self:flex-end;
+      background:linear-gradient(135deg,#f97316,#dc2626);
+      color:#fff;
+      box-shadow:0 14px 28px rgba(220,38,38,.22);
+    }
+    .svs-chatbot__message-links{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.45rem;
+      margin-top:.7rem;
+    }
+    .svs-chatbot__message-links a{
+      display:inline-flex;
+      align-items:center;
+      border:1px solid rgba(249,115,22,.85);
+      border-radius:999px;
+      background:#ffedd5;
+      padding:.38rem .72rem;
+      font-size:.76rem;
+      font-weight:800;
+      color:#c2410c;
+      text-decoration:none;
+    }
+    .svs-chatbot__prompts{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.55rem;
+      margin-top:.9rem;
+    }
+    .svs-chatbot__prompt{
+      border:1px solid rgba(249,115,22,.9);
+      border-radius:999px;
+      background:#fff2dd;
+      color:#b45309;
+      padding:.45rem .8rem;
+      font-size:.74rem;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .svs-chatbot__composer{
+      display:flex;
+      gap:.6rem;
+      margin-top:.95rem;
+    }
+    .svs-chatbot__input{
+      flex:1;
+      min-width:0;
+      border:1px solid rgba(196,78,12,.45);
+      border-radius:1rem;
+      background:#fff;
+      color:#1f2937;
+      padding:.8rem .9rem;
+      font-size:.86rem;
+      outline:none;
+    }
+    .svs-chatbot__input:focus{
+      border-color:#f97316;
+      box-shadow:0 0 0 4px rgba(249,115,22,.2);
+    }
+    .svs-chatbot__send{
+      border:0;
+      border-radius:1rem;
+      background:#c2410c;
+      color:#fff;
+      padding:.8rem 1rem;
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      cursor:pointer;
+    }
+    .svs-chatbot__send:hover,
+    .svs-chatbot__send:focus-visible{
+      background:#ea580c;
+      outline:none;
+    }
+    .svs-chatbot__footnote{
+      margin-top:.75rem;
+      font-size:.72rem;
+      line-height:1.5;
+      color:#92400e;
+    }
+    @media (max-width: 640px){
+      .svs-chatbot{right:.75rem;bottom:.75rem;}
+      .svs-chatbot.is-open{
+        width:calc(100vw - 1.5rem);
+      }
+      .svs-chatbot__launcher-copy span{display:none;}
+      .svs-chatbot__panel{
+        right:.75rem;
+        left:.75rem;
+        bottom:.75rem;
+        width:auto;
+        max-height:calc(100dvh - var(--header-h, 88px) - 1.5rem);
+      }
+    }
+  </style>
+
+  <button
+    type="button"
+    class="svs-chatbot__launcher"
+    aria-expanded="false"
+    aria-controls="svsChatbotPanel"
+  >
+    <span class="svs-chatbot__launcher-badge" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9">
+        <path d="M12 4.5c-4.136 0-7.5 3.364-7.5 7.5S7.864 19.5 12 19.5 19.5 16.136 19.5 12 16.136 4.5 12 4.5Z"/>
+        <path d="M12 8.5v4.5" stroke-linecap="round"/>
+        <path d="M12 15.5h.01" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span class="svs-chatbot__launcher-copy">
+      <strong>MDRRMO Help</strong>
+      <span>Ask about <%= chatbotPageLabelValue %></span>
+    </span>
+  </button>
+
+  <div id="svsChatbotPanel" class="svs-chatbot__panel" role="dialog" aria-modal="false" aria-label="MDRRMO help chatbot">
+    <div class="svs-chatbot__header">
+      <div>
+        <div class="svs-chatbot__eyebrow">MDRRMO Assistant</div>
+        <div class="svs-chatbot__title">Questions about <%= chatbotPageLabelValue %>?</div>
+        <p class="svs-chatbot__subtitle">This MDRRMO helper gives fast guidance for the current page and emergency procedures.</p>
+      </div>
+      <button type="button" class="svs-chatbot__icon-btn" data-chatbot-close aria-label="Close assistant">×</button>
+    </div>
+
+    <div class="svs-chatbot__body">
+      <div class="svs-chatbot__messages" aria-live="polite" aria-label="Chat messages"></div>
+      <div class="svs-chatbot__prompts"></div>
+      <form class="svs-chatbot__composer">
+        <input class="svs-chatbot__input" type="text" maxlength="180" placeholder="Ask a question..." aria-label="Ask the chatbot a question">
+        <button class="svs-chatbot__send" type="submit">Ask</button>
+      </form>
+      <p class="svs-chatbot__footnote">For active danger or life-threatening emergencies, users should still use `SOS` and call `911` when possible. MDRRMO guidance is supplemental and not a substitute for immediate response.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  (() => {
+    const root = document.getElementById('svsChatbot');
+    if (!root || root.dataset.bound === '1') return;
+    root.dataset.bound = '1';
+
+    const launcher = root.querySelector('.svs-chatbot__launcher');
+    const panel = root.querySelector('.svs-chatbot__panel');
+    const closeBtn = root.querySelector('[data-chatbot-close]');
+    const messages = root.querySelector('.svs-chatbot__messages');
+    const promptsWrap = root.querySelector('.svs-chatbot__prompts');
+    const form = root.querySelector('.svs-chatbot__composer');
+    const input = root.querySelector('.svs-chatbot__input');
+    const context = root.dataset.context || 'general';
+    const pageLabel = root.dataset.pageLabel || 'this page';
+    const prompts = <%- JSON.stringify(chatbotPromptsValue) %>;
+
+    const sharedEntries = [
+      {
+        keywords: ['sos', 'panic', 'urgent', 'immediate', 'life threat', 'danger'],
+        answer: 'Use SOS when there is immediate danger and you need the fastest alert. The report form is better when it is safe to provide more details first.',
+        links: [
+          { href: '/sos', label: 'Open SOS' },
+          { href: '/report', label: 'Open Report' }
+        ]
+      },
+      {
+        keywords: ['report id', 'tracking', 'track', 'follow up', 'status', 'check progress'],
+        answer: 'After a successful SOS or report submission, SVS stores the latest report ID locally and you can also use the ID shown on screen to check progress in Track.',
+        links: [
+          { href: '/track', label: 'Track a report' }
+        ]
+      },
+      {
+        keywords: ['gps', 'location', 'barangay', 'landmark', 'street', 'pinpoint'],
+        answer: 'SVS works best with GPS plus clear location details like barangay, landmark, and street notes. If GPS is weak, manual details still help dispatch find the scene faster.'
+      },
+      {
+        keywords: ['911', 'hotline', 'call', 'emergency number', 'phone'],
+        answer: 'For life-threatening emergencies, users should still call 911 when possible even if they also use SVS.'
+      },
+      {
+        keywords: ['helpline', 'hotlines', 'contact hotline', 'contact numbers', 'who do i call', 'need assistance', 'phone number'],
+        answer: 'Use the About page for verified local hotline numbers (e.g., MDRRMO, BFP, PNP, ambulance). In any urgent, unclear situation, also call 911 right away.',
+        links: [
+          { href: '/about', label: 'View hotline list' }
+        ]
+      },
+      {
+        keywords: ['internet', 'wifi', 'data', 'connection', 'network', 'offline', 'no signal', 'available offline', 'works offline', 'without internet'],
+        answer: 'SVS requires an internet connection to send alerts initially. However, if your connection drops during submission, reports can be queued locally and will retry automatically when connection is restored. For immediate danger, call 911 directly.'
+      },
+      {
+        keywords: ['mobile data', 'phone carrier', 'signal', 'connectivity'],
+        answer: 'SVS works with mobile data (3G, 4G, 5G, LTE) and WiFi. Make sure your internet connection is working before sending a critical alert.'
+      },
+      {
+        keywords: ['response time', 'how long', 'when will help arrive', 'how fast'],
+        answer: 'Response time depends on the incident type, location, and available responder units. SVS helps get clearer location and incident data to dispatchers faster, but always call 911 as well for the most urgent situations.'
+      },
+      { 
+        keywords: ['prank', 'false alarm', 'not real', 'fake emergency'],
+        answer: 'Prank or false reports waste critical resources and can result in penalties. SVS reduces false reports through phone verification and dispatcher review. Always submit only genuine emergencies.'
+      },
+      {
+        keywords: ['contact number', 'callback', 'phone number', 'mobile number', 'why number'],
+        answer: 'A working contact number helps SVS verify reports and gives dispatch a way to call back if they need to confirm urgent details or clarify the scene. It also helps reduce false reports.'
+      }
+    ];
+
+    const pageEntries = {
+      sos: [
+        {
+          keywords: ['callback', 'contact', 'phone', 'number', 'save', 'dial'],
+          answer: 'On SOS, the saved callback number should be a working Philippine mobile number. Dispatch uses that number first if they need to verify the emergency or if GPS is incomplete.'
+        },
+        {
+          keywords: ['send sos', 'tap', 'button', 'panic sos', 'press', 'activate'],
+          answer: 'Tapping the PANIC SOS button tries to get a live GPS fix first, then posts the alert to dispatch with the saved callback number and the best available location.'
+        },
+        {
+          keywords: ['invalid', 'ph mobile', '+63', 'format', 'wrong number'],
+          answer: 'The SOS page accepts Philippine mobile formats that normalize to `+63 9XXXXXXXXX`. If the number is invalid, save a valid mobile number first before sending.'
+        },
+        {
+          keywords: ['gps taking time', 'acquiring gps', 'gps slow', 'location slow', 'gps delay'],
+          answer: 'GPS can take a few seconds to acquire a fix, especially indoors or with poor sky view. You can still send SOS even if GPS is still acquiring — dispatch will use the last known location plus your callback number.'
+        },
+        {
+          keywords: ['gps fail', 'gps not working', 'no location', 'cant get location'],
+          answer: 'If GPS is not available, send SOS anyway with barangay and landmark details, and dispatch can use the callback number to confirm your location if needed.'
+        },
+        {
+          keywords: ['what happens after', 'after i send', 'after sos sent', 'then what'],
+          answer: 'After SOS is sent, the alert goes to the dispatcher side and a report ID is generated. You can use that ID to track progress on the Track page.'
+        },
+        {
+          keywords: ['safe to send', 'vehicle', 'driving', 'moving', 'car'],
+          answer: 'If you are in a moving vehicle or unsafe situation, send SOS even if you cannot provide full details. Dispatch responds to the GPS location and can call your number to clarify.'
+        },
+        {
+          keywords: ['confirmation', 'did it send', 'sent successfully', 'check if sent'],
+          answer: 'After tapping PANIC SOS, you should see a confirmation message or ID on screen. If not, check your internet connection and try again.'
+        },
+        {
+          keywords: ['privacy', 'data', 'security', 'tracking', 'personal info'],
+          answer: 'SVS collects your location and phone number only to get help to you faster. Only authorized dispatch staff see this information to respond to your emergency.'
+        }
+      ],
+      report: [
+        {
+          keywords: ['how do i report an emergency', 'report an emergency', 'how do i report', 'report incident', 'submit report'],
+          answer: 'To report an emergency, open the Report page and fill in the incident details, location, and a working contact number. The form is designed to capture clearer, verified reports so dispatch can act faster.'
+        },
+        {
+          keywords: ['verify my phone number', 'verify phone', 'why phone number', 'verified contact number', 'phone verification'],
+          answer: 'A working phone number helps SVS filter out prank or low-quality reports and gives dispatch a way to confirm urgent details when needed. That makes the reporting flow more reliable for real emergencies.'
+        },
+        {
+          keywords: ['what happens after i submit', 'after i submit', 'after submission', 'after report submitted', 'next step'],
+          answer: 'After submission, the report is sent to the dispatcher side of SVS for review and handling. Users can then check progress from the Track page using the report ID.'
+        },
+        {
+          keywords: ['how do i report', 'use this page', 'submit report', 'steps', 'what to do'],
+          answer: 'The report page walks users through emergency type, severity, location, and scene details before submission. GPS is preferred, but barangay, landmark, and street details are also required so responders can find the incident.'
+        },
+        {
+          keywords: ['photo', 'image', 'attach', 'upload', 'picture'],
+          answer: 'Users can attach a photo when it is safe to do so. It should support the report with useful scene context, but they should not delay urgent help just to upload an image.'
+        },
+        {
+          keywords: ['offline', 'connection', 'queued', 'retry', 'network', 'save draft'],
+          answer: 'If the connection drops, the report flow can queue pending submissions locally and retry later. That makes the page more resilient when signal quality is weak.'
+        },
+        {
+          keywords: ['severity', 'low', 'medium', 'high', 'what severity'],
+          answer: 'Severity helps dispatch understand urgency: Low is stable, Medium is urgent with possible escalation, and High is immediate danger to life or a rapidly worsening hazard.'
+        },
+        {
+          keywords: ['detect gps', 'map', 'pin', 'location detect', 'find location'],
+          answer: 'The report page uses a GPS-first flow. After detection, users should check whether the map pin matches the actual scene and manually correct barangay, landmark, or street details if needed.'
+        },
+        {
+          keywords: ['emergency type', 'what type', 'fire', 'medical', 'accident', 'violence', 'incident type'],
+          answer: 'Select the emergency type that best matches the situation (e.g., Fire, Medical Emergency, Traffic Accident, Violence, Natural Disaster). Dispatch prioritizes and routes your report accordingly.'
+        },
+        {
+          keywords: ['location wrong', 'incorrect location', 'fix location', 'change location', 'adjust map'],
+          answer: 'If the GPS pin is wrong, you can drag the map to the correct location or manually enter the barangay, street name, and landmark details. Accuracy helps dispatch respond faster.'
+        },
+        {
+          keywords: ['barangay', 'street', 'landmark', 'address', 'location detail'],
+          answer: 'Provide the barangay name, street or road name, and any nearby landmark (store, sign, school, etc.). These details help dispatch navigate to the exact scene if GPS is weak.'
+        },
+        {
+          keywords: ['without gps', 'no gps', 'gps unavailable', 'offline location'],
+          answer: 'Yes. You can still submit a report without GPS by providing barangay, street, and landmark details. GPS helps, but manual location details are still valid and useful for dispatch.'
+        },
+        {
+          keywords: ['confirm phone', 'phone wrong', 'incorrect number', 'change phone'],
+          answer: 'If you enter the wrong callback number, you can edit it on the Report form before submission. After submission, you cannot change it, so double-check before sending.'
+        }
+      ],
+      track: [
+        {
+          keywords: ['report id', 'find my id', 'where is my id', 'last id', 'how to find id'],
+          answer: 'Track needs a report ID like `RPT-0001` or `SOS-0001`. The page can also offer the last submitted ID stored on the device when one is available.'
+        },
+        {
+          keywords: ['status meaning', 'status', 'dispatcher', 'handoff', 'timeline', 'what does status mean'],
+          answer: 'Track shows the current status, the assigned dispatcher, transfer count, handoff timing, and a timeline so users can follow the latest dispatcher workflow state.'
+        },
+        {
+          keywords: ['can i edit', 'change report', 'update report', 'modify'],
+          answer: 'Tracking is read-only. It lets users review progress without changing the submitted report.'
+        },
+        {
+          keywords: ['no update', 'status not changing', 'old status', 'refreshing'],
+          answer: 'The Track page refreshes automatically to show the latest status. If it seems old, check your internet connection or try refreshing the page manually.'
+        },
+        {
+          keywords: ['how long', 'when will they arrive', 'response time', 'eta'],
+          answer: 'Response time varies by incident type, location, and available units. SVS helps get clearer information to dispatchers, but always call 911 if you need an immediate response for life-threatening situations.'
+        },
+        {
+          keywords: ['no contact', 'not called', 'dispatcher didnt call', 'no call back'],
+          answer: 'If dispatch has not called back after submission, check that your phone number is correct and your phone is working. You can also call your local hotline to provide your report ID and check progress directly.'
+        }
+      ],
+      about: [
+        {
+          keywords: ['what is svs', 'about', 'purpose', 'why', 'svs help'],
+          answer: 'SVS is designed to help citizens send clearer emergency reports and help responders receive better location-aware information faster, especially during stressful situations.'
+        },
+        {
+          keywords: ['hotline', 'contact', 'numbers', 'phone', 'call'],
+          answer: 'The About page includes hotline cards for local and national emergency services. Call 911 or the local hotline appropriate for your emergency type.'
+        },
+        {
+          keywords: ['mdrrmo', 'bfp', 'pnp', 'ambulance', 'fire', 'police'],
+          answer: 'The About page lists verified hotline numbers for MDRRMO (disaster management), BFP (fire), PNP (police), and emergency ambulance services. Use the relevant number based on your emergency type.'
+        },
+        {
+          keywords: ['disaster', 'hazard', 'flood', 'earthquake', 'fire', 'landslide', 'typhoon', 'preparedness'],
+          answer: 'The About page includes disaster safety guides that explain different hazards and what to do before, during, and after each type of event.'
+        },
+        {
+          keywords: ['evacuation', 'go bag', 'emergency kit', 'what to bring', 'supplies'],
+          answer: 'The About page includes disaster preparedness guides. A practical go bag should include water, non-perishable food, a flashlight, batteries, first aid kit, medicines, clothes, and important documents in a waterproof pouch.'
+        },
+        {
+          keywords: ['safety', 'survival', 'emergency prep', 'prepare', 'ready'],
+          answer: 'The About page has quick disaster readiness tips and local hotlines. Before an emergency strikes, review hazard guides and keep important numbers saved.'
+        }
+      ],
+      faq: [
+        {
+          keywords: ['how do i report an emergency', 'report an emergency', 'report incident', 'submit report'],
+          answer: 'To report an emergency, go to the Report page and provide the incident details, location, and a working contact number. That helps SVS collect clearer reports and reduce prank submissions.'
+        },
+        {
+          keywords: ['why do i need to verify my phone number', 'why verify phone number', 'why verify my number', 'phone verification'],
+          answer: 'A verified or working contact number helps the system reduce fake reports and gives dispatch a way to call back if they need to confirm urgent information or clarify the situation.'
+        },
+        {
+          keywords: ['what happens after i submit a report', 'after i submit a report', 'what happens after submission', 'next step after report'],
+          answer: 'Once a report is submitted, it is sent into the dispatcher workflow and can be followed through the Track page using the report ID shown after submission.'
+        },
+        {
+          keywords: ['without gps', 'no gps', 'gps unavailable', 'submit without location'],
+          answer: 'Yes. Users can still submit a report without GPS by providing barangay, street, and landmark details. GPS helps, but manual location details are still valid and useful.'
+        },
+        {
+          keywords: ['feedback', 'suggestion', 'improve', 'form', 'feature request'],
+          answer: 'The FAQ page includes a feedback form for short, specific product suggestions or pain points so the team can improve unclear parts of the experience.'
+        },
+        {
+          keywords: ['prank', 'fake', 'low quality', 'false alarm'],
+          answer: 'SVS reduces low-quality reports by encouraging structured fields, contact validation, location capture, optional photos, and dispatcher review.'
+        },
+        {
+          keywords: ['nearest evacuation center', 'evacuation center', 'go bag', 'hotlines for mapandan', 'disaster', 'safety'],
+          answer: 'For evacuation guidance, hotlines, and disaster preparedness, the About page is the best current reference in this app. It includes local hotline cards and disaster-readiness information users can review quickly.',
+          links: [
+            { href: '/about', label: 'Open About page' }
+          ]
+        },
+        {
+          keywords: ['when should i use sos', 'sos vs report', 'difference', 'which one'],
+          answer: 'Use SOS for immediate dangers when you need the fastest alert possible. Use Report when it is safer to take time and provide detailed incident information. When uncertain, SOS is always appropriate for genuine emergencies.'
+        },
+        {
+          keywords: ['what about privacy', 'data', 'security', 'who sees my info'],
+          answer: 'SVS collects your location and phone number only to get help to you faster. Only authorized dispatch staff see this information to respond appropriately to your emergency.'
+        },
+        {
+          keywords: ['contact number wrong', 'wrong phone', 'incorrect callback number'],
+          answer: 'If you realize your phone number is wrong, you can edit it on the SOS or Report form before submission. After submission, contact your local hotline with your report ID to update your information.'
+        }
+      ]
+    };
+
+    function normalize(text) {
+      return String(text || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9+ ]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function tokenize(text) {
+      return normalize(text)
+        .split(' ')
+        .map(part => part.trim())
+        .filter(part => part && part.length > 1);
+    }
+
+    function matchesAnyKeyword(message, keywords) {
+      const normalized = normalize(message);
+      return keywords.some(keyword => normalized.includes(normalize(keyword)));
+    }
+
+    function findSocialReply(message) {
+      if (matchesAnyKeyword(message, ['thank you', 'thanks', 'ty', 'salamat', 'appreciate it'])) {
+        return {
+          answer: 'You are very welcome. I am glad I could help, and you can always come back whenever you need guidance.'
+        };
+      }
+
+      if (matchesAnyKeyword(message, ['bye', 'goodbye', 'see you', 'talk later', 'farewell'])) {
+        return {
+          answer: 'Take care. You can always come back here anytime you need help or have more questions.'
+        };
+      }
+
+      if (matchesAnyKeyword(message, ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'])) {
+        return {
+          answer: `Hello. I am here to help with ${pageLabel}, and you can ask me anytime if you need a quick guide.`
+        };
+      }
+
+      return null;
+    }
+
+    function addMessage(role, text, links = []) {
+      const item = document.createElement('div');
+      item.className = `svs-chatbot__message svs-chatbot__message--${role}`;
+      item.textContent = text;
+
+      if (Array.isArray(links) && links.length) {
+        const linkWrap = document.createElement('div');
+        linkWrap.className = 'svs-chatbot__message-links';
+        links.forEach(link => {
+          const a = document.createElement('a');
+          a.href = link.href;
+          a.textContent = link.label;
+          linkWrap.appendChild(a);
+        });
+        item.appendChild(linkWrap);
+      }
+
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function scoreEntry(message, entry) {
+      const normalized = normalize(message);
+      const messageTokens = tokenize(message);
+      return (entry.keywords || []).reduce((score, keyword) => {
+        const normalizedKeyword = normalize(keyword);
+        if (!normalizedKeyword) return score;
+
+        if (normalized.includes(normalizedKeyword)) {
+          return score + Math.max(3, normalizedKeyword.split(' ').length * 2);
+        }
+
+        const keywordTokens = tokenize(keyword);
+        if (!keywordTokens.length) return score;
+
+        const matchedTokens = keywordTokens.filter(token =>
+          messageTokens.some(messageToken =>
+            messageToken === token ||
+            messageToken.includes(token) ||
+            token.includes(messageToken)
+          )
+        );
+
+        if (!matchedTokens.length) return score;
+        return score + matchedTokens.length;
+      }, 0);
+    }
+
+    function findAnswer(message) {
+      const socialReply = findSocialReply(message);
+      if (socialReply) return socialReply;
+
+      const entries = [...sharedEntries, ...((pageEntries[context] || []))];
+      let best = null;
+      let bestScore = 0;
+
+      entries.forEach(entry => {
+        const score = scoreEntry(message, entry);
+        if (score > bestScore) {
+          bestScore = score;
+          best = entry;
+        }
+      });
+
+      if (best && bestScore >= 2) return best;
+
+      return {
+        answer: `I am not fully sure I understood that one yet. Try asking in a shorter way about ${pageLabel}, or ask about GPS, report IDs, callback numbers, severity, hotlines, evacuation guidance, weather alerts, or whether SOS or Report is the better option. If still unsure, please call a local hotline (or 911 for imminent danger) using numbers listed on About.`,
+        links: [
+          { href: '/faq', label: 'View FAQ' },
+          { href: '/about', label: 'About SVS' }
+        ]
+      };
+    }
+
+    function ask(question) {
+      const trimmed = String(question || '').trim();
+      if (!trimmed) return;
+      addMessage('user', trimmed);
+      const match = findAnswer(trimmed);
+      window.setTimeout(() => addMessage('bot', match.answer, match.links || []), 140);
+    }
+
+    function setOpen(nextOpen) {
+      root.classList.toggle('is-open', nextOpen);
+      launcher.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+      if (nextOpen) {
+        input.focus();
+      } else {
+        launcher.focus();
+      }
+    }
+
+    prompts.forEach(prompt => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'svs-chatbot__prompt';
+      btn.textContent = prompt;
+      btn.addEventListener('click', () => ask(prompt));
+      promptsWrap.appendChild(btn);
+    });
+
+    addMessage('bot', `I’m the SVS help assistant for ${pageLabel}. Ask me what this page does, what details are needed, or where to go next.`);
+
+    launcher.addEventListener('click', () => setOpen(!root.classList.contains('is-open')));
+    closeBtn.addEventListener('click', () => setOpen(false));
+
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const value = input.value;
+      input.value = '';
+      ask(value);
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && root.classList.contains('is-open')) setOpen(false);
+    });
+  })();
+</script>

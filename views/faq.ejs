@@ -156,6 +156,15 @@
     </section>
   </main>
 
+  <%- include('partials/help-chatbot', {
+    chatbotContext: 'faq',
+    chatbotPageLabel: 'FAQ',
+    chatbotPrompts: [
+      'Can I report without GPS?',
+      'When should I use SOS instead of Report?',
+      'How do I send feedback?'
+    ]
+  }) %>
   <%- include('partials/footer') %>
   <%- include('partials/public-motion-script') %>
 

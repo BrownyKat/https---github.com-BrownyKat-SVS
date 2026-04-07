@@ -2389,6 +2389,15 @@
 </div>
 </main>
 
+<%- include('partials/help-chatbot', {
+  chatbotContext: 'report',
+  chatbotPageLabel: 'the report form',
+  chatbotPrompts: [
+    'How do I submit a report?',
+    'Can I report without GPS?',
+    'What if my connection drops while reporting?'
+  ]
+}) %>
 <!-- FOOTER -->
 <footer data-animate="fade-up" class="report-footer">
   <div class="report-footer-inner">
