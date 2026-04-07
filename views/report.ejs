@@ -2521,34 +2521,6 @@
   let autoGpsBound = false;
   const API_TIMEOUT_MS = 15000;
   const PENDING_KEY = 'svs_pending_reports_v1';
-  const fy = document.getElementById('footerYear');
-  if (fy) fy.textContent = String(new Date().getFullYear());
-  try { panicNum = localStorage.getItem('mdrrmo_panic') || ''; } catch(e) {}
-  panicNum = toIntlPhone(panicNum) || '';
-  bindInputSecurity();
-  initReportInteractiveControls();
-  bindRequiredFieldWatchers();
-  bindPrimaryActionControls();
-  flushPendingQueue();
-  updatePendingCount();
-  renderReportProgress();
-  window.addEventListener('online', flushPendingQueue);
-  window.addEventListener('resize', renderReportProgress);
-  if (panicNum) {
-    initPanicUI();
-    const mainContact = document.getElementById('iContact');
-    if (mainContact && !mainContact.value) mainContact.value = formatPhoneForDisplay(panicNum);
-    const sosField = document.getElementById('iPanicContact');
-    const sosBtn = document.getElementById('btnSavePanic');
-    const status = document.getElementById('panicSavedStatus');
-    if (sosField) {
-      sosField.value = formatPhoneForDisplay(panicNum);
-      sosField.disabled = true;
-    }
-    if (sosBtn) sosBtn.textContent = 'Edit';
-    if (status) { status.textContent = 'Saved'; status.style.color = 'var(--green)'; }
-  }
-  renderReportProgress();
 
   function bindInputSecurity() {
     const contactInput = document.getElementById('iContact');
@@ -2877,7 +2849,6 @@
   function bindPrimaryActionControls() {
     document.getElementById('offlineQueueBtn')?.addEventListener('click', alertQueued);
     document.getElementById('btnSavePanic')?.addEventListener('click', savePanicNumber);
-    document.getElementById('gpsBtn')?.addEventListener('click', () => { void detectGPS(); });
     document.getElementById('iPhoto')?.addEventListener('change', handleReportPhotoChange);
     document.getElementById('clearPhotoBtn')?.addEventListener('click', clearReportPhoto);
     document.getElementById('submitReportBtn')?.addEventListener('click', () => { void submitReport(); });
@@ -3227,7 +3198,7 @@
     const mainContact = document.getElementById('iContact');
     if (mainContact && !mainContact.value) mainContact.value = formatPhoneForDisplay(n);
   }
-  function triggerPanic() {
+  async function triggerPanic() {
     if (!panicNum) { openPanicSetup(); return; }
     document.getElementById('sendingState').style.display='flex';
     document.getElementById('confirmedState').classList.remove('show');
@@ -3267,21 +3238,26 @@
       }
     };
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async p => {
-          const gps = `${p.coords.latitude.toFixed(5)}, ${p.coords.longitude.toFixed(5)}`;
-          document.getElementById('iGPS').value = gps;
-          document.getElementById('iGPSAt').value = String(Date.now());
-          document.getElementById('iGPSAcc').value = String(Math.round(p.coords.accuracy || 0));
-          renderReporterMap(gps, 'Panic SOS location');
-          const loc = await buildPanicLocationPayload(gps);
-          await send(loc);
-        },
-        () => { void sendWithFallback(); },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-    } else { void sendWithFallback(); }
+    if (isEffectivelySecureContext() && navigator.geolocation) {
+      try {
+        const p = await requestGpsPosition(12000);
+        if (!p || !p.coords) {
+          await sendWithFallback();
+          return;
+        }
+        const gps = `${p.coords.latitude.toFixed(5)}, ${p.coords.longitude.toFixed(5)}`;
+        document.getElementById('iGPS').value = gps;
+        document.getElementById('iGPSAt').value = String(Date.now());
+        document.getElementById('iGPSAcc').value = String(Math.round(p.coords.accuracy || 0));
+        renderReporterMap(gps, 'Panic SOS location');
+        const loc = await buildPanicLocationPayload(gps);
+        await send(loc);
+      } catch (_err) {
+        await sendWithFallback();
+      }
+    } else {
+      await sendWithFallback();
+    }
   }
   function closeSending() { document.getElementById('sendingOverlay').classList.remove('show'); }
 
@@ -3490,20 +3466,152 @@
     return '';
   }
 
+  function parseGps(gps) {
+    if (!gps || typeof gps !== 'string') return null;
+    const m = gps.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+    if (!m) return null;
+    const lat = Number(m[1]);
+    const lng = Number(m[2]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+    return { lat, lng };
+  }
+
+  function extractBarangayFromTextClient(text) {
+    const s = String(text || '');
+    const m = s.match(/(?:\bbrgy\.?\b|\bbarangay\b)\s*([a-z0-9][a-z0-9\s\-]*)/i);
+    if (!m || !m[1]) return '';
+    return `Barangay ${m[1].trim()}`.replace(/\s+/g, ' ');
+  }
+
+  function normalizeBarangayLabelClient(value) {
+    let s = String(value || '').trim();
+    if (!s) return '';
+    s = s.replace(/\s+/g, ' ');
+    if (/^brgy\.?/i.test(s)) return s.replace(/^brgy\.?/i, 'Barangay').replace(/\s+/g, ' ').trim();
+    return s;
+  }
+
+  function normalizeReverseGeocodePayload(raw = {}) {
+    return {
+      barangay: normalizeBarangayLabelClient(String(raw.barangay || '').trim()),
+      landmark: String(raw.landmark || '').trim(),
+      street: String(raw.street || '').trim(),
+      area: String(raw.area || '').trim(),
+    };
+  }
+
+  async function reverseGeocodeBrowserFallback(lat, lng) {
+    const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lng)}&localityLanguage=en`;
+    try {
+      const { res, data } = await fetchJson(url, {}, 10000);
+      if (!res.ok || !data) return { barangay: '', landmark: '', street: '', area: '' };
+      const admins = (data.localityInfo && Array.isArray(data.localityInfo.administrative)) ? data.localityInfo.administrative : [];
+      const brgy = admins.find(x => /barangay/i.test(String((x && x.name) || '')));
+      const barangay = normalizeBarangayLabelClient(
+        pickFirst([
+          brgy && brgy.name,
+          extractBarangayFromTextClient(data.locality),
+          extractBarangayFromTextClient(data.city),
+          data.locality,
+          data.city,
+          data.principalSubdivision,
+        ])
+      );
+      const landmark = pickFirst([data.locality, data.city, data.principalSubdivision]);
+      const street = pickFirst([data.locality, data.city, data.principalSubdivision]);
+      const area = pickFirst([barangay, data.locality, data.city, data.principalSubdivision, data.countryName]);
+      return { barangay, landmark, street, area };
+    } catch (_e) {
+      return { barangay: '', landmark: '', street: '', area: '' };
+    }
+  }
+
   async function reverseGeocode(lat, lng) {
     const url = `/api/reverse-geocode?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`;
     try {
       const { res: r, data: j } = await fetchJson(url, {}, 12000);
       if (r.ok) {
-        return {
-          barangay: String((j && j.barangay) || '').trim(),
-          landmark: String((j && j.landmark) || '').trim(),
-          street: String((j && j.street) || '').trim(),
-        };
+        const normalized = normalizeReverseGeocodePayload(j || {});
+        if (normalized.barangay || normalized.landmark || normalized.street || normalized.area) {
+          return normalized;
+        }
       }
     } catch (_e) {}
 
-    return { barangay: '', landmark: '', street: '' };
+    return reverseGeocodeBrowserFallback(lat, lng);
+  }
+
+  async function fetchApproximateLocation() {
+    try {
+      const { res, data } = await fetchJson('/api/auto-detect-location', {}, 12000);
+      if (res.ok && data) {
+        const gps = String((data && data.gps) || '').trim();
+        const parsed = parseGps(gps);
+        const normalized = {
+          gps: parsed ? `${parsed.lat.toFixed(5)}, ${parsed.lng.toFixed(5)}` : '',
+          barangay: normalizeBarangayLabelClient(String((data && data.barangay) || '').trim()),
+          landmark: String((data && data.landmark) || '').trim(),
+          street: String((data && data.street) || '').trim(),
+          area: String((data && data.area) || '').trim(),
+          source: String((data && data.source) || '').trim(),
+          approximate: !!(data && data.approximate),
+        };
+        if (normalized.gps || normalized.barangay || normalized.landmark || normalized.street || normalized.area) {
+          return normalized;
+        }
+      }
+    } catch (_e) {
+    }
+    try {
+      const { res, data } = await fetchJson('https://ipwho.is/', {}, 10000);
+      if (!res.ok || !data || data.success === false) return null;
+      const lat = Number(data.latitude);
+      const lng = Number(data.longitude);
+      return {
+        gps: Number.isFinite(lat) && Number.isFinite(lng) ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : '',
+        barangay: '',
+        landmark: String((data && data.city) || '').trim(),
+        street: String((data && data.region) || '').trim(),
+        area: pickFirst([data.city, data.region, data.country]),
+        source: 'ip-client',
+        approximate: true,
+      };
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  async function applyApproximateLocation(options = {}) {
+    const overwriteExisting = !!options.overwriteExisting;
+    const silent = !!options.silent;
+    const location = await fetchApproximateLocation();
+    if (!location) return null;
+
+    const gps = parseGps(location.gps) ? location.gps : '';
+    const fallbackArea = pickFirst([location.area, location.barangay, location.landmark, location.street]);
+    const changedBarangay = maybeSetBarangay(pickFirst([location.barangay, location.area]), overwriteExisting);
+    const changedLandmark = maybeSetLandmark(pickFirst([
+      location.landmark ? `Near ${location.landmark}` : '',
+      location.street ? `Near ${location.street}` : '',
+      fallbackArea ? `Near ${fallbackArea}` : '',
+    ]), overwriteExisting);
+    const changedStreet = maybeSetStreet(pickFirst([location.street, location.landmark, fallbackArea]), overwriteExisting);
+
+    if (gps) {
+      document.getElementById('iGPS').value = gps;
+      document.getElementById('iGPSAt').value = String(Date.now());
+      document.getElementById('iGPSAcc').value = '5000';
+      mapState.zoom = Math.max(MAP_MIN_ZOOM, Math.min(13, mapState.zoom || 13));
+      renderReporterMap(gps, 'Approximate location');
+      setRequiredError(document.getElementById('gpsBtn'), false);
+    }
+
+    if (!silent && (gps || changedBarangay || changedLandmark || changedStreet)) {
+      toast('Approximate location used', 'Precise GPS was unavailable, so we filled the nearest available location estimate.');
+    }
+    renderReportProgress();
+    return location;
   }
 
   async function buildPanicLocationPayload(gps) {
@@ -3513,12 +3621,13 @@
     }
 
     const info = await reverseGeocode(p.lat, p.lng);
-    const barangay = info.barangay || '';
+    const barangay = info.barangay || info.area || '';
     const street = info.street || '';
-    const landmark = info.landmark || `Near ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
+    const landmark = info.landmark || info.area || `Near ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
     const locationText = pickFirst([
       [street, landmark, barangay].filter(Boolean).join(', '),
       [landmark, barangay].filter(Boolean).join(', '),
+      info.area,
       `GPS ${gps}`,
     ]);
 
@@ -3531,6 +3640,62 @@
     };
   }
 
+  function isEffectivelySecureContext() {
+    const host = String(window.location.hostname || '').toLowerCase();
+    return !!window.isSecureContext || host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
+  }
+
+  function formatDetectedGpsLabel(pos) {
+    if (!pos || !pos.coords) return 'Detected location';
+    return `Detected: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} (+/-${Math.round(pos.coords.accuracy || 0)}m)`;
+  }
+
+  async function acquireBestGpsPosition(timeoutMs = 12000, targetAccuracyM = 35) {
+    if (!navigator.geolocation) return null;
+    return new Promise(resolve => {
+      let best = null;
+      let done = false;
+      let watchId = null;
+
+      const finish = () => {
+        if (done) return;
+        done = true;
+        if (watchId !== null) {
+          try { navigator.geolocation.clearWatch(watchId); } catch (_e) {}
+        }
+        resolve(best);
+      };
+
+      const onSuccess = (pos) => {
+        if (!pos || !pos.coords) return;
+        if (!best || Number(pos.coords.accuracy || Infinity) < Number(best.coords.accuracy || Infinity)) {
+          best = pos;
+        }
+        if (Number(pos.coords.accuracy || Infinity) <= targetAccuracyM) finish();
+      };
+
+      const onError = () => {};
+
+      try {
+        watchId = navigator.geolocation.watchPosition(
+          onSuccess,
+          onError,
+          { enableHighAccuracy: true, timeout: Math.min(timeoutMs, 10000), maximumAge: 0 }
+        );
+      } catch (_e) {}
+
+      try {
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          onError,
+          { enableHighAccuracy: true, timeout: Math.min(timeoutMs, 10000), maximumAge: 0 }
+        );
+      } catch (_e) {}
+
+      setTimeout(finish, Math.max(1000, timeoutMs));
+    });
+  }
+
   // GPS accuracy + repeat-detect overrides
   async function detectGPS() {
     const btn = document.getElementById('gpsBtn');
@@ -3538,15 +3703,29 @@
     if (btn.disabled) return;
     btn.disabled = true;
     btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;animation:spin .9s linear infinite"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> Detecting...`;
-    if (!window.isSecureContext) {
-      btn.textContent = 'GPS needs HTTPS or localhost';
-      toast('Location unavailable', `This page is running on ${window.location.origin}. Use https:// or open http://localhost:${window.location.port || '3000'} on the same device.`, 'warn');
+    if (!isEffectivelySecureContext()) {
+      const fallback = await applyApproximateLocation({ overwriteExisting: true, silent: true });
+      if (fallback) {
+        btn.classList.add('got');
+        btn.textContent = 'Approximate location detected';
+        toast('Approximate location used', 'Precise GPS needs HTTPS or localhost, so we used the nearest available estimate.', 'warn');
+      } else {
+        btn.textContent = 'GPS needs HTTPS or localhost';
+        toast('Location unavailable', `This page is running on ${window.location.origin}. Use https:// or open http://localhost:${window.location.port || '3000'} on the same device.`, 'warn');
+      }
       btn.disabled = false;
       return;
     }
     if (!navigator.geolocation) {
-      btn.textContent = 'GPS not available on this device';
-      toast('Location unavailable', 'This browser or device does not support geolocation.', 'warn');
+      const fallback = await applyApproximateLocation({ overwriteExisting: true, silent: true });
+      if (fallback) {
+        btn.classList.add('got');
+        btn.textContent = 'Approximate location detected';
+        toast('Approximate location used', 'This device could not provide GPS, so we used the nearest available estimate.', 'warn');
+      } else {
+        btn.textContent = 'GPS not available on this device';
+        toast('Location unavailable', 'This browser or device does not support geolocation.', 'warn');
+      }
       btn.disabled = false;
       return;
     }
@@ -3563,6 +3742,13 @@
     try {
       const pos = await requestGpsPosition(15000);
       if (!pos) {
+        const fallback = await applyApproximateLocation({ overwriteExisting: true, silent: true });
+        if (fallback) {
+          btn.classList.add('got');
+          btn.textContent = 'Approximate location detected';
+          toast('Approximate location used', 'Precise GPS was unavailable, so we used the nearest available estimate.', 'warn');
+          return;
+        }
         btn.textContent = 'Could not detect location - fill in manually.';
         toast('Location timeout', 'We could not get a GPS fix. Check permission, signal, or try outdoors.', 'warn');
         return;
@@ -3570,8 +3756,15 @@
       await applyDetectedCoords(pos, { overwriteExisting: true });
       setRequiredError(btn, false);
       btn.classList.add('got');
-      btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4.5 12.75l6 6 9-13.5"/></svg> Detected: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} (+/-${Math.round(pos.coords.accuracy || 0)}m)`;
+      btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4.5 12.75l6 6 9-13.5"/></svg> ${formatDetectedGpsLabel(pos)}`;
     } catch (err) {
+      const fallback = await applyApproximateLocation({ overwriteExisting: true, silent: true });
+      if (fallback) {
+        btn.classList.add('got');
+        btn.textContent = 'Approximate location detected';
+        toast('Approximate location used', 'Precise GPS was unavailable, so we used the nearest available estimate.', 'warn');
+        return;
+      }
       btn.textContent = 'Could not detect location - fill in manually.';
       const code = Number(err && err.code);
       const message = err && err.message ? String(err.message) : '';
@@ -3592,7 +3785,7 @@
   async function autoDetectGpsOnce() {
     if (autoGpsAttempted) return;
     autoGpsAttempted = true;
-    if (!window.isSecureContext || !navigator.geolocation) return;
+    if (!isEffectivelySecureContext() || !navigator.geolocation) return;
     if (parseGps(document.getElementById('iGPS')?.value || '')) return;
     try {
       if (navigator.permissions && typeof navigator.permissions.query === 'function') {
@@ -3603,15 +3796,25 @@
 
     try {
       const pos = await requestGpsPosition(10000);
-      if (!pos) return;
-      await applyDetectedCoords(pos, { overwriteExisting: false });
+      if (pos) {
+        await applyDetectedCoords(pos, { overwriteExisting: false });
+        const btn = document.getElementById('gpsBtn');
+        if (btn) {
+          btn.classList.add('got');
+          btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4.5 12.75l6 6 9-13.5"/></svg> ${formatDetectedGpsLabel(pos)}`;
+        }
+        setRequiredError(document.getElementById('gpsBtn'), false);
+        return;
+      }
+    } catch (_err) {}
+    const fallback = await applyApproximateLocation({ overwriteExisting: false, silent: true });
+    if (fallback) {
       const btn = document.getElementById('gpsBtn');
       if (btn) {
         btn.classList.add('got');
-        btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4.5 12.75l6 6 9-13.5"/></svg> Detected: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} (+/-${Math.round(pos.coords.accuracy || 0)}m)`;
+        btn.textContent = 'Approximate location detected';
       }
-      setRequiredError(document.getElementById('gpsBtn'), false);
-    } catch (_err) {}
+    }
   }
 
   function scheduleAutoDetectGps(delayMs = 0) {
@@ -3691,11 +3894,13 @@
   async function autoFillLocationFromCoords(lat, lng, options = {}) {
     const overwriteExisting = !!options.overwriteExisting;
     const info = await reverseGeocode(lat, lng);
-    const fallbackBarangay = pickFirst([info.barangay, 'Mapandan area']);
-    const fallbackLandmark = `Near ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-    const fallbackStreet = pickFirst([info.street, info.landmark, fallbackLandmark]);
+    const coordsLabel = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    const fallbackArea = pickFirst([info.area, info.barangay, info.street, info.landmark]);
+    const fallbackBarangay = pickFirst([info.barangay, info.area, `Area near ${coordsLabel}`]);
+    const fallbackLandmark = pickFirst([info.landmark ? `Near ${info.landmark}` : '', info.street ? `Near ${info.street}` : '', fallbackArea ? `Near ${fallbackArea}` : '', `Near ${coordsLabel}`]);
+    const fallbackStreet = pickFirst([info.street, info.landmark, fallbackArea, `Near ${coordsLabel}`]);
     const changedBarangay = maybeSetBarangay(fallbackBarangay, overwriteExisting);
-    const changedLandmark = maybeSetLandmark(info.landmark ? `Near ${info.landmark}` : fallbackLandmark, overwriteExisting);
+    const changedLandmark = maybeSetLandmark(fallbackLandmark, overwriteExisting);
     const changedStreet = maybeSetStreet(fallbackStreet, overwriteExisting);
     if (changedBarangay || changedLandmark || changedStreet) {
       toast('Location autofill', 'Location fields updated from detected GPS.');
@@ -3716,23 +3921,29 @@
   }
 
   async function requestGpsPosition(timeoutMs = 12000) {
-    if (!navigator.geolocation) return null;
-    return new Promise((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => resolve(pos),
-        (err) => reject(err || new Error('gps_failed')),
-        { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 }
-      );
-    });
+    if (!isEffectivelySecureContext() || !navigator.geolocation) return null;
+    const pos = await acquireBestGpsPosition(timeoutMs, 35);
+    if (pos) return pos;
+    const err = new Error('gps_timeout');
+    err.code = 3;
+    throw err;
   }
 
   async function tryGetLiveGps(timeoutMs = 12000) {
-    if (!navigator.geolocation) return null;
-    const pos = await requestGpsPosition(timeoutMs);
-    if (!pos) return null;
-    await applyDetectedCoords(pos, { overwriteExisting: false });
-    setRequiredError(document.getElementById('gpsBtn'), false);
-    return `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+    if (!isEffectivelySecureContext() || !navigator.geolocation) {
+      const fallback = await applyApproximateLocation({ overwriteExisting: false, silent: true });
+      return fallback && fallback.gps ? fallback.gps : null;
+    }
+    try {
+      const pos = await requestGpsPosition(timeoutMs);
+      if (!pos) return null;
+      await applyDetectedCoords(pos, { overwriteExisting: false });
+      setRequiredError(document.getElementById('gpsBtn'), false);
+      return `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+    } catch (_err) {
+      const fallback = await applyApproximateLocation({ overwriteExisting: false, silent: true });
+      return fallback && fallback.gps ? fallback.gps : null;
+    }
   }
 
   function initStoredPanicState() {
@@ -3784,9 +3995,11 @@
     safeInit('stored panic state', initStoredPanicState);
     safeInit('input security', bindInputSecurity);
     safeInit('field watchers', bindRequiredFieldWatchers);
-    safeInit('selection controls', bindSelectionControls);
+    safeInit('selection controls', initReportInteractiveControls);
     safeInit('primary action controls', bindPrimaryActionControls);
     safeInit('map controls', bindMapControls);
+    safeInit('auto GPS hooks', bindAutoGpsHooks);
+    safeInit('initial auto GPS', () => { scheduleAutoDetectGps(500); });
     safeInit('pending queue count', updatePendingCount);
     safeInit('pending queue flush', () => { void flushPendingQueue(); });
     safeInit('progress panel', renderReportProgress);

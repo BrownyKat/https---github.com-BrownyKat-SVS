@@ -2303,13 +2303,54 @@ app.get('/api/reverse-geocode', async (req, res) => {
     }
 
     const primary = await reverseViaNominatim(lat, lng);
-    if (primary.barangay || primary.landmark || primary.street) return res.json(primary);
+    const needsFallback = !primary.barangay || !primary.landmark || !primary.street || !primary.area;
+    if (!needsFallback) return res.json(primary);
 
     const fallback = await reverseViaBigDataCloud(lat, lng);
-    return res.json(fallback);
+    return res.json(mergeReverseLocation(primary, fallback));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Could not reverse geocode' });
+  }
+});
+
+app.get('/api/auto-detect-location', async (req, res) => {
+  try {
+    const headerEstimate = getApproxLocationFromHeaders(req);
+    const ipEstimate = (!headerEstimate.gps && !headerEstimate.area)
+      ? await lookupApproxLocationFromIp(getClientIpAddress(req))
+      : { gps: '', area: '', city: '', region: '', country: '', source: '' };
+    const estimate = {
+      ...ipEstimate,
+      ...headerEstimate,
+      gps: pickFirst([headerEstimate.gps, ipEstimate.gps]),
+      area: pickFirst([headerEstimate.area, ipEstimate.area]),
+      city: pickFirst([headerEstimate.city, ipEstimate.city]),
+      region: pickFirst([headerEstimate.region, ipEstimate.region]),
+      country: pickFirst([headerEstimate.country, ipEstimate.country]),
+      source: pickFirst([headerEstimate.source, ipEstimate.source]),
+    };
+
+    const coords = parseGpsCoords(estimate.gps);
+    let reverse = { barangay: '', landmark: '', street: '', area: '' };
+    if (coords) {
+      const primary = await reverseViaNominatim(coords.lat, coords.lng);
+      const fallback = await reverseViaBigDataCloud(coords.lat, coords.lng);
+      reverse = mergeReverseLocation(primary, fallback);
+    }
+
+    return res.json({
+      gps: estimate.gps || '',
+      barangay: pickFirst([reverse.barangay, estimate.area, estimate.city]),
+      landmark: pickFirst([reverse.landmark, estimate.city, estimate.region, estimate.area]),
+      street: pickFirst([reverse.street, reverse.landmark, estimate.city, estimate.region]),
+      area: pickFirst([reverse.area, estimate.area, estimate.city, estimate.region, estimate.country]),
+      source: estimate.source || '',
+      approximate: true,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Could not auto detect location' });
   }
 });
 
@@ -2439,6 +2480,86 @@ function parseGpsCoords(gps) {
   return { lat, lng };
 }
 
+function getClientIpAddress(req) {
+  const raw = pickFirst([
+    (req && req.headers && req.headers['x-forwarded-for']) || '',
+    req && req.ip,
+    req && req.connection && req.connection.remoteAddress,
+    '',
+  ]);
+  return String(raw).split(',')[0].trim().replace(/^::ffff:/i, '');
+}
+
+function isPrivateIpAddress(ip) {
+  const value = String(ip || '').trim().toLowerCase();
+  if (!value) return true;
+  if (value === '::1' || value === '::' || value === 'localhost') return true;
+  if (/^127\./.test(value)) return true;
+  if (/^10\./.test(value)) return true;
+  if (/^192\.168\./.test(value)) return true;
+  if (/^169\.254\./.test(value)) return true;
+  if (/^172\.(1[6-9]|2\d|3[0-1])\./.test(value)) return true;
+  if (/^(fc|fd|fe80)/.test(value)) return true;
+  return false;
+}
+
+function getApproxLocationFromHeaders(req) {
+  const headers = (req && req.headers) || {};
+  const lat = Number(headers['x-vercel-ip-latitude']);
+  const lng = Number(headers['x-vercel-ip-longitude']);
+  const city = String(headers['x-vercel-ip-city'] || '').trim();
+  const region = String(headers['x-vercel-ip-country-region'] || headers['x-vercel-ip-region'] || '').trim();
+  const country = String(headers['x-vercel-ip-country'] || '').trim();
+  const area = pickFirst([city, region, country]);
+  return {
+    gps: Number.isFinite(lat) && Number.isFinite(lng) ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : '',
+    area,
+    city,
+    region,
+    country,
+    source: (area || (Number.isFinite(lat) && Number.isFinite(lng))) ? 'vercel-header' : '',
+  };
+}
+
+async function lookupApproxLocationFromIp(ip) {
+  try {
+    const useSpecificIp = ip && !isPrivateIpAddress(ip);
+    const url = useSpecificIp
+      ? `https://ipwho.is/${encodeURIComponent(ip)}`
+      : 'https://ipwho.is/';
+    const data = await httpsGetJson(url, {
+      'User-Agent': 'Franzolutions/1.0 (Emergency Reporting App)',
+    });
+    if (data && data.success === false) {
+      return { gps: '', area: '', city: '', region: '', country: '', source: '' };
+    }
+    const lat = Number(data && data.latitude);
+    const lng = Number(data && data.longitude);
+    const city = String((data && data.city) || '').trim();
+    const region = String((data && data.region) || '').trim();
+    const country = String((data && data.country) || '').trim();
+    return {
+      gps: Number.isFinite(lat) && Number.isFinite(lng) ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : '',
+      area: pickFirst([city, region, country]),
+      city,
+      region,
+      country,
+      source: 'ip',
+    };
+  } catch (_e) {
+    return { gps: '', area: '', city: '', region: '', country: '', source: '' };
+  }
+}
+
+function mergeReverseLocation(primary = {}, fallback = {}) {
+  return {
+    barangay: pickFirst([primary.barangay, fallback.barangay]),
+    landmark: pickFirst([primary.landmark, fallback.landmark]),
+    street: pickFirst([primary.street, fallback.street]),
+    area: pickFirst([primary.area, fallback.area]),
+  };
+}
+
 async function reverseViaNominatim(lat, lng) {
   const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&addressdetails=1&zoom=18`;
   try {
@@ -2463,9 +2584,27 @@ async function reverseViaNominatim(lat, lng) {
     );
     const landmark = pickFirst([data.name, a.amenity, a.building, a.shop, a.tourism, a.leisure, a.road, a.pedestrian, a.footway]);
     const street = pickFirst([a.road, a.pedestrian, a.footway, a.path, a.cycleway, a.neighbourhood, a.neighborhood]);
-    return { barangay, landmark, street };
+    const area = pickFirst([
+      barangay,
+      a.suburb,
+      a.neighbourhood,
+      a.neighborhood,
+      a.quarter,
+      a.village,
+      a.hamlet,
+      a.city_district,
+      a.city,
+      a.town,
+      a.municipality,
+      a.county,
+      a.state_district,
+      a.state,
+      extractBarangayFromText(data.display_name),
+      data.display_name,
+    ]);
+    return { barangay, landmark, street, area };
   } catch (_e) {
-    return { barangay: '', landmark: '', street: '' };
+    return { barangay: '', landmark: '', street: '', area: '' };
   }
 }
 
@@ -2489,9 +2628,10 @@ async function reverseViaBigDataCloud(lat, lng) {
     );
     const landmark = pickFirst([data.locality, data.city, data.principalSubdivision]);
     const street = pickFirst([data.locality, data.city, data.principalSubdivision]);
-    return { barangay, landmark, street };
+    const area = pickFirst([barangay, data.locality, data.city, data.principalSubdivision, data.countryName]);
+    return { barangay, landmark, street, area };
   } catch (_e) {
-    return { barangay: '', landmark: '', street: '' };
+    return { barangay: '', landmark: '', street: '', area: '' };
   }
 }
 
