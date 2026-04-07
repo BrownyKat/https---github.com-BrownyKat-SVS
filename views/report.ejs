@@ -2824,7 +2824,57 @@
     renderReportProgress();
   }
 
-  function handleReportPhotoChange(event) {
+  function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+      reader.onerror = () => reject(new Error('file_read_failed'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function loadImage(dataUrl) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('image_decode_failed'));
+      img.src = dataUrl;
+    });
+  }
+
+  async function compressReportPhoto(file) {
+    const originalDataUrl = await readFileAsDataUrl(file);
+    if (!originalDataUrl) throw new Error('file_read_failed');
+
+    const image = await loadImage(originalDataUrl);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return originalDataUrl;
+
+    const MAX_DIMENSION = 1600;
+    const MAX_BYTES = 900 * 1024;
+    const scale = Math.min(1, MAX_DIMENSION / Math.max(image.width || 1, image.height || 1));
+    canvas.width = Math.max(1, Math.round((image.width || 1) * scale));
+    canvas.height = Math.max(1, Math.round((image.height || 1) * scale));
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    const mimeType = /image\/png/i.test(file.type) ? 'image/jpeg' : (file.type || 'image/jpeg');
+    let quality = mimeType === 'image/jpeg' || mimeType === 'image/webp' ? 0.88 : undefined;
+    let best = canvas.toDataURL(mimeType, quality);
+
+    while (best.length * 0.75 > MAX_BYTES && quality && quality > 0.45) {
+      quality -= 0.08;
+      best = canvas.toDataURL(mimeType, quality);
+    }
+
+    if (best.length * 0.75 > MAX_BYTES) {
+      best = canvas.toDataURL('image/jpeg', 0.72);
+    }
+
+    return best.length < originalDataUrl.length ? best : originalDataUrl;
+  }
+
+  async function handleReportPhotoChange(event) {
     const input = event?.target;
     const file = input?.files?.[0];
 
@@ -2844,17 +2894,17 @@
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      reportPhotoData = typeof reader.result === 'string' ? reader.result : '';
+    try {
+      reportPhotoData = await compressReportPhoto(file);
       updateReportPhotoUi(file);
       renderReportProgress();
-    };
-    reader.onerror = () => {
+      if (reportPhotoData && reportPhotoData.length * 0.75 > 1024 * 1024) {
+        toast('Photo optimized', 'The image was compressed to improve Vercel upload reliability.','info');
+      }
+    } catch (_err) {
       clearReportPhoto();
       toast('Upload failed', 'The selected image could not be read. Please try another file.','warn');
-    };
-    reader.readAsDataURL(file);
+    }
   }
 
   async function submitReport() {
