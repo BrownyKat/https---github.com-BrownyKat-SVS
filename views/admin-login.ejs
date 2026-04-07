@@ -49,7 +49,7 @@
     .logo{width:186px;max-width:60vw;height:auto;object-fit:contain;display:inline-block;filter:drop-shadow(0 12px 22px rgba(29,78,216,.12))}
     .role-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:var(--amber-light);color:#92400e;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
     .role-badge::before{content:'Admin';font-family:var(--font-subtitle)}
-    h2{margin:14px 0 8px;font-size:30px;letter-spacing:-.9px}
+    h2{margin:14px 0 8px;font-size:30px;letter-spacing:-.9px;color:var(--red)}
     .subtext{margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.7}
     .err{background:var(--red-light);border:1px solid #fca5a5;color:#b91c1c;padding:12px 13px;border-radius:14px;margin-bottom:14px;font-size:13px;font-weight:700}
     .field-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -91,7 +91,6 @@
       <div class="logo-wrap"><img class="logo" src="/images/logo.png" alt="MDRRMO SVS Logo"></div>
       <span class="role-badge" aria-hidden="true"></span>
       <h2>Admin Login</h2>
-      <p class="subtext">Sign in with your assigned admin credentials to access the SVS control panel.</p>
       <% if (error) { %><div class="err"><%= error %></div><% } %>
 
       <div class="field-header">
@@ -137,4 +136,3 @@
   </script>
 </body>
 </html>
-

@@ -1023,6 +1023,8 @@
       display:flex;
       flex-direction:column;
       overflow:hidden;
+      position:relative;
+      z-index:2;
     }
     .dashboard-form-head{
       position:static;
@@ -1040,6 +1042,8 @@
       padding-right:.2rem;
       scrollbar-width:none;
       -ms-overflow-style:none;
+      position:relative;
+      z-index:2;
     }
     .dashboard-form-scroll::-webkit-scrollbar{
       display:none;
@@ -1048,6 +1052,8 @@
       display:flex;
       flex-direction:column;
       gap:1.75rem;
+      position:relative;
+      z-index:2;
     }
     .dashboard-form-card .card{
       background:transparent;
@@ -1169,7 +1175,7 @@
       }
       .report-form-panel{
         position:fixed;
-        z-index:2;
+        z-index:4;
         top:var(--header-h);
         left:0;
         width:clamp(420px, 34vw, 520px);
@@ -1178,6 +1184,7 @@
         padding:0;
         background:#f8fafc;
         overflow:hidden;
+        isolation:isolate;
         border-right:1px solid rgba(191,214,245,.95);
         box-shadow:18px 0 36px rgba(15,23,42,.08);
       }
@@ -1557,6 +1564,7 @@
       background:rgba(255,255,255,.92);
       box-shadow:0 14px 30px rgba(15,23,42,.08);
       backdrop-filter:blur(14px);
+      pointer-events:none;
     }
     .progress-panel-head{
       display:flex;
@@ -1684,14 +1692,12 @@
       z-index:7;
       opacity:0;
       visibility:hidden;
-      pointer-events:none;
       transform:translateY(-10px) scale(.98);
       transition:opacity .22s ease, transform .22s ease, visibility .22s ease;
     }
     .progress-panel--side.is-visible{
       opacity:1;
       visibility:visible;
-      pointer-events:auto;
       transform:translateY(0) scale(1);
     }
     .progress-panel--side .progress-panel-head{
@@ -1724,6 +1730,22 @@
     }
     .progress-panel--side .progress-step:last-child{
       grid-column:1 / -1;
+    }
+    .progress-panel--inline-mobile{
+      display:none;
+      opacity:0;
+      visibility:hidden;
+      transform:translateY(-10px) scale(.98);
+      transition:opacity .22s ease, transform .22s ease, visibility .22s ease;
+    }
+    .progress-panel--inline-mobile.is-visible{
+      opacity:1;
+      visibility:visible;
+      transform:translateY(0) scale(1);
+    }
+    button,
+    .upload-change{
+      touch-action:manipulation;
     }
     .report-footer{
       margin-top:1rem;
@@ -2035,6 +2057,12 @@
       .report-map-panel{
         display:none !important;
       }
+      .progress-panel--inline-mobile{
+        display:block;
+        position:sticky;
+        top:.75rem;
+        z-index:4;
+      }
     }
   </style>
   <%- include('partials/public-motion-head') %>
@@ -2058,13 +2086,29 @@
     <h1>Report an <em>Emergency</em></h1>
     <p>Your report will be received immediately by SVS dispatchers. Provide as much detail as possible for a faster response.</p>
     <div class="head-actions">
-      <button class="chip-btn" type="button" onclick="alertQueued()">Offline Queue (<span id="pendingCount">0</span>)</button>
+      <button class="chip-btn" id="offlineQueueBtn" type="button">Offline Queue (<span id="pendingCount">0</span>)</button>
     </div>
   </div>
   <div data-animate="fade-up" style="--animate-order:2" class="alert-strip">
     <!-- Heroicon: exclamation-triangle -->
     <svg viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
     <span><strong>For life-threatening emergencies, call 911 immediately.</strong><br>This form is for reporting incidents and requesting assistance through SVS.</span>
+  </div>
+  <div data-animate="fade-up" style="--animate-order:2" class="progress-panel progress-panel--inline-mobile" id="reportProgressPanelMobile" aria-hidden="true">
+    <div class="progress-panel-head">
+      <div>
+        <div class="progress-kicker">Progress</div>
+        <div id="reportProgressTextMobile" class="progress-status-text">Complete the required sections below.</div>
+      </div>
+      <div id="reportProgressCountMobile" class="progress-count">0 / 4 ready</div>
+    </div>
+    <div class="progress-steps">
+      <div id="progressReporterMobile" class="progress-step">1. Reporter</div>
+      <div id="progressTypeMobile" class="progress-step">2. Type</div>
+      <div id="progressSeverityMobile" class="progress-step">3. Severity</div>
+      <div id="progressLocationMobile" class="progress-step">4. Location</div>
+      <div id="progressDetailsMobile" class="progress-step progress-step--optional">5. Details</div>
+    </div>
   </div>
 
   <div class="card-stack dashboard-card-stack">
@@ -2101,7 +2145,7 @@
         <div class="sos-save-row">
           <label for="iPanicContact">SOS number (for one-tap panic):</label>
           <input type="tel" id="iPanicContact" placeholder="+63 9XX XXX XXXX" inputmode="tel" maxlength="16">
-          <button type="button" id="btnSavePanic" onclick="savePanicNumber()">Save SOS</button>
+          <button type="button" id="btnSavePanic">Save SOS</button>
           <span class="pill-status" id="panicSavedStatus"></span>
         </div>
       </div>
@@ -2301,7 +2345,7 @@
         <svg viewBox="0 0 24 24"><path d="M3 16.5V7.75A2.75 2.75 0 0 1 5.75 5h2.086a1.5 1.5 0 0 0 1.06-.44l.604-.603A1.5 1.5 0 0 1 10.56 3.5h2.88a1.5 1.5 0 0 1 1.06.44l.604.603a1.5 1.5 0 0 0 1.06.44h2.086A2.75 2.75 0 0 1 21 7.75v8.75A2.75 2.75 0 0 1 18.25 19H5.75A2.75 2.75 0 0 1 3 16.25v.25Z"/><path d="M9 12.5a3 3 0 1 0 6 0 3 3 0 0 0-6 0Z"/></svg>
         <div class="upload-label">Click or tap to upload a photo</div>
         <div class="upload-hint">JPG, PNG, or WEBP up to 10 MB</div>
-        <input id="iPhoto" type="file" accept="image/png,image/jpeg,image/webp" onchange="handleReportPhotoChange(event)">
+        <input id="iPhoto" type="file" accept="image/png,image/jpeg,image/webp">
       </label>
       <div class="upload-meta" id="uploadMeta">
         <img class="upload-thumb" id="uploadThumb" alt="Selected upload preview">
@@ -2310,14 +2354,14 @@
         </div>
         <div class="upload-actions">
           <label class="upload-change" for="iPhoto">Change</label>
-          <button class="upload-clear" type="button" onclick="clearReportPhoto()">Remove</button>
+          <button class="upload-clear" id="clearPhotoBtn" type="button">Remove</button>
         </div>
       </div>
     </div>
   </div>
 
   <div class="submit-panel">
-    <button class="submit-btn" type="button" onclick="submitReport()">
+    <button class="submit-btn" id="submitReportBtn" type="button">
       <!-- Heroicon: paper-airplane -->
       <svg viewBox="0 0 24 24"><path d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
       Submit Emergency Report
@@ -2348,10 +2392,10 @@
       <div class="gps-map-wrap" id="gpsMapWrap">
         <div class="gps-map-head">
           <span id="gpsMapLabel">Mapandan, Pangasinan overview</span>
-          <a id="gpsMapLink" href="#" target="_blank" rel="noopener noreferrer">Open map</a>
+          <a id="gpsMapLink" href="https://www.google.com/maps?q=Mapandan%2C%20Pangasinan" target="_blank" rel="noopener noreferrer">Open map</a>
         </div>
         <div class="gps-map-canvas">
-          <div class="gps-map-frame" id="gpsMapFrame" aria-label="Location map"></div>
+          <iframe class="gps-map-frame" id="gpsMapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?ll=16.024900,120.454100&t=m&z=14&output=embed"></iframe>
           <div class="gps-map-view-toggle">
             <button class="gps-map-control" id="gpsMapViewToggle" type="button" disabled title="Switch between standard and satellite imagery">
               Show satellite image
@@ -2406,7 +2450,7 @@
   <p>Your emergency report has been received by SVS dispatchers. You will be contacted at your provided number for verification.</p>
   <div class="rpt-id" id="rptId">RPT-0000</div>
   <a class="ghost-btn" id="trackReportLink" href="/track">Track This Report</a>
-  <button class="ghost-btn" onclick="closeSuccess()">Submit Another Report</button>
+  <button class="ghost-btn" id="closeSuccessBtn" type="button">Submit Another Report</button>
 </div>
 
 <!-- PANIC SETUP MODAL -->
@@ -2419,8 +2463,8 @@
     <h3>One-Time Setup</h3>
     <p>Enter your phone number <strong>once</strong>. The Panic Button will remember it so you never need to type again in an emergency.</p>
     <input type="tel" id="panicInput" placeholder="+63 917 123 4567" inputmode="tel" autocomplete="tel" maxlength="16">
-    <button class="modal-save" onclick="savePanic()">Save &amp; Activate Panic Button</button>
-    <button class="modal-cancel" onclick="closePanicModal()">Cancel</button>
+    <button class="modal-save" id="savePanicBtn" type="button">Save &amp; Activate Panic Button</button>
+    <button class="modal-cancel" id="closePanicModalBtn" type="button">Cancel</button>
   </div>
 </div>
 
@@ -2446,7 +2490,7 @@
       <div class="sos-id-box" id="sosId">SOS-0000</div>
     </div>
     <div class="gps-note" id="gpsNote"></div>
-    <button class="ghost-btn" onclick="closeSending()" style="margin-top:1.5rem;">Close</button>
+    <button class="ghost-btn" id="closeSendingBtn" type="button" style="margin-top:1.5rem;">Close</button>
   </div>
 </div>
 
@@ -2484,10 +2528,12 @@
   bindInputSecurity();
   initReportInteractiveControls();
   bindRequiredFieldWatchers();
+  bindPrimaryActionControls();
   flushPendingQueue();
   updatePendingCount();
   renderReportProgress();
   window.addEventListener('online', flushPendingQueue);
+  window.addEventListener('resize', renderReportProgress);
   if (panicNum) {
     initPanicUI();
     const mainContact = document.getElementById('iContact');
@@ -2784,34 +2830,61 @@
     const requiredSteps = progress.steps.filter(step => !step.optional);
     const completeRequired = requiredSteps.filter(step => step.done).length;
     const firstMissing = requiredSteps.find(step => !step.done);
-    const panel = document.getElementById('reportProgressPanel');
-    const shouldShowPanel = hasStartedReportInput();
+    const sidePanel = document.getElementById('reportProgressPanel');
+    const mobilePanel = document.getElementById('reportProgressPanelMobile');
+    const isDesktopLayout = window.innerWidth >= 768;
+    const hasStarted = hasStartedReportInput();
+    const shouldShowSidePanel = isDesktopLayout && hasStarted;
+    const shouldShowMobilePanel = !isDesktopLayout && hasStarted;
 
-    if (panel) {
-      panel.classList.toggle('is-visible', shouldShowPanel);
-      panel.setAttribute('aria-hidden', shouldShowPanel ? 'false' : 'true');
+    if (sidePanel) {
+      sidePanel.classList.toggle('is-visible', shouldShowSidePanel);
+      sidePanel.setAttribute('aria-hidden', shouldShowSidePanel ? 'false' : 'true');
+    }
+    if (mobilePanel) {
+      mobilePanel.classList.toggle('is-visible', shouldShowMobilePanel);
+      mobilePanel.setAttribute('aria-hidden', shouldShowMobilePanel ? 'false' : 'true');
     }
 
     progress.steps.forEach(step => {
-      const el = document.getElementById(step.id);
-      if (!el) return;
-      el.classList.remove('is-complete', 'is-current', 'is-missing');
-      if (step.done) el.classList.add('is-complete');
-      else if (!step.optional && firstMissing && firstMissing.id === step.id) el.classList.add('is-current', 'is-missing');
+      [step.id, `${step.id}Mobile`].forEach(targetId => {
+        const el = document.getElementById(targetId);
+        if (!el) return;
+        el.classList.remove('is-complete', 'is-current', 'is-missing');
+        if (step.done) el.classList.add('is-complete');
+        else if (!step.optional && firstMissing && firstMissing.id === step.id) el.classList.add('is-current', 'is-missing');
+      });
     });
 
-    const progressText = document.getElementById('reportProgressText');
-    const progressCount = document.getElementById('reportProgressCount');
-    if (progressText) {
-      progressText.textContent = progress.missing.length
-        ? 'Finish the missing required sections before sending.'
-        : progress.steps[4].done
-          ? 'All required sections are ready and extra details are included.'
-          : 'All required sections are ready. You can still add more context if needed.';
-    }
-    if (progressCount) progressCount.textContent = `${completeRequired} / ${requiredSteps.length} ready`;
+    const progressMessage = progress.missing.length
+      ? 'Finish the missing required sections before sending.'
+      : progress.steps[4].done
+        ? 'All required sections are ready and extra details are included.'
+        : 'All required sections are ready. You can still add more context if needed.';
+
+    ['reportProgressText', 'reportProgressTextMobile'].forEach(targetId => {
+      const progressText = document.getElementById(targetId);
+      if (progressText) progressText.textContent = progressMessage;
+    });
+    ['reportProgressCount', 'reportProgressCountMobile'].forEach(targetId => {
+      const progressCount = document.getElementById(targetId);
+      if (progressCount) progressCount.textContent = `${completeRequired} / ${requiredSteps.length} ready`;
+    });
 
     return progress;
+  }
+
+  function bindPrimaryActionControls() {
+    document.getElementById('offlineQueueBtn')?.addEventListener('click', alertQueued);
+    document.getElementById('btnSavePanic')?.addEventListener('click', savePanicNumber);
+    document.getElementById('gpsBtn')?.addEventListener('click', () => { void detectGPS(); });
+    document.getElementById('iPhoto')?.addEventListener('change', handleReportPhotoChange);
+    document.getElementById('clearPhotoBtn')?.addEventListener('click', clearReportPhoto);
+    document.getElementById('submitReportBtn')?.addEventListener('click', () => { void submitReport(); });
+    document.getElementById('closeSuccessBtn')?.addEventListener('click', closeSuccess);
+    document.getElementById('savePanicBtn')?.addEventListener('click', savePanic);
+    document.getElementById('closePanicModalBtn')?.addEventListener('click', closePanicModal);
+    document.getElementById('closeSendingBtn')?.addEventListener('click', closeSending);
   }
 
   function scrollToFirstMissingStep(progress = getReportProgressState()) {
@@ -3396,13 +3469,15 @@
     refreshMapFrame();
   }
 
-  document.getElementById('gpsMapViewToggle')?.addEventListener('click', toggleMapView);
-  document.getElementById('gpsMapZoomIn')?.addEventListener('click', () => changeMapZoom(1));
-  document.getElementById('gpsMapZoomOut')?.addEventListener('click', () => changeMapZoom(-1));
-  updateZoomDisplay();
-  updateZoomButtons();
-  updateViewToggle();
-  resetMapToDefaultView();
+  function bindMapControls() {
+    document.getElementById('gpsMapViewToggle')?.addEventListener('click', toggleMapView);
+    document.getElementById('gpsMapZoomIn')?.addEventListener('click', () => changeMapZoom(1));
+    document.getElementById('gpsMapZoomOut')?.addEventListener('click', () => changeMapZoom(-1));
+    updateZoomDisplay();
+    updateZoomButtons();
+    updateViewToggle();
+    resetMapToDefaultView();
+  }
 
   function normText(s) {
     return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -3413,26 +3488,6 @@
       if (p && String(p).trim()) return String(p).trim();
     }
     return '';
-  }
-
-  function maybeSetBarangay(detected) {
-    const raw = String(detected || '').trim();
-    if (!raw) return false;
-
-    const inp = document.getElementById('iBarangay');
-    if (!inp || inp.value.trim()) return false;
-    const target = raw.replace(/^brgy\.?\s*/i, 'Barangay ').trim();
-    inp.value = target;
-    return true;
-  }
-
-  function maybeSetLandmark(detected) {
-    const text = String(detected || '').trim();
-    if (!text) return false;
-    const inp = document.getElementById('iLandmark');
-    if (inp.value.trim()) return false;
-    inp.value = text;
-    return true;
   }
 
   async function reverseGeocode(lat, lng) {
@@ -3680,6 +3735,33 @@
     return `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
   }
 
+  function initStoredPanicState() {
+    try { panicNum = localStorage.getItem('mdrrmo_panic') || ''; } catch(e) {}
+    panicNum = toIntlPhone(panicNum) || '';
+    if (!panicNum) return;
+
+    initPanicUI();
+    const mainContact = document.getElementById('iContact');
+    if (mainContact && !mainContact.value) mainContact.value = formatPhoneForDisplay(panicNum);
+    const sosField = document.getElementById('iPanicContact');
+    const sosBtn = document.getElementById('btnSavePanic');
+    const status = document.getElementById('panicSavedStatus');
+    if (sosField) {
+      sosField.value = formatPhoneForDisplay(panicNum);
+      sosField.disabled = true;
+    }
+    if (sosBtn) sosBtn.textContent = 'Edit';
+    if (status) { status.textContent = 'Saved'; status.style.color = 'var(--green)'; }
+  }
+
+  function safeInit(label, fn) {
+    try {
+      fn();
+    } catch (err) {
+      console.error(`[report] ${label} init failed:`, err && err.message ? err.message : err);
+    }
+  }
+
   function updateTime(elId){
     const el=document.getElementById(elId);
     if(!el) return;
@@ -3694,9 +3776,33 @@
     const days=['SUN','MON','TUE','WED','THU','FRI','SAT'];
     date.textContent=`${days[now.getDay()]} ${pad(now.getMonth()+1)}/${pad(now.getDate())}/${now.getFullYear()}`;
   }
-  bindAutoGpsHooks();
-  scheduleAutoDetectGps(700);
-  updateTime('reportTime'); setInterval(()=>updateTime('reportTime'),1000);
+
+  function initReportPage() {
+    const fy = document.getElementById('footerYear');
+    if (fy) fy.textContent = String(new Date().getFullYear());
+
+    safeInit('stored panic state', initStoredPanicState);
+    safeInit('input security', bindInputSecurity);
+    safeInit('field watchers', bindRequiredFieldWatchers);
+    safeInit('selection controls', bindSelectionControls);
+    safeInit('primary action controls', bindPrimaryActionControls);
+    safeInit('map controls', bindMapControls);
+    safeInit('pending queue count', updatePendingCount);
+    safeInit('pending queue flush', () => { void flushPendingQueue(); });
+    safeInit('progress panel', renderReportProgress);
+    safeInit('clock', () => {
+      updateTime('reportTime');
+      setInterval(() => updateTime('reportTime'), 1000);
+    });
+
+    window.addEventListener('online', () => { void flushPendingQueue(); });
+    window.addEventListener('resize', () => {
+      renderReportProgress();
+      updateTime('reportTime');
+    });
+  }
+
+  initReportPage();
 </script>
 </body>
 </html>
