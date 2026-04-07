@@ -2390,10 +2390,10 @@
       <div class="gps-map-wrap" id="gpsMapWrap">
         <div class="gps-map-head">
           <span id="gpsMapLabel">Mapandan, Pangasinan overview</span>
-          <a id="gpsMapLink" href="#" target="_blank" rel="noopener noreferrer">Open map</a>
+          <a id="gpsMapLink" href="https://www.google.com/maps?q=Mapandan%2C%20Pangasinan" target="_blank" rel="noopener noreferrer">Open map</a>
         </div>
         <div class="gps-map-canvas">
-          <iframe class="gps-map-frame" id="gpsMapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <iframe class="gps-map-frame" id="gpsMapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?ll=16.024900,120.454100&t=m&z=14&output=embed"></iframe>
           <div class="gps-map-view-toggle">
             <button class="gps-map-control" id="gpsMapViewToggle" type="button" disabled title="Switch between standard and satellite imagery">
               Show satellite image
@@ -2512,33 +2512,6 @@
   const MAP_TYPE_CODES = { map: 'm', satellite: 'k' };
   const API_TIMEOUT_MS = 15000;
   const PENDING_KEY = 'svs_pending_reports_v1';
-  const fy = document.getElementById('footerYear');
-  if (fy) fy.textContent = String(new Date().getFullYear());
-  try { panicNum = localStorage.getItem('mdrrmo_panic') || ''; } catch(e) {}
-  panicNum = toIntlPhone(panicNum) || '';
-  bindInputSecurity();
-  bindRequiredFieldWatchers();
-  bindPrimaryActionControls();
-  flushPendingQueue();
-  updatePendingCount();
-  renderReportProgress();
-  window.addEventListener('online', flushPendingQueue);
-  window.addEventListener('resize', renderReportProgress);
-  if (panicNum) {
-    initPanicUI();
-    const mainContact = document.getElementById('iContact');
-    if (mainContact && !mainContact.value) mainContact.value = formatPhoneForDisplay(panicNum);
-    const sosField = document.getElementById('iPanicContact');
-    const sosBtn = document.getElementById('btnSavePanic');
-    const status = document.getElementById('panicSavedStatus');
-    if (sosField) {
-      sosField.value = formatPhoneForDisplay(panicNum);
-      sosField.disabled = true;
-    }
-    if (sosBtn) sosBtn.textContent = 'Edit';
-    if (status) { status.textContent = 'Saved'; status.style.color = 'var(--green)'; }
-  }
-  renderReportProgress();
 
   function bindInputSecurity() {
     const contactInput = document.getElementById('iContact');
@@ -2890,8 +2863,6 @@ function selType(el, t) {
     });
   }
 
-  bindSelectionControls();
-
   function bytesToReadableSize(bytes) {
     const value = Number(bytes) || 0;
     if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
@@ -3226,17 +3197,17 @@ function selType(el, t) {
 
   function toEmbedUrl(lat, lng, view = 'map', zoom = 16) {
     const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
-    return `https://maps.google.com/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
+    return `https://www.google.com/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
   }
 
   function toQueryEmbedUrl(query, view = 'map', zoom = 14) {
     const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
-    return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=${type}&z=${zoom}&output=embed`;
+    return `https://www.google.com/maps?q=${encodeURIComponent(query)}&t=${type}&z=${zoom}&output=embed`;
   }
 
   function toCenterEmbedUrl(lat, lng, view = 'map', zoom = 14) {
     const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
-    return `https://maps.google.com/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
+    return `https://www.google.com/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
   }
 
   function renderReporterMap(gps, label = 'Detected location') {
@@ -3344,13 +3315,15 @@ function selType(el, t) {
     refreshMapFrame();
   }
 
-  document.getElementById('gpsMapViewToggle')?.addEventListener('click', toggleMapView);
-  document.getElementById('gpsMapZoomIn')?.addEventListener('click', () => changeMapZoom(1));
-  document.getElementById('gpsMapZoomOut')?.addEventListener('click', () => changeMapZoom(-1));
-  updateZoomDisplay();
-  updateZoomButtons();
-  updateViewToggle();
-  resetMapToDefaultView();
+  function bindMapControls() {
+    document.getElementById('gpsMapViewToggle')?.addEventListener('click', toggleMapView);
+    document.getElementById('gpsMapZoomIn')?.addEventListener('click', () => changeMapZoom(1));
+    document.getElementById('gpsMapZoomOut')?.addEventListener('click', () => changeMapZoom(-1));
+    updateZoomDisplay();
+    updateZoomButtons();
+    updateViewToggle();
+    resetMapToDefaultView();
+  }
 
   function normText(s) {
     return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -3541,11 +3514,39 @@ function selType(el, t) {
     return `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
   }
 
+  function initStoredPanicState() {
+    try { panicNum = localStorage.getItem('mdrrmo_panic') || ''; } catch(e) {}
+    panicNum = toIntlPhone(panicNum) || '';
+    if (!panicNum) return;
+
+    initPanicUI();
+    const mainContact = document.getElementById('iContact');
+    if (mainContact && !mainContact.value) mainContact.value = formatPhoneForDisplay(panicNum);
+    const sosField = document.getElementById('iPanicContact');
+    const sosBtn = document.getElementById('btnSavePanic');
+    const status = document.getElementById('panicSavedStatus');
+    if (sosField) {
+      sosField.value = formatPhoneForDisplay(panicNum);
+      sosField.disabled = true;
+    }
+    if (sosBtn) sosBtn.textContent = 'Edit';
+    if (status) { status.textContent = 'Saved'; status.style.color = 'var(--green)'; }
+  }
+
+  function safeInit(label, fn) {
+    try {
+      fn();
+    } catch (err) {
+      console.error(`[report] ${label} init failed:`, err && err.message ? err.message : err);
+    }
+  }
+
   function updateTime(elId){
     const el=document.getElementById(elId);
     if(!el) return;
     const clock=el.querySelector('.clock-text');
     const date=el.querySelector('.date-text');
+    if(!clock || !date) return;
     const now=new Date();
     const pad=n=>String(n).padStart(2,'0');
     const h24=now.getHours(); const h=h24%12||12;
@@ -3554,7 +3555,33 @@ function selType(el, t) {
     const days=['SUN','MON','TUE','WED','THU','FRI','SAT'];
     date.textContent=`${days[now.getDay()]} ${pad(now.getMonth()+1)}/${pad(now.getDate())}/${now.getFullYear()}`;
   }
-  updateTime('reportTime'); setInterval(()=>updateTime('reportTime'),1000);
+
+  function initReportPage() {
+    const fy = document.getElementById('footerYear');
+    if (fy) fy.textContent = String(new Date().getFullYear());
+
+    safeInit('stored panic state', initStoredPanicState);
+    safeInit('input security', bindInputSecurity);
+    safeInit('field watchers', bindRequiredFieldWatchers);
+    safeInit('selection controls', bindSelectionControls);
+    safeInit('primary action controls', bindPrimaryActionControls);
+    safeInit('map controls', bindMapControls);
+    safeInit('pending queue count', updatePendingCount);
+    safeInit('pending queue flush', () => { void flushPendingQueue(); });
+    safeInit('progress panel', renderReportProgress);
+    safeInit('clock', () => {
+      updateTime('reportTime');
+      setInterval(() => updateTime('reportTime'), 1000);
+    });
+
+    window.addEventListener('online', () => { void flushPendingQueue(); });
+    window.addEventListener('resize', () => {
+      renderReportProgress();
+      updateTime('reportTime');
+    });
+  }
+
+  initReportPage();
 </script>
 </body>
 </html>
