@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const express    = require('express');
+const fs         = require('fs');
 const http       = require('http');
 const https      = require('https');
 const crypto     = require('crypto');
@@ -27,7 +28,39 @@ const WebCall = require('./models/WebCall');
 
 const app    = express();
 const STATIC_CACHE_OPTIONS = { maxAge: '1d' };
-const server = http.createServer(app);
+function createAppServer(expressApp) {
+  const keyPath = String(process.env.SSL_KEY_PATH || '').trim();
+  const certPath = String(process.env.SSL_CERT_PATH || '').trim();
+  const caPath = String(process.env.SSL_CA_PATH || '').trim();
+
+  if (!keyPath || !certPath) {
+    return {
+      server: http.createServer(expressApp),
+      protocol: 'http',
+    };
+  }
+
+  try {
+    const options = {
+      key: fs.readFileSync(path.resolve(keyPath)),
+      cert: fs.readFileSync(path.resolve(certPath)),
+    };
+    if (caPath) options.ca = fs.readFileSync(path.resolve(caPath));
+    return {
+      server: https.createServer(options, expressApp),
+      protocol: 'https',
+    };
+  } catch (err) {
+    const msg = err && err.message ? err.message : String(err || 'Unknown SSL error');
+    console.error('[https] failed to load SSL files, falling back to HTTP:', msg);
+    return {
+      server: http.createServer(expressApp),
+      protocol: 'http',
+    };
+  }
+}
+
+const { server, protocol: SERVER_PROTOCOL } = createAppServer(app);
 app.use(compression());
 // Basic CORS so Flutter web/other origins can call the API.
 const ALLOW_ORIGIN = process.env.CORS_ORIGIN || '*';
@@ -3828,12 +3861,18 @@ process.on('uncaughtException', err => {
 const PORT = process.env.PORT || 3000;
 if (require.main === module) {
   server.listen(PORT, () => {
-    console.log(`\n  MDRRMO running on http://localhost:${PORT}`);
-    console.log(`  Reporter        -> http://localhost:${PORT}/report`);
-    console.log(`  Dispatcher      -> http://localhost:${PORT}/dispatcher/login`);
-    console.log(`  Admin           -> http://localhost:${PORT}/login`);
-    console.log(`  Dispatcher UI   -> http://localhost:${PORT}/dashboard`);
-    console.log(`  Admin Console   -> http://localhost:${PORT}/admin\n`);
+    console.log(`\n  MDRRMO running on ${SERVER_PROTOCOL}://localhost:${PORT}`);
+    console.log(`  Reporter        -> ${SERVER_PROTOCOL}://localhost:${PORT}/report`);
+    console.log(`  Dispatcher      -> ${SERVER_PROTOCOL}://localhost:${PORT}/dispatcher/login`);
+    console.log(`  Admin           -> ${SERVER_PROTOCOL}://localhost:${PORT}/login`);
+    console.log(`  Dispatcher UI   -> ${SERVER_PROTOCOL}://localhost:${PORT}/dashboard`);
+    console.log(`  Admin Console   -> ${SERVER_PROTOCOL}://localhost:${PORT}/admin`);
+    if (SERVER_PROTOCOL !== 'https') {
+      console.log('  GPS note        -> Geolocation works on localhost, but phones/LAN IPs need HTTPS.');
+      console.log('                    Set SSL_KEY_PATH and SSL_CERT_PATH in .env to enable HTTPS.\n');
+    } else {
+      console.log('');
+    }
   });
 }
 

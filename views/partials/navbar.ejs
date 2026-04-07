@@ -70,18 +70,37 @@
 </header>
 <script>
   (() => {
+    const clockId = <%- JSON.stringify(clockId) %>;
     const root = document.documentElement;
     const nav = document.getElementById('publicNavbar');
     if (!root || !nav) return;
+
+    const syncClock = () => {
+      const el = document.getElementById(clockId);
+      if (!el) return;
+      const clock = el.querySelector('.clock-text');
+      const date = el.querySelector('.date-text');
+      if (!clock || !date) return;
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const h24 = now.getHours();
+      const h12 = h24 % 12 || 12;
+      const ampm = h24 >= 12 ? 'PM' : 'AM';
+      const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+      clock.textContent = `${pad(h12)}:${pad(now.getMinutes())}:${pad(now.getSeconds())} ${ampm}`;
+      date.textContent = `${days[now.getDay()]} ${pad(now.getMonth() + 1)}/${pad(now.getDate())}/${now.getFullYear()}`;
+    };
 
     const syncNavbarHeight = () => {
       const height = Math.ceil(nav.getBoundingClientRect().height || nav.offsetHeight || 0);
       if (height > 0) root.style.setProperty('--header-h', `${height}px`);
     };
 
+    syncClock();
     syncNavbarHeight();
     window.addEventListener('load', syncNavbarHeight, { once: true });
     window.addEventListener('resize', syncNavbarHeight);
+    window.setInterval(syncClock, 1000);
 
     if ('ResizeObserver' in window) {
       const observer = new ResizeObserver(syncNavbarHeight);

@@ -7,6 +7,8 @@
   <%- include('partials/typography') %>
   <title>SVS - Report Emergency</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root {
       --amber:        #FACC15;
@@ -2510,6 +2512,13 @@
   const MAPANDAN_DEFAULT = { query: 'Mapandan, Pangasinan', lat: 16.0249, lng: 120.4541, zoom: 14 };
   const mapState = { lat: null, lng: null, zoom: 16, view: 'map' };
   const MAP_TYPE_CODES = { map: 'm', satellite: 'k' };
+  let reporterMap = null;
+  let reporterMarker = null;
+  let reporterLayer = null;
+  const reporterLayers = { map: null, satellite: null };
+  let autoGpsAttempted = false;
+  let autoGpsRetryTimer = null;
+  let autoGpsBound = false;
   const API_TIMEOUT_MS = 15000;
   const PENDING_KEY = 'svs_pending_reports_v1';
   const fy = document.getElementById('footerYear');
@@ -3158,6 +3167,8 @@
     g.classList.remove('got'); g.disabled=false;
     resetMapToDefaultView();
     g.innerHTML=`<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round"><path d="M9.348 14.651a3.75 3.75 0 0 1 0-5.303m5.304-.001a3.75 3.75 0 0 1 0 5.304m-7.425 2.122a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79M12 12h.008v.007H12V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg> Auto-detect My Location (GPS)`;
+    autoGpsAttempted = false;
+    scheduleAutoDetectGps(500);
     updatePendingCount();
     renderReportProgress();
   }
@@ -3303,6 +3314,76 @@
     refreshMapFrame();
   }
 
+  function clampMapZoom(zoom) {
+    const numericZoom = Number(zoom);
+    if (!Number.isFinite(numericZoom)) return MAPANDAN_DEFAULT.zoom;
+    return Math.min(MAP_MAX_ZOOM, Math.max(MAP_MIN_ZOOM, Math.round(numericZoom)));
+  }
+
+  function ensureReporterMap() {
+    const frame = document.getElementById('gpsMapFrame');
+    if (!frame || typeof window.L === 'undefined') return null;
+    if (reporterMap) {
+      reporterMap.invalidateSize();
+      return reporterMap;
+    }
+
+    reporterMap = L.map(frame, {
+      zoomControl: false,
+      attributionControl: true,
+    });
+
+    reporterLayers.map = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: MAP_MAX_ZOOM,
+    });
+
+    reporterLayers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri',
+      maxZoom: MAP_MAX_ZOOM,
+    });
+
+    reporterLayer = reporterLayers.map;
+    reporterLayer.addTo(reporterMap);
+    reporterMap.setView([MAPANDAN_DEFAULT.lat, MAPANDAN_DEFAULT.lng], MAPANDAN_DEFAULT.zoom);
+    setTimeout(() => reporterMap && reporterMap.invalidateSize(), 0);
+    return reporterMap;
+  }
+
+  function syncReporterLayer() {
+    const map = ensureReporterMap();
+    if (!map) return;
+    const nextLayer = mapState.view === 'satellite' ? reporterLayers.satellite : reporterLayers.map;
+    if (!nextLayer || nextLayer === reporterLayer) return;
+    if (reporterLayer) map.removeLayer(reporterLayer);
+    reporterLayer = nextLayer;
+    reporterLayer.addTo(map);
+  }
+
+  function refreshLeafletMap() {
+    const map = ensureReporterMap();
+    if (!map) return;
+
+    syncReporterLayer();
+
+    const hasLocation = Number.isFinite(mapState.lat) && Number.isFinite(mapState.lng);
+    const lat = hasLocation ? mapState.lat : MAPANDAN_DEFAULT.lat;
+    const lng = hasLocation ? mapState.lng : MAPANDAN_DEFAULT.lng;
+    const zoom = clampMapZoom(hasLocation ? mapState.zoom : MAPANDAN_DEFAULT.zoom);
+
+    map.setView([lat, lng], zoom);
+
+    if (hasLocation) {
+      if (!reporterMarker) reporterMarker = L.marker([lat, lng]).addTo(map);
+      reporterMarker.setLatLng([lat, lng]);
+    } else if (reporterMarker) {
+      map.removeLayer(reporterMarker);
+      reporterMarker = null;
+    }
+
+    setTimeout(() => map.invalidateSize(), 0);
+  }
+
   function refreshMapLink() {
     const link = document.getElementById('gpsMapLink');
     if (!link) return;
@@ -3315,13 +3396,10 @@
   }
 
   function refreshMapFrame() {
-    const frame = document.getElementById('gpsMapFrame');
     const labelEl = document.getElementById('gpsMapLabel');
-    if (!frame) return;
     if (!mapState.lat) {
       if (labelEl) labelEl.textContent = 'Mapandan, Pangasinan overview';
-      const src = toCenterEmbedUrl(MAPANDAN_DEFAULT.lat, MAPANDAN_DEFAULT.lng, mapState.view, mapState.zoom);
-      if (frame.src !== src) frame.src = src;
+      refreshLeafletMap();
       updateZoomDisplay();
       updateZoomButtons();
       updateViewToggle();
@@ -3329,8 +3407,7 @@
       refreshMapLink();
       return;
     }
-    const src = toEmbedUrl(mapState.lat, mapState.lng, mapState.view, mapState.zoom);
-    if (frame.src !== src) frame.src = src;
+    refreshLeafletMap();
     updateZoomDisplay();
     updateZoomButtons();
     updateViewToggle();
@@ -3356,7 +3433,7 @@
     const showingSatellite = mapState.view === 'satellite';
     toggle.textContent = showingSatellite ? 'Show standard map' : 'Show satellite image';
     toggle.classList.toggle('active', showingSatellite);
-    toggle.disabled = !mapState.lat;
+    toggle.disabled = !ensureReporterMap();
   }
 
   function updateZoomDisplay() {
@@ -3367,8 +3444,9 @@
   function updateZoomButtons() {
     const zoomOut = document.getElementById('gpsMapZoomOut');
     const zoomIn = document.getElementById('gpsMapZoomIn');
-    if (zoomOut) zoomOut.disabled = !mapState.lat || mapState.zoom <= MAP_MIN_ZOOM;
-    if (zoomIn) zoomIn.disabled = !mapState.lat || mapState.zoom >= MAP_MAX_ZOOM;
+    const mapReady = !!ensureReporterMap();
+    if (zoomOut) zoomOut.disabled = !mapReady || mapState.zoom <= MAP_MIN_ZOOM;
+    if (zoomIn) zoomIn.disabled = !mapReady || mapState.zoom >= MAP_MAX_ZOOM;
   }
 
   function resetMapToDefaultView() {
@@ -3380,7 +3458,6 @@
   }
 
   function changeMapZoom(delta) {
-    if (!mapState.lat) return;
     const nextZoom = Math.min(MAP_MAX_ZOOM, Math.max(MAP_MIN_ZOOM, mapState.zoom + delta));
     if (nextZoom === mapState.zoom) return;
     mapState.zoom = nextZoom;
@@ -3388,7 +3465,6 @@
   }
 
   function toggleMapView() {
-    if (!mapState.lat) return;
     mapState.view = mapState.view === 'satellite' ? 'map' : 'satellite';
     refreshMapFrame();
   }
@@ -3464,7 +3540,7 @@
     btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;animation:spin .9s linear infinite"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> Detecting...`;
     if (!window.isSecureContext) {
       btn.textContent = 'GPS needs HTTPS or localhost';
-      toast('Location unavailable', 'Geolocation only works on HTTPS or localhost.', 'warn');
+      toast('Location unavailable', `This page is running on ${window.location.origin}. Use https:// or open http://localhost:${window.location.port || '3000'} on the same device.`, 'warn');
       btn.disabled = false;
       return;
     }
@@ -3485,7 +3561,7 @@
       }
     } catch (_err) {}
     try {
-      const pos = await acquireBestGpsPosition(14000, 25);
+      const pos = await requestGpsPosition(15000);
       if (!pos) {
         btn.textContent = 'Could not detect location - fill in manually.';
         toast('Location timeout', 'We could not get a GPS fix. Check permission, signal, or try outdoors.', 'warn');
@@ -3497,15 +3573,82 @@
       btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4.5 12.75l6 6 9-13.5"/></svg> Detected: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} (+/-${Math.round(pos.coords.accuracy || 0)}m)`;
     } catch (err) {
       btn.textContent = 'Could not detect location - fill in manually.';
-      const message = err && err.message ? err.message : '';
-      if (/denied/i.test(message)) {
+      const code = Number(err && err.code);
+      const message = err && err.message ? String(err.message) : '';
+      if (code === 1 || /denied/i.test(message)) {
         toast('Location blocked', 'Allow location access for this site, then try again.', 'warn');
+      } else if (code === 2) {
+        toast('Location unavailable', 'Your device could not determine its location. Turn on location services and try again.', 'warn');
+      } else if (code === 3) {
+        toast('Location timeout', 'We could not get a GPS fix. Check permission, signal, or try outdoors.', 'warn');
       } else {
         toast('Location failed', 'GPS detection failed. You can still enter the location manually.', 'warn');
       }
     } finally {
       btn.disabled = false;
     }
+  }
+
+  async function autoDetectGpsOnce() {
+    if (autoGpsAttempted) return;
+    autoGpsAttempted = true;
+    if (!window.isSecureContext || !navigator.geolocation) return;
+    if (parseGps(document.getElementById('iGPS')?.value || '')) return;
+    try {
+      if (navigator.permissions && typeof navigator.permissions.query === 'function') {
+        const status = await navigator.permissions.query({ name: 'geolocation' });
+        if (!status || status.state === 'denied') return;
+      }
+    } catch (_err) {}
+
+    try {
+      const pos = await requestGpsPosition(10000);
+      if (!pos) return;
+      await applyDetectedCoords(pos, { overwriteExisting: false });
+      const btn = document.getElementById('gpsBtn');
+      if (btn) {
+        btn.classList.add('got');
+        btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4.5 12.75l6 6 9-13.5"/></svg> Detected: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} (+/-${Math.round(pos.coords.accuracy || 0)}m)`;
+      }
+      setRequiredError(document.getElementById('gpsBtn'), false);
+    } catch (_err) {}
+  }
+
+  function scheduleAutoDetectGps(delayMs = 0) {
+    if (parseGps(document.getElementById('iGPS')?.value || '')) return;
+    if (autoGpsRetryTimer) clearTimeout(autoGpsRetryTimer);
+    autoGpsRetryTimer = setTimeout(() => {
+      autoGpsRetryTimer = null;
+      void autoDetectGpsOnce();
+    }, Math.max(0, Number(delayMs) || 0));
+  }
+
+  function bindAutoGpsHooks() {
+    if (autoGpsBound) return;
+    autoGpsBound = true;
+
+    const retryIfNeeded = () => {
+      if (parseGps(document.getElementById('iGPS')?.value || '')) return;
+      autoGpsAttempted = false;
+      scheduleAutoDetectGps(250);
+    };
+
+    window.addEventListener('pageshow', retryIfNeeded);
+    window.addEventListener('focus', retryIfNeeded);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') retryIfNeeded();
+    });
+
+    const firstInteractionRetry = () => {
+      retryIfNeeded();
+      window.removeEventListener('pointerdown', firstInteractionRetry, true);
+      window.removeEventListener('keydown', firstInteractionRetry, true);
+      window.removeEventListener('touchstart', firstInteractionRetry, true);
+    };
+
+    window.addEventListener('pointerdown', firstInteractionRetry, true);
+    window.addEventListener('keydown', firstInteractionRetry, true);
+    window.addEventListener('touchstart', firstInteractionRetry, true);
   }
 
   function maybeSetBarangay(detected, overwriteExisting = false) {
@@ -3572,50 +3715,20 @@
     renderReportProgress();
   }
 
-  async function acquireBestGpsPosition(timeoutMs = 12000, targetAccuracyM = 30) {
+  async function requestGpsPosition(timeoutMs = 12000) {
     if (!navigator.geolocation) return null;
-    return new Promise(resolve => {
-      let best = null;
-      let done = false;
-      let watchId = null;
-      const finish = () => {
-        if (done) return;
-        done = true;
-        if (watchId !== null) {
-          try { navigator.geolocation.clearWatch(watchId); } catch (_e) {}
-        }
-        resolve(best);
-      };
-      const onSuccess = (pos) => {
-        if (!pos || !pos.coords) return;
-        if (!best || Number(pos.coords.accuracy || Infinity) < Number(best.coords.accuracy || Infinity)) {
-          best = pos;
-        }
-        if (Number(pos.coords.accuracy || Infinity) <= targetAccuracyM) finish();
-      };
-      const onError = () => {};
-
-      try {
-        watchId = navigator.geolocation.watchPosition(
-          onSuccess,
-          onError,
-          { enableHighAccuracy: true, timeout: Math.min(timeoutMs, 10000), maximumAge: 0 }
-        );
-      } catch (_e) {}
-
+    return new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
-        onSuccess,
-        onError,
-        { enableHighAccuracy: true, timeout: Math.min(timeoutMs, 10000), maximumAge: 0 }
+        (pos) => resolve(pos),
+        (err) => reject(err || new Error('gps_failed')),
+        { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 }
       );
-
-      setTimeout(finish, timeoutMs);
     });
   }
 
   async function tryGetLiveGps(timeoutMs = 12000) {
     if (!navigator.geolocation) return null;
-    const pos = await acquireBestGpsPosition(timeoutMs, 30);
+    const pos = await requestGpsPosition(timeoutMs);
     if (!pos) return null;
     await applyDetectedCoords(pos, { overwriteExisting: false });
     setRequiredError(document.getElementById('gpsBtn'), false);
