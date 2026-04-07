@@ -3230,6 +3230,30 @@
     refreshMapFrame();
   }
 
+  function clampMapZoom(zoom) {
+    const numericZoom = Number(zoom);
+    if (!Number.isFinite(numericZoom)) return MAPANDAN_DEFAULT.zoom;
+    return Math.min(MAP_MAX_ZOOM, Math.max(MAP_MIN_ZOOM, Math.round(numericZoom)));
+  }
+
+  function buildGoogleEmbedUrl(query, view, zoom) {
+    const params = new URLSearchParams({
+      q: query,
+      z: String(clampMapZoom(zoom)),
+      output: 'embed'
+    });
+    if (view === 'satellite') params.set('t', MAP_TYPE_CODES.satellite);
+    return `https://www.google.com/maps?${params.toString()}`;
+  }
+
+  function toCenterEmbedUrl(lat, lng, view, zoom) {
+    return buildGoogleEmbedUrl(`${Number(lat).toFixed(6)},${Number(lng).toFixed(6)}`, view, zoom);
+  }
+
+  function toEmbedUrl(lat, lng, view, zoom) {
+    return buildGoogleEmbedUrl(`${Number(lat).toFixed(6)},${Number(lng).toFixed(6)}`, view, zoom);
+  }
+
   function refreshMapLink() {
     const link = document.getElementById('gpsMapLink');
     if (!link) return;
@@ -3602,6 +3626,7 @@
     if(!el) return;
     const clock=el.querySelector('.clock-text');
     const date=el.querySelector('.date-text');
+    if(!clock || !date) return;
     const now=new Date();
     const pad=n=>String(n).padStart(2,'0');
     const h24=now.getHours(); const h=h24%12||12;
