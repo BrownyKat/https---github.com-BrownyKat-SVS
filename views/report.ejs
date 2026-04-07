@@ -2223,7 +2223,7 @@
       </div>
       <div class="step-badge">GPS first</div>
     </div>
-    <button class="gps-btn" id="gpsBtn" type="button" onclick="detectGPS()">
+    <button class="gps-btn" id="gpsBtn" type="button">
       <!-- Heroicon: signal -->
       <svg viewBox="0 0 24 24"><path d="M9.348 14.651a3.75 3.75 0 0 1 0-5.303m5.304-.001a3.75 3.75 0 0 1 0 5.304m-7.425 2.122a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.808-3.808-9.98 0-13.789m13.788 0c3.808 3.808 3.808 9.981 0 13.79M12 12h.008v.007H12V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
       Auto-detect My Location (GPS)
@@ -2473,6 +2473,7 @@
   try { panicNum = localStorage.getItem('mdrrmo_panic') || ''; } catch(e) {}
   panicNum = toIntlPhone(panicNum) || '';
   bindInputSecurity();
+  initReportInteractiveControls();
   bindRequiredFieldWatchers();
   flushPendingQueue();
   updatePendingCount();
@@ -2523,6 +2524,73 @@
         evt.preventDefault();
         const pasted = (evt.clipboardData || window.clipboardData).getData('text');
         sosField.value = formatPhoneForDisplay(pasted);
+      });
+    }
+  }
+
+  function setSelectedButton(buttons, activeButton) {
+    buttons.forEach((btn) => {
+      const isActive = btn === activeButton;
+      btn.classList.toggle('sel', isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+  }
+
+  function selectEmergencyType(value, sourceButton = null) {
+    const normalized = String(value || '').trim();
+    if (!normalized) return;
+    selType_ = normalized;
+    const hidden = document.getElementById('iType');
+    if (hidden) hidden.value = normalized;
+    const buttons = Array.from(document.querySelectorAll('.etype-btn[data-emergency-type]'));
+    const active = sourceButton || buttons.find((btn) => btn.dataset.emergencyType === normalized) || null;
+    setSelectedButton(buttons, active);
+    setRequiredError(document.getElementById('typeGrid'), false);
+    renderReportProgress();
+  }
+
+  function selectSeverity(value, sourceButton = null) {
+    const normalized = String(value || '').trim();
+    if (!normalized) return;
+    selSev_ = normalized;
+    const hidden = document.getElementById('iSev');
+    if (hidden) hidden.value = normalized;
+    const buttons = Array.from(document.querySelectorAll('.sev-btn[data-severity]'));
+    const active = sourceButton || buttons.find((btn) => btn.dataset.severity === normalized) || null;
+    setSelectedButton(buttons, active);
+    setRequiredError(document.getElementById('sevGrid'), false);
+    renderReportProgress();
+  }
+
+  function initReportInteractiveControls() {
+    const typeGrid = document.getElementById('typeGrid');
+    if (typeGrid && !typeGrid.dataset.bound) {
+      typeGrid.dataset.bound = '1';
+      typeGrid.addEventListener('click', (event) => {
+        const btn = event.target.closest('.etype-btn[data-emergency-type]');
+        if (!btn) return;
+        event.preventDefault();
+        selectEmergencyType(btn.dataset.emergencyType, btn);
+      });
+    }
+
+    const sevGrid = document.getElementById('sevGrid');
+    if (sevGrid && !sevGrid.dataset.bound) {
+      sevGrid.dataset.bound = '1';
+      sevGrid.addEventListener('click', (event) => {
+        const btn = event.target.closest('.sev-btn[data-severity]');
+        if (!btn) return;
+        event.preventDefault();
+        selectSeverity(btn.dataset.severity, btn);
+      });
+    }
+
+    const gpsBtn = document.getElementById('gpsBtn');
+    if (gpsBtn && !gpsBtn.dataset.bound) {
+      gpsBtn.dataset.bound = '1';
+      gpsBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        void detectGPS();
       });
     }
   }
@@ -3365,21 +3433,51 @@
   // GPS accuracy + repeat-detect overrides
   async function detectGPS() {
     const btn = document.getElementById('gpsBtn');
+    if (!btn) return;
+    if (btn.disabled) return;
     btn.disabled = true;
     btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;animation:spin .9s linear infinite"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg> Detecting...`;
-    if (!navigator.geolocation) { btn.textContent = 'GPS not available on this device'; btn.disabled = false; return; }
+    if (!window.isSecureContext) {
+      btn.textContent = 'GPS needs HTTPS or localhost';
+      toast('Location unavailable', 'Geolocation only works on HTTPS or localhost.', 'warn');
+      btn.disabled = false;
+      return;
+    }
+    if (!navigator.geolocation) {
+      btn.textContent = 'GPS not available on this device';
+      toast('Location unavailable', 'This browser or device does not support geolocation.', 'warn');
+      btn.disabled = false;
+      return;
+    }
+    try {
+      if (navigator.permissions && typeof navigator.permissions.query === 'function') {
+        const status = await navigator.permissions.query({ name: 'geolocation' });
+        if (status && status.state === 'denied') {
+          btn.textContent = 'Location permission blocked';
+          toast('Location blocked', 'Enable location permission for this site in your browser settings.', 'warn');
+          return;
+        }
+      }
+    } catch (_err) {}
     try {
       const pos = await acquireBestGpsPosition(14000, 25);
       if (!pos) {
         btn.textContent = 'Could not detect location - fill in manually.';
+        toast('Location timeout', 'We could not get a GPS fix. Check permission, signal, or try outdoors.', 'warn');
         return;
       }
       await applyDetectedCoords(pos, { overwriteExisting: true });
       setRequiredError(btn, false);
       btn.classList.add('got');
       btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M4.5 12.75l6 6 9-13.5"/></svg> Detected: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)} (+/-${Math.round(pos.coords.accuracy || 0)}m)`;
-    } catch (_e) {
+    } catch (err) {
       btn.textContent = 'Could not detect location - fill in manually.';
+      const message = err && err.message ? err.message : '';
+      if (/denied/i.test(message)) {
+        toast('Location blocked', 'Allow location access for this site, then try again.', 'warn');
+      } else {
+        toast('Location failed', 'GPS detection failed. You can still enter the location manually.', 'warn');
+      }
     } finally {
       btn.disabled = false;
     }
