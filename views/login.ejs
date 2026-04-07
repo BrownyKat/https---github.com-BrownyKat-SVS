@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -35,7 +35,7 @@
     .logo-wrap{text-align:center;margin-bottom:8px}
     .logo{width:186px;max-width:60vw;height:auto;object-fit:contain;display:inline-block;filter:drop-shadow(0 12px 22px rgba(29,78,216,.12))}
     .role-badge{display:none}
-    h2{margin:12px 0 4px;font-size:29px;letter-spacing:-.8px;color:var(--blue-dark);text-align:center}
+    h2{margin:12px 0 4px;font-size:29px;letter-spacing:-.8px;color:var(--red);text-align:center}
     .subtext{margin:0 0 16px;color:var(--muted-2);font-size:15px;line-height:1.55;text-align:center}
     .err{background:var(--red-light);border:1px solid #fca5a5;color:#b91c1c;padding:12px 13px;border-radius:14px;margin-bottom:14px;font-size:13px;font-weight:700}
     label{display:block;font-size:11px;font-weight:800;margin:12px 0 6px;text-transform:uppercase;color:var(--blue);letter-spacing:1px;font-family:var(--font-subtitle)}
@@ -70,7 +70,6 @@
       <div class="logo-wrap"><img class="logo" src="/images/logo.png" alt="MDRRMO SVS Logo"></div>
       <span class="role-badge" aria-hidden="true"></span>
       <h2>Admin Login</h2>
-      <p class="subtext">Sign in with your assigned admin credentials to access the SVS control panel.</p>
       <% if (error) { %><div class="err"><%= error %></div><% } %>
 
       <label for="username">Username</label>
@@ -120,4 +119,3 @@
   </script>
 </body>
 </html>
-

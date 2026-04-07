@@ -2849,49 +2849,6 @@
 
   
   // Draft helper functions removed.
-function selType(el, t) {
-    document.querySelectorAll('.etype-btn').forEach(b => {
-      b.classList.remove('sel');
-      b.setAttribute('aria-pressed', 'false');
-    });
-    el.classList.add('sel');
-    el.setAttribute('aria-pressed', 'true');
-    selType_ = t;
-    const typeInput = document.getElementById('iType');
-    if (typeInput) typeInput.value = t;
-    setRequiredError(document.getElementById('typeGrid'), false);
-    renderReportProgress();
-  }
-  function selSev(el, s) {
-    document.querySelectorAll('.sev-btn').forEach(b => {
-      b.classList.remove('sel');
-      b.setAttribute('aria-pressed', 'false');
-    });
-    el.classList.add('sel');
-    el.setAttribute('aria-pressed', 'true');
-    selSev_ = s;
-    const severityInput = document.getElementById('iSev');
-    if (severityInput) severityInput.value = s;
-    setRequiredError(document.getElementById('sevGrid'), false);
-    renderReportProgress();
-  }
-
-  function bindSelectionControls() {
-    document.querySelectorAll('[data-emergency-type]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        selType(btn, btn.getAttribute('data-emergency-type') || '');
-      });
-    });
-
-    document.querySelectorAll('[data-severity]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        selSev(btn, btn.getAttribute('data-severity') || '');
-      });
-    });
-  }
-
-  bindSelectionControls();
-
   function bytesToReadableSize(bytes) {
     const value = Number(bytes) || 0;
     if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
@@ -2940,7 +2897,57 @@ function selType(el, t) {
     renderReportProgress();
   }
 
-  function handleReportPhotoChange(event) {
+  function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+      reader.onerror = () => reject(new Error('file_read_failed'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function loadImage(dataUrl) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('image_decode_failed'));
+      img.src = dataUrl;
+    });
+  }
+
+  async function compressReportPhoto(file) {
+    const originalDataUrl = await readFileAsDataUrl(file);
+    if (!originalDataUrl) throw new Error('file_read_failed');
+
+    const image = await loadImage(originalDataUrl);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return originalDataUrl;
+
+    const MAX_DIMENSION = 1600;
+    const MAX_BYTES = 900 * 1024;
+    const scale = Math.min(1, MAX_DIMENSION / Math.max(image.width || 1, image.height || 1));
+    canvas.width = Math.max(1, Math.round((image.width || 1) * scale));
+    canvas.height = Math.max(1, Math.round((image.height || 1) * scale));
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    const mimeType = /image\/png/i.test(file.type) ? 'image/jpeg' : (file.type || 'image/jpeg');
+    let quality = mimeType === 'image/jpeg' || mimeType === 'image/webp' ? 0.88 : undefined;
+    let best = canvas.toDataURL(mimeType, quality);
+
+    while (best.length * 0.75 > MAX_BYTES && quality && quality > 0.45) {
+      quality -= 0.08;
+      best = canvas.toDataURL(mimeType, quality);
+    }
+
+    if (best.length * 0.75 > MAX_BYTES) {
+      best = canvas.toDataURL('image/jpeg', 0.72);
+    }
+
+    return best.length < originalDataUrl.length ? best : originalDataUrl;
+  }
+
+  async function handleReportPhotoChange(event) {
     const input = event?.target;
     const file = input?.files?.[0];
 
@@ -2960,17 +2967,17 @@ function selType(el, t) {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      reportPhotoData = typeof reader.result === 'string' ? reader.result : '';
+    try {
+      reportPhotoData = await compressReportPhoto(file);
       updateReportPhotoUi(file);
       renderReportProgress();
-    };
-    reader.onerror = () => {
+      if (reportPhotoData && reportPhotoData.length * 0.75 > 1024 * 1024) {
+        toast('Photo optimized', 'The image was compressed to improve Vercel upload reliability.','info');
+      }
+    } catch (_err) {
       clearReportPhoto();
       toast('Upload failed', 'The selected image could not be read. Please try another file.','warn');
-    };
-    reader.readAsDataURL(file);
+    }
   }
 
   async function submitReport() {
@@ -3212,32 +3219,6 @@ function selType(el, t) {
   const s=document.createElement('style');
   s.textContent='@keyframes spin{to{transform:rotate(360deg)}}';
   document.head.appendChild(s);
-
-  function parseGps(gps) {
-    if (!gps || typeof gps !== 'string') return null;
-    const m = gps.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
-    if (!m) return null;
-    const lat = Number(m[1]);
-    const lng = Number(m[2]);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
-    return { lat, lng };
-  }
-
-  function toEmbedUrl(lat, lng, view = 'map', zoom = 16) {
-    const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
-    return `https://maps.google.com/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
-  }
-
-  function toQueryEmbedUrl(query, view = 'map', zoom = 14) {
-    const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
-    return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=${type}&z=${zoom}&output=embed`;
-  }
-
-  function toCenterEmbedUrl(lat, lng, view = 'map', zoom = 14) {
-    const type = MAP_TYPE_CODES[view] || MAP_TYPE_CODES.map;
-    return `https://maps.google.com/maps?ll=${lat.toFixed(6)},${lng.toFixed(6)}&t=${type}&z=${zoom}&output=embed`;
-  }
 
   function renderReporterMap(gps, label = 'Detected location') {
     const p = parseGps(gps);
@@ -3558,4 +3539,3 @@ function selType(el, t) {
 </script>
 </body>
 </html>
-
