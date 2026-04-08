@@ -25,11 +25,6 @@
         body: 'When signal quality drops, SVS keeps the report usable with fallback details, manual fields, and retry-friendly flows.',
       },
     ];
-    const statCards = [
-      { value: '3', label: 'Core platform strengths' },
-      { value: '5', label: 'Disaster guides restored' },
-      { value: '2', label: 'Fast response paths: SOS and Report' },
-    ];
     const journey = [
       {
         step: '01',
@@ -190,23 +185,23 @@
       <div class="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-center">
         <div>
           <div class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/90 px-3 py-1 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-blue-700">
-            About SVS
+           The problem -> The solution
           </div>
           <h1 class="mt-5 max-w-3xl text-3xl font-black leading-[1.02] tracking-tight text-slate-950 sm:text-[3.5rem]">
-            Built to turn stressful emergency reporting into clear, usable action.
+           From clogged hotlines to clear, verified emergency reports.
           </h1>
           <p class="mt-5 max-w-3xl text-base leading-8 text-slate-700 sm:text-lg">
             Smart Verification System exists to help citizens report emergencies with stronger location details and help responders receive cleaner information faster. The goal is simple: reduce confusion at the point where every second matters.
           </p>
           <div class="mt-6 flex flex-wrap gap-3">
             <a href="/report" class="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-black text-white shadow-[0_14px_32px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5">
-              File a report
+              File an Emergency Report
               <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M5 12h14M13 5l7 7-7 7"/>
               </svg>
             </a>
             <a href="/sos" class="inline-flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-black text-red-600 transition hover:border-red-300 hover:bg-red-100">
-              Open SOS
+             Quick SOS options
               <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 9v4m0 4h.01"/>
                 <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/>
@@ -250,17 +245,6 @@
               <h3 class="text-lg font-black text-slate-950"><%= pillar.title %></h3>
               <p class="mt-2 text-sm leading-7 text-slate-700 sm:text-base"><%= pillar.body %></p>
             </div>
-          </div>
-        <% }) %>
-      </div>
-    </section>
-
-    <section class="mt-12 rounded-[2rem] border border-slate-200 bg-white/85 p-6 shadow-[0_14px_28px_rgba(15,23,42,0.08)]">
-      <div class="flex flex-wrap justify-center gap-4">
-        <% statCards.forEach(function(stat, index) { %>
-          <div data-animate="fade-up" style="--animate-order:<%= index %>" class="flex-1 min-w-[150px] max-w-[200px] text-center">
-            <div class="text-3xl font-black tracking-tight text-slate-950"><%= stat.value %></div>
-            <div class="mt-2 text-sm font-bold uppercase tracking-[0.16em] text-slate-500"><%= stat.label %></div>
           </div>
         <% }) %>
       </div>

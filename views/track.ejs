@@ -13,36 +13,25 @@
   <%- include('partials/navbar', { active: 'track', timeId: 'trackTime' }) %>
 
   <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-    <section data-animate="zoom-in" class="overflow-hidden rounded-[2.2rem] border border-slate-200/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.95),rgba(236,244,255,0.92))] shadow-[0_28px_70px_rgba(15,23,42,0.12)]">
-      <div class="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.92fr)] lg:items-center">
-        <div data-animate="fade-right" style="--animate-order:0">
-          <div class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/90 px-3 py-1 font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-blue-700">
-            Track Report
-          </div>
-          <h1 class="mt-5 max-w-3xl text-3xl font-black leading-[1.02] tracking-tight text-slate-950 sm:text-[3.35rem]">
-            See your report progress without guessing what happens next.
+    <section data-animate="zoom-in" class="mx-auto max-w-4xl overflow-hidden rounded-[2.2rem] border border-slate-200/80 bg-[linear-gradient(145deg,rgba(255,255,255,0.95),rgba(236,244,255,0.92))] shadow-[0_28px_70px_rgba(15,23,42,0.12)]">
+      <div class="flex flex-col items-center px-6 py-12 text-center sm:px-10">
+        <div data-animate="fade-up" style="--animate-order:0" class="max-w-3xl">
+          <h1 class="text-3xl font-black leading-[1.05] tracking-tight text-slate-950 sm:text-[3.2rem]">
+            See your report move through the response flow at a glance.
           </h1>
-          <p class="mt-5 max-w-3xl text-base leading-8 text-slate-700 sm:text-lg">
+          <p class="mt-5 text-base leading-8 text-slate-700 sm:text-lg">
             Enter your report ID to check its current status, the dispatcher currently handling it, the time passed since submission, and the location tied to the report.
           </p>
-          <div class="mt-6 flex flex-wrap gap-2">
-            <span class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-black text-blue-700">Report ID lookup</span>
-            <span class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">Live status</span>
-            <span class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">Current dispatcher</span>
-            <span class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-700">Location summary</span>
-          </div>
         </div>
 
-        <div data-animate="fade-left" style="--animate-order:1" class="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur">
-          <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-slate-500">Search</div>
-          <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950">Enter your report ID</h2>
+        <div data-animate="fade-up" style="--animate-order:1" class="mt-10 w-full max-w-xl rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] backdrop-blur sm:p-8">
+          <h2 class="text-xl font-black tracking-tight text-slate-950 sm:text-2xl">Enter your report ID</h2>
           <p class="mt-3 text-sm leading-7 text-slate-700 sm:text-base">
             Use the ID shown after submission, such as <span class="font-black text-blue-700">RPT-0001</span> or <span class="font-black text-red-600">SOS-0001</span>.
           </p>
 
           <form id="trackForm" class="mt-5 space-y-4" method="get" action="/track">
             <div>
-              <label class="mb-2 block text-xs font-black uppercase tracking-[0.22em] text-slate-500" for="trackIdInput">Report ID</label>
               <input
                 id="trackIdInput"
                 name="reportId"
@@ -51,7 +40,7 @@
                 maxlength="32"
                 autocomplete="off"
                 placeholder="RPT-0001"
-                class="w-full rounded-[1.4rem] border border-slate-300 bg-white px-4 py-4 text-base font-black uppercase tracking-[0.08em] text-slate-900 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                class="w-full rounded-[1.4rem] border border-slate-300 bg-white px-4 py-4 text-center text-base font-black uppercase tracking-[0.08em] text-slate-900 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
               >
             </div>
             <button data-shimmer class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-white transition hover:-translate-y-0.5" type="submit">
@@ -66,21 +55,9 @@
           <button id="useLastIdBtn" class="mt-4 hidden w-full rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-black uppercase tracking-[0.16em] text-blue-700 transition hover:border-blue-300 hover:bg-blue-100" type="button">
             Use last submitted ID
           </button>
-          <p id="trackLookupHint" class="mt-4 text-sm leading-7 text-slate-500">
-            Tracking is read-only and will not change your report.
-          </p>
         </div>
       </div>
     </section>
-
-    <section id="trackIdleState" data-animate="fade-up" style="--animate-order:2" class="mt-8 rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-[0_20px_44px_rgba(15,23,42,0.1)] sm:p-8">
-      <div class="font-mono text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-blue-700">Waiting for lookup</div>
-      <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Enter a report ID to load the progress view.</h2>
-      <p class="mt-3 max-w-3xl text-sm leading-7 text-slate-700 sm:text-base">
-        Once a valid report ID is entered, this page will show the current status, the dispatcher handling the case, the location summary, and how much time has passed since submission.
-      </p>
-    </section>
-
     <div id="trackErrorState" class="mt-8 hidden rounded-[1.8rem] border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700 shadow-[0_14px_28px_rgba(239,68,68,0.08)]"></div>
 
     <section id="trackResult" class="mx-auto mt-8 hidden max-w-[1200px] space-y-6">
