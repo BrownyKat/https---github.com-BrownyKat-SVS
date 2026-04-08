@@ -7,8 +7,6 @@
   <%- include('partials/typography') %>
   <title>SVS - Report Emergency</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root {
       --amber:        #FACC15;
@@ -2395,7 +2393,7 @@
           <a id="gpsMapLink" href="https://www.google.com/maps?q=Mapandan%2C%20Pangasinan" target="_blank" rel="noopener noreferrer">Open map</a>
         </div>
         <div class="gps-map-canvas">
-          <iframe class="gps-map-frame" id="gpsMapFrame" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?ll=16.024900,120.454100&t=m&z=14&output=embed"></iframe>
+          <iframe class="gps-map-frame" id="gpsMapFrame" title="Interactive location map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?ll=16.024900,120.454100&t=m&z=14&output=embed"></iframe>
           <div class="gps-map-view-toggle">
             <button class="gps-map-control" id="gpsMapViewToggle" type="button" disabled title="Switch between standard and satellite imagery">
               Show satellite image
@@ -2513,9 +2511,6 @@
   const mapState = { lat: null, lng: null, zoom: 16, view: 'map' };
   const MAP_TYPE_CODES = { map: 'm', satellite: 'k' };
   let reporterMap = null;
-  let reporterMarker = null;
-  let reporterLayer = null;
-  const reporterLayers = { map: null, satellite: null };
   let autoGpsAttempted = false;
   let autoGpsRetryTimer = null;
   let autoGpsBound = false;
@@ -3298,72 +3293,32 @@
 
   function ensureReporterMap() {
     const frame = document.getElementById('gpsMapFrame');
-    if (!frame || typeof window.L === 'undefined') return null;
-    if (reporterMap) {
-      reporterMap.invalidateSize();
-      return reporterMap;
-    }
+    if (!frame) return null;
+    if (reporterMap) return reporterMap;
 
-    reporterMap = L.map(frame, {
-      zoomControl: false,
-      attributionControl: true,
-    });
-
-    reporterLayers.map = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: MAP_MAX_ZOOM,
-    });
-
-    reporterLayers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri',
-      maxZoom: MAP_MAX_ZOOM,
-    });
-
-    reporterLayer = reporterLayers.map;
-    reporterLayer.addTo(reporterMap);
-    reporterMap.setView([MAPANDAN_DEFAULT.lat, MAPANDAN_DEFAULT.lng], MAPANDAN_DEFAULT.zoom);
-    setTimeout(() => reporterMap && reporterMap.invalidateSize(), 0);
+    reporterMap = frame;
     return reporterMap;
   }
 
-  function syncReporterLayer() {
+  function refreshGoogleMap() {
     const map = ensureReporterMap();
     if (!map) return;
-    const nextLayer = mapState.view === 'satellite' ? reporterLayers.satellite : reporterLayers.map;
-    if (!nextLayer || nextLayer === reporterLayer) return;
-    if (reporterLayer) map.removeLayer(reporterLayer);
-    reporterLayer = nextLayer;
-    reporterLayer.addTo(map);
-  }
-
-  function refreshLeafletMap() {
-    const map = ensureReporterMap();
-    if (!map) return;
-
-    syncReporterLayer();
-
     const hasLocation = Number.isFinite(mapState.lat) && Number.isFinite(mapState.lng);
-    const lat = hasLocation ? mapState.lat : MAPANDAN_DEFAULT.lat;
-    const lng = hasLocation ? mapState.lng : MAPANDAN_DEFAULT.lng;
     const zoom = clampMapZoom(hasLocation ? mapState.zoom : MAPANDAN_DEFAULT.zoom);
+    const type = mapState.view === 'satellite' ? MAP_TYPE_CODES.satellite : MAP_TYPE_CODES.map;
+    const src = hasLocation
+      ? `https://www.google.com/maps?output=embed&ll=${mapState.lat.toFixed(6)},${mapState.lng.toFixed(6)}&q=${encodeURIComponent(`${mapState.lat.toFixed(6)},${mapState.lng.toFixed(6)}`)}&t=${type}&z=${zoom}`
+      : `https://www.google.com/maps?output=embed&q=${encodeURIComponent(MAPANDAN_DEFAULT.query)}&t=${type}&z=${zoom}`;
 
-    map.setView([lat, lng], zoom);
-
-    if (hasLocation) {
-      if (!reporterMarker) reporterMarker = L.marker([lat, lng]).addTo(map);
-      reporterMarker.setLatLng([lat, lng]);
-    } else if (reporterMarker) {
-      map.removeLayer(reporterMarker);
-      reporterMarker = null;
+    if (map.getAttribute('src') !== src) {
+      map.setAttribute('src', src);
     }
-
-    setTimeout(() => map.invalidateSize(), 0);
   }
 
   function refreshMapLink() {
     const link = document.getElementById('gpsMapLink');
     if (!link) return;
-    if (!mapState.lat) {
+    if (!Number.isFinite(mapState.lat) || !Number.isFinite(mapState.lng)) {
       link.href = `https://www.google.com/maps?q=${encodeURIComponent(MAPANDAN_DEFAULT.query)}`;
       return;
     }
@@ -3373,9 +3328,9 @@
 
   function refreshMapFrame() {
     const labelEl = document.getElementById('gpsMapLabel');
-    if (!mapState.lat) {
+    if (!Number.isFinite(mapState.lat) || !Number.isFinite(mapState.lng)) {
       if (labelEl) labelEl.textContent = 'Mapandan, Pangasinan overview';
-      refreshLeafletMap();
+      refreshGoogleMap();
       updateZoomDisplay();
       updateZoomButtons();
       updateViewToggle();
@@ -3383,7 +3338,7 @@
       refreshMapLink();
       return;
     }
-    refreshLeafletMap();
+    refreshGoogleMap();
     updateZoomDisplay();
     updateZoomButtons();
     updateViewToggle();

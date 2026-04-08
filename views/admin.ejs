@@ -286,6 +286,237 @@
       margin-top:10px;
     }
     .alert-mini-actions form{margin:0}
+    .alerts-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    .alerts-summary{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .alerts-stat{
+      position:relative;
+      overflow:hidden;
+      padding:14px 15px;
+      border:1px solid var(--border);
+      border-radius:18px;
+      background:linear-gradient(180deg,#ffffff,#f4f8ff);
+      box-shadow:0 12px 28px rgba(15,23,42,.08);
+    }
+    .alerts-stat::before{
+      content:'';
+      position:absolute;
+      left:0;
+      top:0;
+      bottom:0;
+      width:4px;
+      border-radius:18px 0 0 18px;
+      background:var(--blue);
+    }
+    .alerts-stat:nth-child(2)::before{background:#16a34a}
+    .alerts-stat:nth-child(3)::before{background:#f59e0b}
+    .alerts-stat-label{
+      display:block;
+      color:var(--muted2);
+      font:700 11px var(--font-subtitle);
+      letter-spacing:.8px;
+      text-transform:uppercase;
+    }
+    .alerts-stat-value{
+      display:block;
+      margin-top:6px;
+      color:var(--text);
+      font-size:28px;
+      font-weight:900;
+      line-height:1;
+    }
+    .alerts-stat-copy{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+    }
+    .alerts-top p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.55;
+      max-width:720px;
+    }
+    .alerts-toolbar{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+      padding:14px;
+      border:1px solid var(--border);
+      border-radius:18px;
+      background:rgba(255,255,255,.9);
+      box-shadow:var(--shadow-sm);
+    }
+    .alerts-toolbar-main{
+      flex:1;
+      min-width:min(100%,320px);
+    }
+    .alerts-toolbar-main label,
+    .alerts-toolbar-side label{
+      display:block;
+      margin-bottom:5px;
+      color:var(--muted2);
+      font:700 11px var(--font-subtitle);
+      letter-spacing:.8px;
+      text-transform:uppercase;
+    }
+    .alerts-search-input,
+    .alerts-filter-select{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid #d8cdbd;
+      border-radius:12px;
+      background:#fff;
+      color:var(--text);
+      font:600 14px var(--font-body);
+    }
+    .alerts-toolbar-side{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(150px,1fr));
+      gap:10px;
+      min-width:min(100%,340px);
+    }
+    .alerts-list{
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+      gap:12px;
+    }
+    .alert-card{
+      position:relative;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.96), rgba(243,247,255,.92));
+      box-shadow:0 12px 28px rgba(15,23,42,.08);
+    }
+    .alert-card.is-active{
+      border-color:#93c5fd;
+      box-shadow:0 14px 34px rgba(29,78,216,.12);
+    }
+    .alert-card.is-inactive{
+      background:linear-gradient(180deg, rgba(255,255,255,.94), rgba(248,250,252,.92));
+    }
+    .alert-card-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .alert-card-title{
+      margin:0;
+      font-size:17px;
+      line-height:1.25;
+      color:var(--text);
+    }
+    .alert-card-meta{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+      margin:6px 0 0;
+    }
+    .alert-pill{
+      display:inline-flex;
+      align-items:center;
+      padding:4px 9px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#f8fbff;
+      color:var(--blue-deep);
+      font:700 11px var(--font-subtitle);
+      letter-spacing:.7px;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+    .alert-pill.active{background:#ecfdf3;border-color:#86efac;color:#166534}
+    .alert-pill.inactive{background:#f3f4f6;border-color:#d1d5db;color:#4b5563}
+    .alert-pill.severity-high{background:#fef2f2;border-color:#fecaca;color:#b91c1c}
+    .alert-pill.severity-medium{background:#fff7ed;border-color:#fdba74;color:#c2410c}
+    .alert-pill.severity-low{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+    .alert-card-body{
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.55;
+      margin-bottom:12px;
+      min-height:66px;
+    }
+    .alert-card-body p{margin:0}
+    .alert-card-accent{
+      position:absolute;
+      top:14px;
+      right:14px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:5px 9px;
+      border-radius:999px;
+      background:#eff6ff;
+      color:var(--blue);
+      font:700 11px var(--font-subtitle);
+      letter-spacing:.7px;
+      text-transform:uppercase;
+    }
+    .alert-card-accent.inactive{
+      background:#f8fafc;
+      color:#475569;
+    }
+    .alert-card-footer{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .alert-card-info{
+      display:grid;
+      gap:6px;
+      color:var(--muted2);
+      font-size:12px;
+    }
+    .alert-card-info strong{
+      color:var(--text);
+      font-size:12px;
+    }
+    .alert-card-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .alert-card-actions form{margin:0}
+    .alert-action-note{
+      width:100%;
+      color:var(--muted2);
+      font-size:12px;
+      line-height:1.45;
+    }
+    .empty-state[hidden]{display:none}
+    .empty-state{
+      padding:22px 18px;
+      border:1px dashed var(--border);
+      border-radius:18px;
+      background:rgba(255,255,255,.75);
+      color:var(--muted);
+      text-align:center;
+      font-size:14px;
+      line-height:1.6;
+    }
     .section-head svg{
       width:22px;height:22px;stroke:var(--amber-strong);fill:none;stroke-width:1.9;
       stroke-linecap:round;stroke-linejoin:round;
@@ -546,6 +777,7 @@
       .stats{grid-template-columns:1fr 1fr}
       .chart-grid{grid-template-columns:1fr}
       .row-form{grid-template-columns:1fr 1fr}
+      .alerts-summary{grid-template-columns:1fr}
     }
     @media(max-width:860px){
       .layout{flex-direction:column}
@@ -555,6 +787,7 @@
       .nav{display:grid;grid-template-columns:1fr 1fr;gap:10px}
       .nav-item,.nav button{padding:13px 12px;font-size:14px}
       .brand-wrap{margin-bottom:10px}
+      .alerts-toolbar-side{grid-template-columns:1fr}
     }
     @media(max-width:560px){
       .layout{flex-direction:column}
@@ -569,6 +802,7 @@
       .chart-canvas.compact{height:200px !important;max-height:200px}
       .nav{grid-template-columns:repeat(2,1fr)}
       .nav-item,.nav button{padding:11px 12px;font-size:13px}
+      .alerts-list{grid-template-columns:1fr}
       .row-form,.modal-form{grid-template-columns:1fr}
       .filter-actions{width:100%}
       .filter-actions .btn{flex:1;justify-content:center;text-align:center}
@@ -685,6 +919,10 @@
           <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
           <span class="nav-label">Dashboard</span>
         </button>
+        <button class="nav-item" type="button" data-tab="alerts">
+          <svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+          <span class="nav-label">Alerts</span>
+        </button>
         <button class="nav-item" type="button" data-tab="reports">
           <svg viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25"/></svg>
           <span class="nav-label">Reports</span>
@@ -732,39 +970,6 @@
             </h2>
             <p class="section-intro">Start here for the current system picture. The cards and charts summarize report volume, dispatcher readiness, and false report trends without changing the underlying admin process.</p>
           </div>
-          <div class="section-actions">
-            <div class="alert-mini">
-              <span class="alert-mini-label">Admin Alert</span>
-              <% if (latestAlert) { %>
-                <strong><%= latestAlert.title || 'Active alert' %></strong>
-                <p><%= latestAlert.disasterType || 'General' %> - <%= latestAlert.severity || 'High' %><br><%= latestAlert.message || 'No message provided.' %></p>
-                <div class="alert-mini-actions">
-                  <button
-                    class="btn"
-                    type="button"
-                    id="editLatestAlertBtn"
-                    data-alert-id="<%= latestAlert._id %>"
-                    data-alert-title="<%= latestAlert.title || '' %>"
-                    data-alert-type="<%= latestAlert.disasterType || 'General' %>"
-                    data-alert-severity="<%= latestAlert.severity || 'High' %>"
-                    data-alert-message="<%= latestAlert.message || '' %>"
-                    data-alert-active="<%= latestAlert.active === false ? '0' : '1' %>">Edit</button>
-                  <form method="post" action="/admin/alerts/<%= latestAlert._id %>/delete">
-                    <input type="hidden" name="tab" value="dashboard">
-                    <input type="hidden" name="reportPage" value="<%= (reportPagination && reportPagination.page) || 1 %>">
-                    <input type="hidden" name="auditPage" value="<%= (auditPagination && auditPagination.page) || 1 %>">
-                    <button class="btn danger" type="submit">Delete</button>
-                  </form>
-                </div>
-              <% } else { %>
-                <strong>No active alert</strong>
-                <p>Use the button below to publish a dashboard alert for current operations.</p>
-              <% } %>
-            </div>
-            <div style="display:flex;align-items:flex-start">
-              <button class="btn danger" type="button" id="openAlertModal">Send Alert</button>
-            </div>
-          </div>
         </div>
         <div class="stats">
           <div class="kpi"><div class="k">Reports (Filtered)</div><div class="v" id="statTotalReports"><%= stats.totalReports %></div></div>
@@ -807,6 +1012,145 @@
             <canvas id="falseChart" class="chart-canvas compact"></canvas>
           </div>
         </div>
+      </section>
+
+      <section class="section tab-panel" id="alerts" data-panel="alerts">
+        <% const alertItems = Array.isArray(alerts) ? alerts : []; %>
+        <% const activeAlertCount = alertItems.filter(function(item){ return item && item.active !== false; }).length; %>
+        <% const inactiveAlertCount = Math.max(0, alertItems.length - activeAlertCount); %>
+        <div class="section-bar">
+          <div class="section-bar-copy">
+            <span class="section-badge">Alert Center</span>
+            <h2 class="section-head">
+              <svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+              Alerts
+            </h2>
+            <p class="section-intro">Review active and previous admin alerts in one place. This keeps the dashboard lighter while giving you a proper history for editing, verifying, and removing alerts.</p>
+          </div>
+          <p class="section-note"><strong>Use this section for alert management.</strong> The newest alert stays at the top so active operations remain easy to track.</p>
+        </div>
+        <div class="alerts-top">
+          <p>The list below shows the most recent alerts published from the admin console, including inactive ones that were already removed from the dashboard.</p>
+          <button class="btn danger" type="button" id="openAlertModalFromAlerts">Send Alert</button>
+        </div>
+        <div class="alerts-summary">
+          <article class="alerts-stat">
+            <span class="alerts-stat-label">Recent Alerts</span>
+            <span class="alerts-stat-value"><%= alertItems.length %></span>
+            <div class="alerts-stat-copy">The latest 30 alerts from the admin console are shown here for quick review.</div>
+          </article>
+          <article class="alerts-stat">
+            <span class="alerts-stat-label">Active Now</span>
+            <span class="alerts-stat-value"><%= activeAlertCount %></span>
+            <div class="alerts-stat-copy">These alerts are still marked active and can be removed from the dashboard.</div>
+          </article>
+          <article class="alerts-stat">
+            <span class="alerts-stat-label">Past Alerts</span>
+            <span class="alerts-stat-value"><%= inactiveAlertCount %></span>
+            <div class="alerts-stat-copy">Inactive alerts stay here as history until you permanently delete them.</div>
+          </article>
+        </div>
+        <div class="alerts-toolbar">
+          <div class="alerts-toolbar-main">
+            <label for="alertsSearchInput">Search Alerts</label>
+            <input id="alertsSearchInput" class="alerts-search-input" type="search" placeholder="Search title, message, type, sender, or severity">
+          </div>
+          <div class="alerts-toolbar-side">
+            <div>
+              <label for="alertsStatusFilter">Status</label>
+              <select id="alertsStatusFilter" class="alerts-filter-select">
+                <option value="all">All alerts</option>
+                <option value="active">Active only</option>
+                <option value="inactive">Past alerts only</option>
+              </select>
+            </div>
+            <div>
+              <label for="alertsSeverityFilter">Severity</label>
+              <select id="alertsSeverityFilter" class="alerts-filter-select">
+                <option value="all">All severities</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <% if (alertItems.length) { %>
+          <div class="alerts-list" id="alertsList">
+            <% alertItems.forEach(function(alertItem){ %>
+              <% const severityClass = String(alertItem.severity || 'High').trim().toLowerCase(); %>
+              <% const isAlertActive = alertItem.active !== false; %>
+              <article
+                class="alert-card <%= isAlertActive ? 'is-active' : 'is-inactive' %>"
+                data-alert-card
+                data-status="<%= isAlertActive ? 'active' : 'inactive' %>"
+                data-severity="<%= ['high','medium','low'].includes(severityClass) ? severityClass : 'high' %>"
+                data-search="<%= [
+                  alertItem.title || '',
+                  alertItem.message || '',
+                  alertItem.disasterType || '',
+                  alertItem.severity || '',
+                  alertItem.sentBy || ''
+                ].join(' ').toLowerCase() %>">
+                <span class="alert-card-accent <%= isAlertActive ? '' : 'inactive' %>"><%= isAlertActive ? 'Live' : 'History' %></span>
+                <div class="alert-card-head">
+                  <div>
+                    <h3 class="alert-card-title"><%= alertItem.title || 'Emergency alert' %></h3>
+                    <div class="alert-card-meta">
+                      <span class="alert-pill <%= isAlertActive ? 'active' : 'inactive' %>"><%= isAlertActive ? 'Active' : 'Inactive' %></span>
+                      <span class="alert-pill"><%= alertItem.disasterType || 'General' %></span>
+                      <span class="alert-pill severity-<%= ['high','medium','low'].includes(severityClass) ? severityClass : 'high' %>"><%= alertItem.severity || 'High' %></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="alert-card-body">
+                  <p><%= alertItem.message || 'No message provided.' %></p>
+                </div>
+                <div class="alert-card-footer">
+                  <div class="alert-card-info">
+                    <span><strong>Sent by:</strong> <%= alertItem.sentBy || 'Admin' %></span>
+                    <span><strong>Created:</strong> <%= alertItem.timestamp ? new Date(alertItem.timestamp).toLocaleString() : '-' %></span>
+                  </div>
+                  <div class="alert-card-actions">
+                    <button
+                      class="btn"
+                      type="button"
+                      data-action="edit-alert"
+                      data-alert-source-tab="alerts"
+                      data-alert-id="<%= alertItem._id %>"
+                      data-alert-title="<%= alertItem.title || '' %>"
+                      data-alert-type="<%= alertItem.disasterType || 'General' %>"
+                      data-alert-severity="<%= alertItem.severity || 'High' %>"
+                      data-alert-message="<%= alertItem.message || '' %>"
+                      data-alert-active="<%= alertItem.active === false ? '0' : '1' %>">Edit</button>
+                    <form
+                      method="post"
+                      action="/admin/alerts/<%= alertItem._id %>/delete"
+                      class="js-alert-delete-form"
+                      data-delete-mode="<%= isAlertActive ? 'soft' : 'purge' %>"
+                      data-alert-title="<%= alertItem.title || 'Emergency alert' %>"
+                      data-alert-type="<%= alertItem.disasterType || 'General' %>"
+                      data-alert-severity="<%= alertItem.severity || 'High' %>">
+                      <input type="hidden" name="tab" value="alerts">
+                      <input type="hidden" name="reportPage" value="<%= (reportPagination && reportPagination.page) || 1 %>">
+                      <input type="hidden" name="auditPage" value="<%= (auditPagination && auditPagination.page) || 1 %>">
+                      <% if (!isAlertActive) { %><input type="hidden" name="deleteMode" value="purge"><% } %>
+                      <button class="btn <%= isAlertActive ? 'danger' : 'warn' %>" type="submit"><%= isAlertActive ? 'Remove' : 'Delete' %></button>
+                    </form>
+                    <div class="alert-action-note"><%= isAlertActive ? 'Removes the alert from the dashboard but keeps a history entry here.' : 'Permanently deletes this past alert from the alerts history.' %></div>
+                  </div>
+                </div>
+              </article>
+            <% }) %>
+          </div>
+          <div class="empty-state" id="alertsEmptyState" hidden>
+            No alerts match the current filters. Try a different search or status filter.
+          </div>
+        <% } else { %>
+          <div class="empty-state" id="alertsEmptyState">
+            No alerts have been published yet. Use <strong>Send Alert</strong> to create the first admin alert.
+          </div>
+        <% } %>
       </section>
 
       <section class="section tab-panel" id="reports" data-panel="reports">
@@ -1006,7 +1350,7 @@
           </table>
         </div>
         <% const ap = auditPagination || { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false }; %>
-        <% const auditBase = '/admin?tab=audit&reportPage=' + encodeURIComponent((reportPagination && reportPagination.page) || 1); %>
+        <% const auditBase = '/admin?tab=audit&reportPage=' + encodeURIComponent((reportPagination && reportPagination.page) || 1) + '&auditLimit=' + encodeURIComponent(auditLimit || 20); %>
         <div class="pager" id="auditPager">
           <div id="auditPagerSummary">Showing page <strong><%= ap.page %></strong> of <strong><%= ap.totalPages %></strong> (<%= ap.totalCount %> audit entries)</div>
           <div class="pager-actions">
@@ -1114,7 +1458,7 @@
         <button class="modal-close" type="button" data-close-modal="#alertModal">Close</button>
       </div>
       <form id="alertForm" class="modal-form" method="post" action="/admin/alerts">
-        <input type="hidden" name="tab" value="dashboard">
+        <input type="hidden" name="tab" value="dashboard" id="alertFormTab">
         <input type="hidden" name="reportPage" value="<%= (reportPagination && reportPagination.page) || 1 %>">
         <input type="hidden" name="auditPage" value="<%= (auditPagination && auditPagination.page) || 1 %>">
         <div class="modal-field">
@@ -1159,6 +1503,7 @@
   <script id="reportPaginationSeed" type="application/json"><%- JSON.stringify(reportPagination || { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false }) %></script>
   <script id="auditPaginationSeed" type="application/json"><%- JSON.stringify(auditPagination || { page: 1, totalPages: 1, totalCount: 0, hasPrev: false, hasNext: false }) %></script>
   <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     function safeRun(fn) {
@@ -1221,10 +1566,17 @@
     const alertSeverityInput = document.getElementById('alertSeverity');
     const alertMessageInput = document.getElementById('alertMessage');
     const alertActiveInput = document.querySelector('#alertForm input[name="active"]');
+    const alertFormTabInput = document.getElementById('alertFormTab');
 
-    function openCreateAlertModal() {
+    function getCurrentAdminTab() {
+      return document.querySelector('.nav-item.active')?.getAttribute('data-tab') || 'dashboard';
+    }
+
+    function openCreateAlertModal(sourceTab) {
       if (!alertForm) return;
+      const safeSourceTab = sourceTab || getCurrentAdminTab();
       alertForm.action = '/admin/alerts';
+      if (alertFormTabInput) alertFormTabInput.value = safeSourceTab;
       if (alertModalTitle) alertModalTitle.textContent = 'Publish Alert';
       if (alertSubmitBtn) alertSubmitBtn.textContent = 'Publish Alert';
       if (alertTitleInput) alertTitleInput.value = '';
@@ -1235,11 +1587,13 @@
       openModal('#alertModal');
     }
 
-    function openEditAlertModal(btn) {
+    function openEditAlertModal(btn, sourceTab) {
       if (!btn || !alertForm) return;
       const alertId = btn.getAttribute('data-alert-id');
       if (!alertId) return;
+      const safeSourceTab = sourceTab || btn.getAttribute('data-alert-source-tab') || getCurrentAdminTab();
       alertForm.action = '/admin/alerts/' + encodeURIComponent(alertId) + '/update';
+      if (alertFormTabInput) alertFormTabInput.value = safeSourceTab;
       if (alertModalTitle) alertModalTitle.textContent = 'Edit Alert';
       if (alertSubmitBtn) alertSubmitBtn.textContent = 'Save Alert';
       if (alertTitleInput) alertTitleInput.value = btn.getAttribute('data-alert-title') || '';
@@ -1251,9 +1605,53 @@
     }
 
     document.getElementById('openAddDispatcher')?.addEventListener('click', () => openModal('#addDispatcherModal'));
-    document.getElementById('openAlertModal')?.addEventListener('click', openCreateAlertModal);
-    document.getElementById('editLatestAlertBtn')?.addEventListener('click', function () {
-      openEditAlertModal(this);
+    document.getElementById('openAlertModalFromAlerts')?.addEventListener('click', () => openCreateAlertModal('alerts'));
+    document.querySelectorAll('[data-action="edit-alert"]').forEach(btn => {
+      btn.addEventListener('click', () => openEditAlertModal(btn, 'alerts'));
+    });
+    document.querySelectorAll('.js-alert-delete-form').forEach(form => {
+      form.addEventListener('submit', async (event) => {
+        if (form.dataset.confirmed === '1') return;
+        event.preventDefault();
+
+        const title = (form.getAttribute('data-alert-title') || 'this alert').trim();
+        const disasterType = (form.getAttribute('data-alert-type') || 'General').trim();
+        const severity = (form.getAttribute('data-alert-severity') || 'High').trim();
+        const deleteMode = (form.getAttribute('data-delete-mode') || 'soft').trim().toLowerCase();
+        const isPermanentDelete = deleteMode === 'purge';
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const submitForm = () => {
+          form.dataset.confirmed = '1';
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = isPermanentDelete ? 'Deleting forever...' : 'Removing...';
+          }
+          HTMLFormElement.prototype.submit.call(form);
+        };
+        const confirmText = isPermanentDelete
+          ? `Delete "${title}" forever?\n\nThis will permanently remove the ${disasterType} - ${severity} alert from alert history.`
+          : `Remove "${title}"?\n\nThis will remove the ${disasterType} - ${severity} alert from the dashboard but keep its history entry.`;
+
+        if (typeof Swal === 'undefined') {
+          const fallbackOk = window.confirm(confirmText);
+          if (fallbackOk) submitForm();
+          return;
+        }
+
+        const result = await Swal.fire({
+          title: isPermanentDelete ? 'Delete Past Alert?' : 'Remove Alert?',
+          html: `<strong>${escHtml(title)}</strong><br><span style="color:#64748b">${escHtml(disasterType)} - ${escHtml(severity)}</span><p style="margin:12px 0 0;color:#475569">${isPermanentDelete ? 'This will permanently delete the alert from local alert history. This cannot be undone.' : 'This will remove the alert from the dashboard and sync the change to connected clients.'}</p>`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: isPermanentDelete ? 'Yes, delete forever' : 'Yes, remove it',
+          confirmButtonColor: '#dc2626',
+          cancelButtonColor: '#64748b',
+          reverseButtons: true,
+          focusCancel: true,
+        });
+
+        if (result.isConfirmed) submitForm();
+      });
     });
 
     const editForm = document.getElementById('editDispatcherForm');
@@ -1312,6 +1710,38 @@
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
     }
+    const alertsSearchInput = document.getElementById('alertsSearchInput');
+    const alertsStatusFilter = document.getElementById('alertsStatusFilter');
+    const alertsSeverityFilter = document.getElementById('alertsSeverityFilter');
+    const alertsEmptyState = document.getElementById('alertsEmptyState');
+    const alertCards = Array.from(document.querySelectorAll('[data-alert-card]'));
+    function applyAlertFilters() {
+      if (!alertCards.length) return;
+      const query = String(alertsSearchInput?.value || '').trim().toLowerCase();
+      const status = String(alertsStatusFilter?.value || 'all').trim().toLowerCase();
+      const severity = String(alertsSeverityFilter?.value || 'all').trim().toLowerCase();
+      let visibleCount = 0;
+
+      alertCards.forEach(card => {
+        const cardSearch = String(card.getAttribute('data-search') || '').toLowerCase();
+        const cardStatus = String(card.getAttribute('data-status') || '').toLowerCase();
+        const cardSeverity = String(card.getAttribute('data-severity') || '').toLowerCase();
+        const matchesQuery = !query || cardSearch.includes(query);
+        const matchesStatus = status === 'all' || cardStatus === status;
+        const matchesSeverity = severity === 'all' || cardSeverity === severity;
+        const isVisible = matchesQuery && matchesStatus && matchesSeverity;
+        card.hidden = !isVisible;
+        if (isVisible) visibleCount += 1;
+      });
+
+      if (alertsEmptyState) {
+        alertsEmptyState.hidden = visibleCount !== 0;
+      }
+    }
+    alertsSearchInput?.addEventListener('input', applyAlertFilters);
+    alertsStatusFilter?.addEventListener('change', applyAlertFilters);
+    alertsSeverityFilter?.addEventListener('change', applyAlertFilters);
+    applyAlertFilters();
     function toNum(v) {
       const n = Number(v);
       return Number.isFinite(n) ? n : 0;
@@ -1650,7 +2080,7 @@
     function updatePagers() {
       const currentUrl = new URL(window.location.href);
       const reportsBase = `/admin?tab=reports&from=${encodeURIComponent(currentUrl.searchParams.get('from') || '')}&to=${encodeURIComponent(currentUrl.searchParams.get('to') || '')}&auditPage=${encodeURIComponent(String(auditPaginationState.page || 1))}`;
-      const auditBase = `/admin?tab=audit&reportPage=${encodeURIComponent(String(reportPaginationState.page || 1))}`;
+      const auditBase = `/admin?tab=audit&reportPage=${encodeURIComponent(String(reportPaginationState.page || 1))}&auditLimit=${encodeURIComponent(String(currentUrl.searchParams.get('auditLimit') || '20'))}`;
       updatePager(reportsPagerSummary, reportsPrevLink, reportsNextLink, reportsBase, reportPaginationState, 'reports', 'reportPage');
       updatePager(auditPagerSummary, auditPrevLink, auditNextLink, auditBase, auditPaginationState, 'audit entries', 'auditPage');
     }

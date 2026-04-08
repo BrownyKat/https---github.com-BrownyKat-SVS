@@ -79,6 +79,7 @@ const DISPATCHER_ONLINE_WINDOW_MS = Math.max(
 );
 const ADMIN_REPORTS_PAGE_SIZE = 20;
 const ADMIN_AUDIT_PAGE_SIZE = 20;
+const ADMIN_AUDIT_PAGE_SIZE_OPTIONS = [10, 20, 40, 80, 100, 200];
 const DB_READY_ROUTE_TIMEOUT_MS = Math.max(15000, Number.parseInt(process.env.DB_READY_ROUTE_TIMEOUT_MS || '20000', 10) || 20000);
 const DB_READY_AUTH_TIMEOUT_MS = Math.max(5000, Number.parseInt(process.env.DB_READY_AUTH_TIMEOUT_MS || '8000', 10) || 8000);
 const COOKIE_NAME_LEGACY = 'auth_token';
@@ -1497,13 +1498,58 @@ app.post('/admin/alerts/:id/delete', requireRolesPage(['admin'], '/login'), asyn
       return res.redirect(adminRedirectUrl(req, { err: 'Alert not found' }));
     }
 
-    alert.active = false;
-    await alert.save();
+    const actorName = String(req.auth.fullName || req.auth.username || 'Admin').trim() || 'Admin';
+    const wasActive = alert.active !== false;
+    const deleteMode = String(req.body.deleteMode || '').trim().toLowerCase();
+    const purgeRequested = deleteMode === 'purge';
+
+    if (purgeRequested) {
+      let supabaseResult = { ok: true, message: '' };
+      let mirrorResult = { ok: true, message: '' };
+      if (wasActive) {
+        alert.active = false;
+        alert.sentBy = actorName;
+        await alert.save();
+      }
+
+      const realtimeAlert = formatAlertPayload(alert);
+      if (wasActive) {
+        await emitRealtime('alert-deleted', realtimeAlert);
+        await emitRealtime('admin-alert-deleted', realtimeAlert);
+        supabaseResult = await upsertSupabaseAlert(realtimeAlert);
+        mirrorResult = await syncAlertToMobileBackend(realtimeAlert);
+      }
+
+      await Alert.deleteOne({ _id: alert._id });
+
+      await logAudit({
+        actorRole: 'admin',
+        actorId: String(req.auth.userId || ''),
+        actorName,
+        action: 'ALERT_PURGE',
+        targetType: 'alert',
+        targetId: String(alert._id),
+        details: `${alert.disasterType} ${alert.severity} alert deleted permanently`,
+      });
+
+      const statusText = wasActive ? 'Alert deleted permanently' : 'Past alert deleted permanently';
+      return res.redirect(adminRedirectUrl(req, {
+        ok: supabaseResult.ok && mirrorResult.ok
+          ? statusText
+          : `${statusText} locally. ${supabaseResult.ok ? '' : `${supabaseResult.message} `}${mirrorResult.ok ? '' : mirrorResult.message}`.trim(),
+      }));
+    }
+
+    if (wasActive) {
+      alert.active = false;
+      alert.sentBy = actorName;
+      await alert.save();
+    }
 
     await logAudit({
       actorRole: 'admin',
       actorId: String(req.auth.userId || ''),
-      actorName: String(req.auth.fullName || req.auth.username || 'Admin'),
+      actorName,
       action: 'ALERT_DELETE',
       targetType: 'alert',
       targetId: String(alert._id),
@@ -1511,17 +1557,18 @@ app.post('/admin/alerts/:id/delete', requireRolesPage(['admin'], '/login'), asyn
     });
 
     const realtimeAlert = formatAlertPayload(alert);
-    await emitRealtime('alert-created', realtimeAlert);
-    await emitRealtime('admin-alert-created', realtimeAlert);
-    await emitRealtime('alert-deleted', realtimeAlert);
-    await emitRealtime('admin-alert-deleted', realtimeAlert);
+    if (wasActive) {
+      await emitRealtime('alert-deleted', realtimeAlert);
+      await emitRealtime('admin-alert-deleted', realtimeAlert);
+    }
     const supabaseResult = await upsertSupabaseAlert(realtimeAlert);
     const mirrorResult = await syncAlertToMobileBackend(realtimeAlert);
+    const statusText = wasActive ? 'Alert removed' : 'Alert was already removed';
 
     return res.redirect(adminRedirectUrl(req, {
       ok: supabaseResult.ok && mirrorResult.ok
-        ? 'Alert removed'
-        : `Alert removed locally. ${supabaseResult.ok ? '' : `${supabaseResult.message} `}${mirrorResult.ok ? '' : mirrorResult.message}`.trim(),
+        ? statusText
+        : `${statusText} locally. ${supabaseResult.ok ? '' : `${supabaseResult.message} `}${mirrorResult.ok ? '' : mirrorResult.message}`.trim(),
     }));
   } catch (err) {
     console.error(err);
@@ -3556,6 +3603,7 @@ async function renderAdminPage(req, res, options = {}, statusCode = 200) {
     dispatchers: data.dispatchers,
     reports: data.reports,
     auditLogs: data.auditLogs,
+    alerts: data.alerts,
     stats: data.stats,
     reportPagination: data.reportPagination,
     auditPagination: data.auditPagination,
@@ -3594,6 +3642,7 @@ async function getAdminViewData(req) {
   const { from, to, where } = buildReportDateRangeFilter(source.from, source.to);
   const reportPage = parsePositiveInt(source.reportPage, 1);
   const auditPage = parsePositiveInt(source.auditPage, 1);
+  const auditLimit = normalizeAdminAuditLimit(source.auditLimit);
   const rawDispatchers = await Dispatcher.find().sort({ createdAt: -1 }).lean();
   const now = new Date();
   const { onlineDispatcherIds, onlineDispatcherUsernames } = await getOnlineDispatcherLookups(now);
@@ -3607,6 +3656,10 @@ async function getAdminViewData(req) {
     };
   });
   const latestAlert = await Alert.findOne({ active: true }).sort({ timestamp: -1 }).lean();
+  const alerts = await Alert.find()
+    .sort({ timestamp: -1 })
+    .limit(30)
+    .lean();
   const reportTotal = await Report.countDocuments(where);
   const reportTotalPages = Math.max(1, Math.ceil(reportTotal / ADMIN_REPORTS_PAGE_SIZE));
   const safeReportPage = Math.min(reportPage, reportTotalPages);
@@ -3638,21 +3691,22 @@ async function getAdminViewData(req) {
 
   const auditWhere = { actorRole: 'dispatcher' };
   const auditTotal = await AuditLog.countDocuments(auditWhere);
-  const auditTotalPages = Math.max(1, Math.ceil(auditTotal / ADMIN_AUDIT_PAGE_SIZE));
+  const auditTotalPages = Math.max(1, Math.ceil(auditTotal / auditLimit));
   const safeAuditPage = Math.min(auditPage, auditTotalPages);
   const auditLogs = await AuditLog.find(auditWhere)
     .sort({ timestamp: -1 })
     .allowDiskUse(true)
-    .skip((safeAuditPage - 1) * ADMIN_AUDIT_PAGE_SIZE)
-    .limit(ADMIN_AUDIT_PAGE_SIZE)
+    .skip((safeAuditPage - 1) * auditLimit)
+    .limit(auditLimit)
     .lean();
   const reportPagination = buildPaginationMeta(safeReportPage, reportTotal, ADMIN_REPORTS_PAGE_SIZE);
-  const auditPagination = buildPaginationMeta(safeAuditPage, auditTotal, ADMIN_AUDIT_PAGE_SIZE);
+  const auditPagination = buildPaginationMeta(safeAuditPage, auditTotal, auditLimit);
 
   return {
     dispatchers,
     reports,
     auditLogs,
+    alerts,
     stats: {
       totalReports: reportTotal,
       activeDispatchers: dispatchers.filter(d => d.isActive).length,
@@ -3662,7 +3716,7 @@ async function getAdminViewData(req) {
     reportPagination,
     auditPagination,
     reportLimit: ADMIN_REPORTS_PAGE_SIZE,
-    auditLimit: ADMIN_AUDIT_PAGE_SIZE,
+    auditLimit,
     from,
     to,
     tab: pickAdminTab(source.tab),
@@ -3672,7 +3726,7 @@ async function getAdminViewData(req) {
 
 function pickAdminTab(tabRaw) {
   const tab = String(tabRaw || '').trim();
-  return ['dashboard', 'reports', 'dispatchers', 'audit'].includes(tab) ? tab : 'dashboard';
+  return ['dashboard', 'alerts', 'reports', 'dispatchers', 'audit'].includes(tab) ? tab : 'dashboard';
 }
 
 function adminRedirectUrl(req, flash = {}) {
@@ -3681,8 +3735,10 @@ function adminRedirectUrl(req, flash = {}) {
   if (tab !== 'dashboard') params.set('tab', tab);
   const reportPage = parsePositiveInt(req.body.reportPage || req.query.reportPage, 0);
   const auditPage = parsePositiveInt(req.body.auditPage || req.query.auditPage, 0);
+  const auditLimit = normalizeAdminAuditLimit(req.body.auditLimit || req.query.auditLimit, 0);
   if (reportPage > 0) params.set('reportPage', String(reportPage));
   if (auditPage > 0) params.set('auditPage', String(auditPage));
+  if (auditLimit > 0) params.set('auditLimit', String(auditLimit));
   if (flash.ok) params.set('ok', String(flash.ok));
   if (flash.err) params.set('err', String(flash.err));
   const q = params.toString();
@@ -3846,6 +3902,11 @@ async function sendPushAlertToDevices(alertPayload) {
 function parsePositiveInt(value, fallback = 1) {
   const n = Number.parseInt(String(value || ''), 10);
   return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+function normalizeAdminAuditLimit(value, fallback = ADMIN_AUDIT_PAGE_SIZE) {
+  const parsed = parsePositiveInt(value, fallback);
+  return ADMIN_AUDIT_PAGE_SIZE_OPTIONS.includes(parsed) ? parsed : fallback;
 }
 
 function buildPaginationMeta(page, totalCount, pageSize) {

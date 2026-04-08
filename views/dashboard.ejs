@@ -651,29 +651,6 @@
   .img-btn:hover{transform:translateY(-1px);}
   .img-close{position:absolute;top:12px;right:12px;border:none;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:34px;height:34px;cursor:pointer;font-weight:900;}
 
-    /* mic permission modal */
-    .perm-modal{
-      position:fixed;inset:0;z-index:390;
-      background:rgba(15,23,42,.45);
-      backdrop-filter:blur(6px);
-      display:flex;align-items:center;justify-content:center;
-      opacity:0;pointer-events:none;transition:opacity .18s ease;
-      padding:1rem;
-    }
-    .perm-modal.show{opacity:1;pointer-events:auto;}
-    .perm-card{
-      background:#fff;border-radius:16px;box-shadow:0 18px 42px rgba(0,0,0,.24);
-      max-width:420px;width:95%;padding:1.35rem 1.45rem;display:grid;gap:.65rem;
-    }
-    .perm-card h3{margin:0;font-size:1.1rem;font-weight:840;color:#0f172a;}
-    .perm-card p{margin:0;color:#1f2937;line-height:1.6;font-size:.95rem;}
-    .perm-actions{display:flex;gap:.6rem;justify-content:flex-end;flex-wrap:wrap;}
-    .perm-btn{
-      padding:.55rem .95rem;border-radius:12px;border:1.5px solid #cbd5e1;
-      background:#fff;font-weight:800;font-size:.9rem;cursor:pointer;transition:.15s;
-    }
-    .perm-btn.primary{background:linear-gradient(135deg,#2563EB,#1D4ED8);color:#fff;border-color:transparent;box-shadow:0 8px 18px rgba(37,99,235,.22);}
-    .perm-btn:hover{transform:translateY(-1px);}
 
     .rcard-right{display:flex;align-items:center;gap:9px;flex-shrink:0;}
     .status-pill{
@@ -1245,35 +1222,244 @@
       .main-inner{padding:1rem 1rem 2rem}
       .header{height:78px}
     }
-  
-    /* Web call mini panel */
-    .webcall-panel{
-      position:fixed;bottom:18px;right:20px;z-index:400;
-      width:320px;max-width:90vw;
-      background:rgba(255,255,255,.96);border:1.5px solid var(--border);border-radius:16px;
-      box-shadow:0 18px 44px rgba(15,23,42,.18);
-      padding:14px 16px;backdrop-filter:blur(10px) saturate(140%);
-      display:flex;flex-direction:column;gap:10px;
+
+    /* responsive refinements */
+    @media(max-width:1180px){
+      .sidebar{width:250px;}
+      .main-head-tools{flex:1 1 100%;max-width:none;align-items:stretch;}
+      .search-bar{width:100%;}
+      .main-datetime,
+      .main-weather{width:100%;}
     }
-    .webcall-panel.hidden{display:none;}
-    .webcall-top{display:flex;align-items:center;gap:10px;}
-    .webcall-ico{
-      width:36px;height:36px;border-radius:12px;
-      display:flex;align-items:center;justify-content:center;
-      background:linear-gradient(135deg,rgba(29,78,216,.12),rgba(29,78,216,.2));
-      border:1px solid var(--blue-border);color:var(--blue);
+    @media(max-width:900px){
+      .header{
+        height:auto;
+        padding:.8rem .95rem;
+        align-items:flex-start;
+        gap:.8rem;
+        flex-direction:column;
+      }
+      .header-right{
+        width:100%;
+        justify-content:flex-start;
+        flex-wrap:wrap;
+      }
+      .body{
+        height:auto;
+        min-height:calc(100vh - 78px);
+        flex-direction:column;
+        overflow:visible;
+      }
+      .sidebar{
+        width:100%;
+        position:relative;
+        top:0;
+        min-height:0;
+        border-right:none;
+        border-bottom:1px solid rgba(154,188,232,.45);
+      }
+      .filter-list{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:.55rem;
+      }
+      .filter-item{
+        min-width:0;
+      }
+      .main{
+        height:auto;
+        overflow:visible;
+      }
+      .main-inner{
+        padding:1rem .9rem 1.5rem;
+      }
+      .main-header{
+        align-items:stretch;
+      }
+      .main-head-copy,
+      .main-head-tools{
+        flex:1 1 100%;
+        max-width:none;
+      }
+      .report-pager{
+        align-items:stretch;
+      }
+      .report-pager-summary,
+      .report-pager-actions{
+        width:100%;
+        justify-content:flex-start;
+      }
+      .rcard{
+        padding:1.05rem 1rem;
+      }
+      .rcard-top{
+        flex-direction:column;
+        align-items:stretch;
+      }
+      .rcard-right{
+        width:100%;
+        justify-content:space-between;
+        flex-wrap:wrap;
+      }
+      .photo-stack{
+        flex-wrap:wrap;
+      }
+      .rcard-map-head{
+        flex-wrap:wrap;
+        padding:.75rem;
+      }
+      .map-open{
+        position:static;
+        width:100%;
+        justify-content:center;
+      }
+      .rcard-actions{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:.6rem;
+      }
+      .act-btn{
+        width:100%;
+        justify-content:center;
+      }
+      .notif-stack{
+        left:12px;
+        right:12px;
+        top:12px;
+        width:auto;
+        max-width:none;
+      }
     }
-    .webcall-ico svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;}
-    .webcall-meta{flex:1;min-width:0;}
-    .webcall-title{font-weight:800;font-size:.92rem;color:var(--text);}
-    .webcall-sub{font-size:.78rem;color:var(--muted);}
-    .webcall-status{font-family:var(--font-subtitle);font-size:.74rem;color:var(--muted2);}
-    .webcall-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;}
-    .webcall-btn{padding:.45rem .9rem;border-radius:12px;border:1px solid var(--border-mid);font-weight:700;font-size:.82rem;cursor:pointer;}
-    .webcall-btn.primary{background:linear-gradient(135deg,var(--blue),var(--indigo));color:#fff;border-color:transparent;}
-    .webcall-btn.danger{background:var(--orange-light);color:var(--red);border-color:var(--orange-border);}
-    .webcall-btn:disabled{opacity:.6;cursor:not-allowed;}
-    @media(max-width:520px){.webcall-panel{left:10px;right:10px;width:auto;}}
+    @media(max-width:640px){
+      body{
+        overflow-x:hidden;
+      }
+      .brand{
+        width:100%;
+      }
+      .brand-logo{
+        width:126px;
+        height:92px;
+      }
+      .brand-text{
+        margin-left:-24px;
+      }
+      .header-right > *{
+        flex:1 1 auto;
+      }
+      .user-greet,
+      .nav-btn,
+      .online-pill{
+        justify-content:center;
+      }
+      .filter-list{
+        grid-template-columns:1fr;
+      }
+      .main-title{
+        font-size:1.18rem;
+      }
+      .main-sub{
+        font-size:.74rem;
+      }
+      .main-quick-filters{
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+      .quick-filter-btn{
+        width:100%;
+        justify-content:center;
+      }
+      .search-bar{
+        flex-wrap:wrap;
+        padding:.55rem;
+      }
+      .search-input{
+        order:1;
+        width:100%;
+        flex-basis:100%;
+      }
+      .search-go,
+      .search-clear{
+        flex:1 1 0;
+        min-height:38px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+      }
+      .main-datetime{
+        padding:.75rem .85rem;
+        min-height:auto;
+      }
+      .main-weather{
+        padding-top:.15rem;
+      }
+      .rcard-meta{
+        display:grid;
+        grid-template-columns:1fr;
+        gap:.45rem;
+      }
+      .rcard-loc{
+        display:grid;
+        grid-template-columns:1fr;
+        gap:.5rem;
+      }
+      .rcard-map-placeholder{
+        padding:.9rem;
+      }
+      .rcard-desc{
+        padding:.8rem .85rem;
+        font-size:.88rem;
+      }
+      .rcard-actions{
+        grid-template-columns:1fr;
+      }
+      .act-btn{
+        min-height:42px;
+      }
+      .dispatch-content,
+      .dispatch-actions,
+      .edit-form,
+      .profile-form{
+        padding-left:.9rem;
+        padding-right:.9rem;
+      }
+      .dispatch-actions,
+      .edit-actions,
+      .profile-actions{
+        flex-direction:column;
+      }
+      .dispatch-btn,
+      .edit-btn,
+      .profile-btn{
+        width:100%;
+        text-align:center;
+        justify-content:center;
+      }
+    }
+    @media(max-width:420px){
+      .main-inner{
+        padding:.85rem .7rem 1.2rem;
+      }
+      .main-header,
+      .rcard,
+      .empty{
+        border-radius:18px;
+      }
+      .status-pill,
+      .ownership-tag,
+      .cred-pill,
+      .trust-pill{
+        white-space:normal;
+        text-align:center;
+      }
+      .photo-thumb{
+        width:42px;
+        height:42px;
+      }
+      .toast{
+        bottom:.8rem;
+      }
+    }
 </style>
 </head>
 <body>
@@ -1484,18 +1670,6 @@
     </div>
   </div>
 
-  <div class="perm-modal" id="permModal">
-    <div class="perm-card">
-      <h3>Allow microphone to start call</h3>
-      <p>Tap “Allow mic” — your browser will show a permission prompt. We keep this panel open until you decide.</p>
-      <div id="permStatus" style="color:#b91c1c;font-weight:700;font-size:.9rem;"></div>
-      <div class="perm-actions">
-        <button class="perm-btn" type="button" onclick="closePermModal()">Cancel</button>
-        <button class="perm-btn primary" type="button" onclick="requestMicPermission()">Allow mic</button>
-      </div>
-    </div>
-  </div>
-
 <!-- PROFILE MODAL -->
 <div class="profile-backdrop" id="profileBackdrop" onclick="if(event.target===this) closeProfileModal()">
   <div class="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
@@ -1633,22 +1807,6 @@
   </div>
 </div>
 
-<div id="webCallPanel" class="webcall-panel hidden">
-  <div class="webcall-top">
-    <div class="webcall-ico">
-      <svg viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12Z"/></svg>
-    </div>
-    <div class="webcall-meta">
-      <div class="webcall-title">Web Call</div>
-      <div class="webcall-sub" id="webCallReportLabel">Idle</div>
-      <div class="webcall-status" id="webCallStatus">Not connected</div>
-    </div>
-    <div class="webcall-actions">
-      <button class="webcall-btn primary" id="webCallAcceptBtn">Accept</button>
-      <button class="webcall-btn danger" id="webCallHangBtn">Hang Up</button>
-    </div>
-  </div>
-</div>
 <script id="initialReports" type="application/json"><%- JSON.stringify(reports) %></script>
 <script id="activeDispatchersSeed" type="application/json"><%- JSON.stringify(activeDispatchers || []) %></script>
 <script id="currentUserSeed" type="application/json"><%- JSON.stringify(currentUser || {}) %></script>
@@ -2206,10 +2364,6 @@
           <svg viewBox="0 0 24 24"><path d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487ZM19.5 7.125 16.875 4.5"/></svg>
           Edit Name/Location
         </button>` : ''}
-        ${canManageAssignedReport && r.status==='new' && callStarted ? `<button class="act-btn primary" onclick="updStatus('${rid}','verifying')">
-          <svg viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12L2.25 6.338Z"/></svg>
-          Verify
-        </button>` : ''}
         ${r.status==='verifying' && rid ? `<button class="act-btn primary" onclick="openDispatchModal('${rid}')">
           <svg viewBox="0 0 24 24"><path d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"/></svg>
           Dispatch
@@ -2222,10 +2376,6 @@
           <svg viewBox="0 0 24 24"><path d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
           False Report
         </button>` : ''}
-        <button class="act-btn call-act" onclick="startWebCall('${rid}')">
-          <svg viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12Z"/></svg>
-          Web Call
-        </button>
         ${(canManageAssignedReport && r.status==='new' && callStarted) ? '' : `<button class="act-btn call-act" onclick="callReporterById('${rid}')">
           <svg viewBox="0 0 24 24"><path d="M2.25 6.338c0 7.5 6.089 13.587 13.589 13.587l.682-.002a1.124 1.124 0 0 0 1.12-1.065l.254-3.223a1.125 1.125 0 0 0-.89-1.207l-2.98-.67a1.125 1.125 0 0 0-1.264.597l-.75 1.5a11.775 11.775 0 0 1-4.955-4.955l1.5-.75a1.125 1.125 0 0 0 .597-1.264l-.67-2.98a1.125 1.125 0 0 0-1.207-.89l-3.223.254a1.124 1.124 0 0 0-1.065 1.12L2.25 6.338Z"/></svg>
           Call ${esc(r.contact)}
@@ -2504,7 +2654,6 @@
   }
 
   async function syncReportsFromServer(forceRender = false) {
-    if (webCallReportId || (permModal && permModal.classList.contains('show'))) return; // pause while in call or permission dialog
     try {
       const res = await fetch(`/api/reports?_=${Date.now()}`, { cache: 'no-store' });
       if (res.status === 401) {
@@ -3103,13 +3252,6 @@
   const imgNextBtn = document.getElementById('imgNextBtn');
   let imgModalState = { reportId: '', name: '', photos: [], index: 0 };
 
-  // mic permission
-  const permModal = document.getElementById('permModal');
-  const permStatus = document.getElementById('permStatus');
-  let micPermissionGranted = false;
-  let micPermissionPromise = null;
-  let pendingCallAction = null;
-
   function openImgModal(photos, index = 0, reportId, name) {
     if (!Array.isArray(photos) || !photos.length) return;
     const idx = Math.max(0, Math.min(index, photos.length - 1));
@@ -3140,46 +3282,6 @@
     imgPrev.src = imgModalState.photos[next];
     updateImgNav();
   }
-  function openPermModal(message = '') {
-    if (permStatus) permStatus.textContent = message || '';
-    permModal.classList.add('show');
-  }
-  function closePermModal() { permModal.classList.remove('show'); }
-
-  async function requestMicPermission() {
-    if (micPermissionPromise) return micPermissionPromise;
-    micPermissionPromise = (async () => {
-      try {
-        if (permStatus) permStatus.textContent = '';
-        const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-        if (!isSecure) {
-          if (permStatus) permStatus.textContent = 'Microphone access requires HTTPS (or localhost). Please open the secure version of this site.';
-          throw new Error('Insecure context');
-        }
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-        micPermissionGranted = true;
-        if (permStatus) permStatus.textContent = 'Mic allowed. Connecting…';
-        closePermModal();
-        const action = pendingCallAction;
-        pendingCallAction = null;
-        if (typeof action === 'function') action();
-        return stream;
-      } catch (e) {
-        micPermissionGranted = false;
-        const code = (e && e.name) || '';
-        if (permStatus) {
-          permStatus.textContent = code === 'NotAllowedError'
-            ? 'Permission denied. Click "Allow mic" again and accept the browser prompt (or unblock mic in your address bar).'
-            : 'Could not access mic. Check browser permission and try again.';
-        }
-        throw e;
-      } finally {
-        micPermissionPromise = null;
-      }
-    })();
-    return micPermissionPromise;
-  }
-
   document.addEventListener('click', (e)=>{
     const mapPreviewBtn = e.target.closest('.map-preview-btn');
     if (mapPreviewBtn) {
@@ -3214,220 +3316,6 @@
   });
   document.addEventListener('keydown', (e)=>{
     if (e.key === 'Escape' && imgModal.classList.contains('show')) closeImgModal();
-  });
-
-    const WEB_CALL_POLL_MS = 1500;
-  let webCallPc = null;
-  let webCallLocalStream = null;
-  let webCallReportId = "";
-  let webCallRole = "";
-  let webCallAppliedOffer = 0;
-  let webCallAppliedAnswer = 0;
-  let webCallPollTimer = null;
-  const webCallRemoteAudio = new Audio();
-  webCallRemoteAudio.autoplay = true;
-  const webCallPanel = document.getElementById("webCallPanel");
-  const webCallStatusEl = document.getElementById("webCallStatus");
-  const webCallLabelEl = document.getElementById("webCallReportLabel");
-  const webCallAcceptBtn = document.getElementById("webCallAcceptBtn");
-  const webCallHangBtn = document.getElementById("webCallHangBtn");
-
-  function setWebCallUI(label, status, opts = {}) {
-    const show = opts.show !== false;
-    if (webCallPanel) webCallPanel.classList.toggle("hidden", !show);
-    if (webCallLabelEl) webCallLabelEl.textContent = label || "Idle";
-    if (webCallStatusEl) webCallStatusEl.textContent = status || "";
-    if (webCallAcceptBtn) webCallAcceptBtn.disabled = !opts.enableAccept;
-    if (webCallHangBtn) webCallHangBtn.disabled = !opts.enableHang;
-  }
-
-  async function clearWebCall(notifyServer = false) {
-    const prevId = webCallReportId;
-    try {
-      if (webCallPollTimer) clearTimeout(webCallPollTimer);
-      webCallPollTimer = null;
-      if (webCallPc) {
-        webCallPc.onicecandidate = null;
-        webCallPc.ontrack = null;
-        webCallPc.onconnectionstatechange = null;
-        webCallPc.close();
-      }
-      if (webCallLocalStream) webCallLocalStream.getTracks().forEach(t => t.stop());
-      if (notifyServer && webCallReportId) {
-        try { await fetch(`/api/call/${encodeURIComponent(webCallReportId)}`, { method: "DELETE", credentials: "same-origin" }); } catch (_e) {}
-      }
-    } finally {
-      webCallPc = null;
-      webCallLocalStream = null;
-      webCallRole = "";
-      webCallReportId = "";
-      webCallAppliedOffer = 0;
-      webCallAppliedAnswer = 0;
-      setWebCallUI("Idle", "Not connected", { show: false, enableAccept: false, enableHang: false });
-      if (prevId) callStartedIds.delete(prevId);
-      render();
-    }
-  }
-
-  async function ensureLocalAudio(userInitiated = false) {
-    if (webCallLocalStream) return webCallLocalStream;
-    if (!micPermissionGranted) {
-      if (!userInitiated) {
-        openPermModal('Click "Allow mic" to proceed.');
-        pendingCallAction = null;
-        throw new Error('awaiting user mic permission');
-      }
-      openPermModal();
-      await requestMicPermission();
-    }
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    webCallLocalStream = stream;
-    return stream;
-  }
-
-  async function sendCandidate(reportId, role, candidate) {
-    try {
-      await fetch(`/api/call/${encodeURIComponent(reportId)}/candidate`, {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, candidate }),
-      });
-    } catch (_e) {}
-  }
-
-  async function fetchSignal(reportId) {
-    const res = await fetch(`/api/call/${encodeURIComponent(reportId)}/signal`, { credentials: "same-origin" });
-    if (!res.ok) return null;
-    return res.json().catch(() => null);
-  }
-
-  async function pollWebCallSignals() {
-    if (!webCallReportId || !webCallPc) return;
-    try {
-      const sig = await fetchSignal(webCallReportId);
-      if (!sig) return;
-      if (webCallRole === "offer" && sig.answer && sig.answer.sdp && !webCallPc.currentRemoteDescription) {
-        await webCallPc.setRemoteDescription({ type: sig.answer.type || "answer", sdp: sig.answer.sdp });
-        setWebCallUI("Report " + webCallReportId, "Connected", { show: true, enableHang: true });
-      }
-      const list = webCallRole === "offer" ? (sig.answerCandidates || []) : (sig.offerCandidates || []);
-      const applied = webCallRole === "offer" ? webCallAppliedAnswer : webCallAppliedOffer;
-      const newOnes = list.slice(applied);
-      for (const c of newOnes) {
-        try { await webCallPc.addIceCandidate(new RTCIceCandidate(c)); } catch (_e) {}
-      }
-      if (webCallRole === "offer") webCallAppliedAnswer = list.length; else webCallAppliedOffer = list.length;
-    } finally {
-      if (webCallReportId) webCallPollTimer = setTimeout(pollWebCallSignals, WEB_CALL_POLL_MS);
-    }
-  }
-
-  async function setupPeer(reportId, role, remoteOffer = null) {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      toast_("Web call unsupported", "This browser cannot start a web call.", "warn");
-      return false;
-    }
-    await clearWebCall(false);
-    webCallReportId = reportId;
-    webCallRole = role;
-    setWebCallUI("Report " + reportId, role === "offer" ? "Calling…" : "Joining call…", { show: true, enableHang: true, enableAccept: false });
-
-    const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
-    webCallPc = pc;
-    pc.onconnectionstatechange = () => {
-      const st = pc.connectionState;
-      if (st === "failed" || st === "disconnected" || st === "closed") {
-        setWebCallUI("Report " + reportId, "Call ended", { show: true, enableHang: false });
-        clearWebCall(false);
-      }
-    };
-    pc.ontrack = (event) => {
-      const stream = event.streams && event.streams[0];
-      if (stream) webCallRemoteAudio.srcObject = stream;
-    };
-    pc.onicecandidate = (event) => {
-      if (event.candidate) void sendCandidate(reportId, role, event.candidate);
-    };
-
-    const stream = await ensureLocalAudio(true);
-    stream.getTracks().forEach(track => pc.addTrack(track, stream));
-
-    if (role === "offer") {
-      const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: false });
-      await pc.setLocalDescription(offer);
-      await fetch(`/api/call/${encodeURIComponent(reportId)}/offer`, {
-        method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sdp: offer.sdp, type: offer.type }),
-      });
-      webCallAppliedOffer = 0; webCallAppliedAnswer = 0;
-      pollWebCallSignals();
-    } else {
-      if (!remoteOffer || !remoteOffer.sdp) {
-        toast_("Web call", "Offer is missing or expired.", "warn");
-        return false;
-      }
-      await pc.setRemoteDescription({ type: remoteOffer.type || "offer", sdp: remoteOffer.sdp });
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      await fetch(`/api/call/${encodeURIComponent(reportId)}/answer`, {
-        method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sdp: answer.sdp, type: answer.type }),
-      });
-      pollWebCallSignals();
-    }
-    return true;
-  }
-
-  async function startWebCall(reportId) {
-    if (!reportId) return;
-    if (webCallReportId && webCallReportId !== reportId) await clearWebCall(false);
-    try {
-      if (!micPermissionGranted) {
-        pendingCallAction = () => { startWebCall(reportId); };
-        openPermModal('Click "Allow mic" to start the call.');
-        return;
-      }
-      const sig = await fetchSignal(reportId);
-      const existingOffer = sig && sig.offer && sig.offer.sdp ? sig.offer : null;
-      const alreadyAnswered = sig && sig.answer && sig.answer.sdp;
-      if (existingOffer && !alreadyAnswered && String(existingOffer.fromId || "") !== currentUserId) {
-        setWebCallUI("Report " + reportId, "Incoming web call – connecting…", { show: true, enableHang: true });
-        await setupPeer(reportId, "answer", existingOffer);
-        const rep = reports.find(r => normalizeId(r.id || r.reportId || r._id || '') === reportId);
-        if (rep && String(rep.assignedToId || '') === currentUserId && String(rep.status || '') === 'new') {
-          callStartedIds.add(reportId);
-          render();
-        }
-        return;
-      }
-      await setupPeer(reportId, "offer", null);
-      const rep = reports.find(r => normalizeId(r.id || r.reportId || r._id || '') === reportId);
-      if (rep && String(rep.assignedToId || '') === currentUserId && String(rep.status || '') === 'new') {
-        callStartedIds.add(reportId);
-        render();
-      }
-    } catch (e) {
-      toast_("Web call", e && e.message ? e.message : "Could not start web call.", "warn");
-      await clearWebCall(false);
-    }
-  }
-
-  if (webCallHangBtn) webCallHangBtn.addEventListener("click", () => { void clearWebCall(true); });
-  if (webCallAcceptBtn) webCallAcceptBtn.addEventListener("click", async () => {
-    if (!webCallReportId) return;
-    const sig = await fetchSignal(webCallReportId);
-    if (sig && sig.offer && sig.offer.sdp) {
-      if (!micPermissionGranted) {
-        pendingCallAction = () => { void webCallAcceptBtn.click(); };
-        openPermModal('Click "Allow mic" to join the call.');
-        return;
-      }
-      try{
-        await ensureLocalAudio(true);
-        await setupPeer(webCallReportId, "answer", sig.offer);
-      }catch(_e){}
-    }
   });
 
   // Realtime events
